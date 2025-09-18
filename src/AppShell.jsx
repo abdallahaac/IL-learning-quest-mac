@@ -4,7 +4,7 @@ import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
 import { buildPages } from "./utils/pages.js";
 import { pageThemes, activityThemes } from "./constants/themes.js";
-
+import useEdgeOffsets from "./hooks/useEdgeOffsets.js";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import TransitionView from "./components/TransitionView.jsx";
@@ -223,19 +223,19 @@ export default function AppShell() {
 
 	// Morph order: starts as dots on page 0, then plus → grid → plus → dots → …
 	const BG_SEQUENCE = ["dots", "plus", "grid", "plus", "dots"];
+	const { header, footer } = useEdgeOffsets(12); // 12px safety buffer
 
 	return (
 		<div className={`relative min-h-screen flex flex-col ${themeClass}`}>
-			{/* Persistent morphing background behind everything */}
+			{/* Background stays */}
 			<PatternMorph pageIndex={state.pageIndex} sequence={BG_SEQUENCE} />
 
-			{/* Header (kept mounted; optionally fades while cover intro runs) */}
+			{/* Header (STICKY) */}
 			<div
 				aria-hidden={isCover && coverIntroActive}
 				className={
 					isCover && coverIntroActive ? chromeHiddenClasses : chromeShownClasses
 				}
-				style={{ zIndex: 10 }}
 			>
 				<Header
 					siteTitle={siteTitle}
@@ -244,26 +244,29 @@ export default function AppShell() {
 					activityIndex={currentPage.activityIndex}
 					totalActivities={activityTotal}
 					onHome={() => gotoPage(0)}
-					onContents={() => gotoPage(1)} // <-- NEW
+					onContents={() => gotoPage(1)}
 				/>
 			</div>
 
-			{/* Main view */}
-			<div style={{ zIndex: 10 }}>
-				<TransitionView screenKey={`page-${state.pageIndex}`}>
-					{pageContent}
-				</TransitionView>
-			</div>
+			{/* MAIN — absolutely no top padding/margin here */}
+			<main className="flex-1 overflow-y-auto relative">
+				{/* No top margin/padding here either */}
+				<div style={{ zIndex: 10 }}>
+					<TransitionView screenKey={`page-${state.pageIndex}`}>
+						{pageContent}
+					</TransitionView>
+				</div>
 
-			{/* Footer (kept mounted; optionally fades while cover intro runs) */}
+				{/* Spacer so fixed footer never overlaps content (doesn't move overlays) */}
+				<div aria-hidden className="h-24 sm:h-20" />
+			</main>
+
+			{/* Footer (FIXED) */}
 			<div
 				aria-hidden={isCover && coverIntroActive}
 				className={
-					(isCover && coverIntroActive
-						? chromeHiddenClasses
-						: chromeShownClasses) + " mt-auto"
+					isCover && coverIntroActive ? chromeHiddenClasses : chromeShownClasses
 				}
-				style={{ zIndex: 10 }}
 			>
 				<Footer
 					pageIndex={state.pageIndex}
@@ -273,7 +276,7 @@ export default function AppShell() {
 					finished={state.finished}
 					showPrev={state.pageIndex > 0}
 					showNext={state.pageIndex > 0 && state.pageIndex < totalPages - 1}
-					nextLabel={getNextLabel()} // <-- NEW
+					nextLabel={getNextLabel()}
 				/>
 			</div>
 		</div>

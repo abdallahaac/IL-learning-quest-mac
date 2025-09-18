@@ -15,8 +15,8 @@ export default function Footer({
 
 	return (
 		<footer
-			className="mt-auto bg-white/90 backdrop-blur border-t border-gray-200"
-			role="contentinfo"
+			id="app-footer"
+			className="fixed bottom-0 left-0 w-full z-50 bg-white/90 backdrop-blur border-t border-gray-200"
 		>
 			<div className="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<span className="text-sm text-gray-600">

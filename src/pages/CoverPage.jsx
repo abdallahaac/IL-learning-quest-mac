@@ -14,7 +14,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 	const reduceMotion = useReducedMotion();
 
 	const INTRO_OPTS = {
-		lines: ["Learning Quest on ", "Indigenous Cultures "],
+		lines: ["Learning Quest ", " on Indigenous Cultures "],
 		width: 1100,
 		height: 360,
 		fontSizeTop: 80,
@@ -243,9 +243,21 @@ function CoverBody({
 		</div>
 	);
 }
-
 function splitTitle(t) {
 	if (!t) return ["", ""];
+
+	// Prefer splitting before "on Indigenous Cultures"
+	const re = /\s+on\s+Indigenous\s+Cultures/i;
+	const m = t.match(re);
+	if (m && m.index != null) {
+		const idx = m.index; // start of the space before "on"
+		// slice so line 2 starts at "on Indigenous Cultures"
+		const before = t.slice(0, idx).trimEnd();
+		const after = t.slice(idx).trimStart();
+		return [before, after];
+	}
+
+	// Fallback: your original balanced split
 	if (t.length < 26) return [t, ""];
 	const mid = Math.floor(t.length / 2);
 	const left = t.lastIndexOf(" ", mid);
@@ -260,5 +272,6 @@ function splitTitle(t) {
 			: Math.abs(mid - left) < Math.abs(right - mid)
 			? left
 			: right;
+
 	return [t.slice(0, idx), t.slice(idx + 1)];
 }

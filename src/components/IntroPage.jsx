@@ -71,6 +71,7 @@ export default function IntroPage({ content }) {
 
 			{/* content */}
 			<div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-10">
+				{" "}
 				{/* Section: Introduction */}
 				<motion.section
 					role="region"
@@ -121,7 +122,6 @@ export default function IntroPage({ content }) {
 						</div>
 					</dl>
 				</motion.section>
-
 				{/* Section: What is the Learning Quest… */}
 				<motion.section
 					role="region"
@@ -145,7 +145,6 @@ export default function IntroPage({ content }) {
 						</p>
 					))}
 				</motion.section>
-
 				{/* Section: How does the Learning Quest work? */}
 				<section role="region" aria-labelledby="how-section">
 					<h3
@@ -203,7 +202,6 @@ export default function IntroPage({ content }) {
 						})}
 					</ol>
 				</section>
-
 				{/* Tip */}
 				<div className="bg-white/95 backdrop-blur-sm rounded-xl border border-gray-200 p-4 sm:p-5 shadow-sm">
 					<p className="text-sm text-gray-700">

@@ -17,7 +17,7 @@ export default function Header({
 
 	return (
 		<header
-			className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-200"
+			className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-200"
 			role="banner"
 		>
 			<div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
