@@ -1,22 +1,20 @@
 // src/components/Footer.jsx
 import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 
 export default function Footer({
 	pageIndex = 0,
 	totalPages = 1,
 	onPrev,
 	onNext,
-	nextLabel = "Next",
+	nextLabel = "Next", // <-- NEW
 }) {
 	const isFirst = pageIndex === 0;
 	const isLast = pageIndex === totalPages - 1;
 
 	return (
 		<footer
-			id="app-footer"
 			className="fixed bottom-0 left-0 w-full z-50 bg-white/90 backdrop-blur border-t border-gray-200"
+			role="contentinfo"
 		>
 			<div className="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<span className="text-sm text-gray-600">
@@ -34,17 +32,16 @@ export default function Footer({
 						Back
 					</button>
 
-					{/* Next / Finish */}
+					{/* Next / Finish (hidden on first page like before) */}
 					{!isFirst && (
 						<button
 							type="button"
-							className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-sky-500 text-white hover:bg-sky-600"
+							className="px-5 py-2 rounded-lg bg-sky-500 text-white hover:bg-sky-600"
 							onClick={onNext}
 							aria-label={isLast ? "Finish" : nextLabel}
 							title={isLast ? "Finish" : nextLabel}
 						>
 							{isLast ? "Finish" : nextLabel}
-							{!isLast && <FontAwesomeIcon icon={faArrowRight} />}
 						</button>
 					)}
 				</div>
