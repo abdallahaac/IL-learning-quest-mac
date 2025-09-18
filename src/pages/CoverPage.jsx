@@ -173,9 +173,7 @@ function CoverBody({
 				initial="hidden"
 				animate="show"
 				className="mb-2 text-sm font-medium tracking-wide text-gray-600 uppercase"
-			>
-				Learning Quest
-			</motion.div>
+			></motion.div>
 
 			<h1 className="mb-2">
 				<motion.span
@@ -197,19 +195,8 @@ function CoverBody({
 						className="block text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight"
 					>
 						{/* Ink-style highlight under the second line */}
-						<HighlightBleed
-							key={heroHighlightTrigger ?? "idle"}
-							play={playHero}
-							color="#ffe100ff" // blue
-							duration={0.7}
-							roughness={0.55}
-							noiseOctaves={3}
-							bleed={10}
-							blur={1.8}
-							radius={12}
-						>
-							{line2}
-						</HighlightBleed>
+
+						{line2}
 					</motion.span>
 				)}
 			</h1>
