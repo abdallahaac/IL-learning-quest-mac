@@ -1,0 +1,81 @@
+/*
+ * Global styles for the holistic quest site.  This file imports
+ * TailwindCSS utilities and defines custom animations used in
+ * transition effects and the typewriter cursor blink.  The site
+ * intentionally avoids a dark theme, opting instead for light
+ * pastel gradients on each page.  The transitions defined here
+ * provide smooth fading and sliding between sections.
+ */
+
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Typewriter cursor blink.  Used in the cover page's intro
+   text.  The cursor flashes every second to mimic a typing
+   cursor. */
+.animate-blink {
+	animation: blink 1s steps(2, start) infinite;
+}
+@keyframes blink {
+	50% {
+		opacity: 0;
+	}
+}
+
+/* View transitions.  When a page is rendered the .view-enter
+   animation makes it fade in and slide up.  When a page is
+   unmounted the .view-exit animation makes it fade out and slide
+   down.  These animations are applied automatically by the
+   TransitionView component. */
+.view-enter {
+	animation: fadeIn 0.4s ease forwards, slideUp 0.4s ease forwards;
+}
+.view-exit {
+	animation: fadeOut 0.3s ease forwards, slideDown 0.3s ease forwards;
+}
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+@keyframes slideUp {
+	from {
+		transform: translateY(1rem);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+@keyframes slideDown {
+	from {
+		transform: translateY(0);
+	}
+	to {
+		transform: translateY(-0.5rem);
+	}
+}
+/* in index.css or themes.css */
+.bg-dots {
+	background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+	background-size: 20px 20px;
+}
+
+.bg-lines {
+	background-image: linear-gradient(#e5e7eb 1px, transparent 1px),
+		linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+	background-size: 40px 40px;
+}

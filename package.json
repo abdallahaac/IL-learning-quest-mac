@@ -1,0 +1,44 @@
+{
+	"name": "react-to-scorm",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"build:once": "vite build && node set-manifest-default.js && node zip.js",
+		"package:en": "cross-env BUILD_LANG=en npm run build:once",
+		"package:fr": "cross-env BUILD_LANG=fr npm run build:once",
+		"package": "npm run package:en && npm run package:fr",
+		"lint": "eslint .",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"@fortawesome/fontawesome-svg-core": "^7.0.1",
+		"@fortawesome/free-solid-svg-icons": "^7.0.1",
+		"@fortawesome/react-fontawesome": "^3.0.2",
+		"framer-motion": "^12.23.13",
+		"lucide-react": "^0.544.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"react-helmet-async": "^2.0.5"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.15.0",
+		"@tailwindcss/vite": "^4.1.13",
+		"@types/react": "^18.3.12",
+		"@types/react-dom": "^18.3.1",
+		"@vitejs/plugin-react": "^4.3.4",
+		"@vitejs/plugin-react-swc": "^3.11.0",
+		"archiver": "^7.0.1",
+		"cross-env": "^10.0.0",
+		"eslint": "^9.15.0",
+		"eslint-plugin-react": "^7.37.2",
+		"eslint-plugin-react-hooks": "^5.0.0",
+		"eslint-plugin-react-refresh": "^0.4.14",
+		"globals": "^15.12.0",
+		"tailwindcss": "^4.1.13",
+		"vite": "^6.3.6",
+		"vite-plugin-svgr": "^4.5.0"
+	}
+}

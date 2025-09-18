@@ -1,0 +1,45 @@
+﻿<?xml version="1.0"?>
+<manifest identifier="C256PESLE_Manifest" version="1.1"
+  xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+  xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd
+                      http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd
+                      http://www.imsglobal.org/xsd/imsmd_rootv1p2p1 imsmd_rootv1p2p1.xsd">
+  <organizations default="ORGC256PESLE">
+    <organization identifier="ORGC256PESLE">
+      <!-- <title>Revitalizing Voices: Navigating the Indigenous Languages Ac</title>
+      <item identifier="C256PESLE_I01" identifierref="C256PESLE_S01" isvisible="true">
+        <title>	Revitalizing Voices: Navigating the Indigenous Languages Act</title> -->
+
+      <title>	Revitalisation des voix autochtones : comprendre la Loi sur les langues
+			autochtones</title>
+      <item identifier="C256PESLE_I01" identifierref="C256PESLE_S01" isvisible="true">
+        <title>	Revitalisation des voix autochtones : comprendre la Loi sur les langues
+			autochtones</title>
+
+
+        <metadata>
+          <schema>ADL SCORM</schema>
+          <schemaversion>1.2</schemaversion>
+        </metadata>
+      </item>
+      <metadata>
+        <schema>ADL SCORM</schema>
+        <schemaversion>1.2</schemaversion>
+      </metadata>
+    </organization>
+  </organizations>
+  <resources>
+    <!-- <resource identifier="C256PESLE_S01" type="webcontent" adlcp:scormtype="sco" href="index.html"> -->
+    <resource identifier="C256PESLE_S01" type="webcontent" adlcp:scormtype="sco" href="index_fr.html">
+    <!-- <resource identifier="C256PESLE_S01" type="webcontent" adlcp:scormtype="sco" href="index.html"> -->
+      <metadata>
+        <schema>ADL SCORM</schema>
+        <schemaversion>1.2</schemaversion>
+      </metadata>
+      <file href="index.html"/>
+      <!-- <file href="index.html"/> -->
+    </resource>
+  </resources>
+</manifest>
