@@ -103,3 +103,11 @@
 }
 
 /* (add any other site-specific animations/utilities below) */
+/* ================================
+   Ensure pointer cursor on links & buttons
+   ================================ */
+button,
+[role="button"],
+a {
+	cursor: pointer;
+}

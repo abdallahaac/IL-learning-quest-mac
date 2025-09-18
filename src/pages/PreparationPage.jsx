@@ -148,16 +148,6 @@ export default function PreparationPage({ content, onStartActivities }) {
 						))}
 					</ul>
 				</section>
-
-				<div className="flex justify-center">
-					<button
-						onClick={onStartActivities}
-						className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-sky-500 text-white font-medium shadow hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400"
-					>
-						Begin Activities
-						<FontAwesomeIcon icon={faArrowRight} />
-					</button>
-				</div>
 			</div>
 		</div>
 	);

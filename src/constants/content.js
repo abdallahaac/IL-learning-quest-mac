@@ -27,6 +27,40 @@ export const INTRO_INFO_CONTENT = {
 			],
 		},
 	],
+	details: {
+		steps: [
+			{
+				bullets: [
+					"If your work team can’t participate, form your own team or find a study-buddy.",
+				],
+			},
+			{
+				bullets: [
+					"Will you focus on specific nations/communities, or learn region by region?",
+					"Will you explore all three distinct Peoples: First Nations, Inuit, and Métis?",
+				],
+			},
+			{
+				bullets: [
+					"Encourage colleagues, post updates, and share resources in your Teams chat.",
+					"If a topic interests you beyond the quest questions, go for it!",
+				],
+			},
+			{
+				bullets: [
+					"Set protocols for a safe space—what do people need to feel respected and supported?",
+					"What was your main takeaway from the experience?",
+				],
+			},
+			{
+				bullets: [
+					"Share your resources on “Best media by Indigenous voices”.",
+					"Continue learning year-round.",
+					"Be part of the change—get actively involved in reconciliation (see the Reconciliation Path job aid).",
+				],
+			},
+		],
+	},
 };
 
 export const PREPARATION_CONTENT = {

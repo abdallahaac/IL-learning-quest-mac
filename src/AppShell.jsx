@@ -66,6 +66,30 @@ export default function AppShell() {
 			finished: state.finished,
 		});
 	}, [state, setSuspendData]);
+	// inside AppShell, after you have currentPage, pages, state, etc.
+
+	// Helper to derive the CTA label shown in the footer
+	const getNextLabel = () => {
+		const i = state.pageIndex;
+		const atLast = i >= totalPages - 1;
+		if (atLast) return "Finish";
+
+		const next = pages[i + 1];
+
+		// Special case: preparation → Begin Activities
+		if (currentPage.type === "preparation") {
+			return "Begin Activities";
+		}
+
+		// Activity pages → "Activity N"
+		if (next?.type === "activity") {
+			const num = (next.activityIndex ?? 0) + 1;
+			return `Activity ${num}`;
+		}
+
+		// Otherwise → use the page's title
+		return next?.content?.title || "Next";
+	};
 
 	// Current page & theme
 	const currentPage = pages[state.pageIndex] ?? pages[0];
@@ -220,6 +244,7 @@ export default function AppShell() {
 					activityIndex={currentPage.activityIndex}
 					totalActivities={activityTotal}
 					onHome={() => gotoPage(0)}
+					onContents={() => gotoPage(1)} // <-- NEW
 				/>
 			</div>
 
@@ -248,6 +273,7 @@ export default function AppShell() {
 					finished={state.finished}
 					showPrev={state.pageIndex > 0}
 					showNext={state.pageIndex > 0 && state.pageIndex < totalPages - 1}
+					nextLabel={getNextLabel()} // <-- NEW
 				/>
 			</div>
 		</div>
