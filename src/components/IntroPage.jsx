@@ -83,13 +83,12 @@ export default function IntroPage({ content }) {
 				>
 					<h2
 						id="intro-section"
-						className="text-2xl sm:text-3xl font-bold text-gray-900"
+						className="text-2xl text-2xl font-bold text-indigo-700/90"
 					>
-						Introduction
+						{title}
 					</h2>
 
 					{/* keep your original title as a subtle subheader */}
-					<p className="text-sm font-medium text-indigo-700/90">{title}</p>
 
 					{introParas.map((p, i) => (
 						<p key={i} className="text-gray-800 leading-relaxed">
@@ -134,7 +133,7 @@ export default function IntroPage({ content }) {
 				>
 					<h3
 						id="what-section"
-						className="text-xl sm:text-2xl font-semibold text-gray-900"
+						className=" text-2xl text-2xl font-bold text-indigo-700/90"
 					>
 						What is the Learning Quest on Indigenous Cultures?
 					</h3>
@@ -149,7 +148,7 @@ export default function IntroPage({ content }) {
 				<section role="region" aria-labelledby="how-section">
 					<h3
 						id="how-section"
-						className="text-xl sm:text-2xl font-semibold text-gray-900 mb-4"
+						className=" text-2xl text-2xl font-bold text-indigo-700/90 mb-4"
 					>
 						{howHeading}
 					</h3>

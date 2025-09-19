@@ -10,11 +10,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const DEFAULT_CARD_OFFSETS = [
-	{ x: -80, y: 0 },
-	{ x: -100, y: 10 },
-	{ x: -75, y: 10 },
-	{ x: -50, y: 0 },
-	{ x: -30, y: 0 },
+	{ x: -100, y: 0 },
+	{ x: -92, y: 10 },
+	{ x: -82, y: 10 },
+	{ x: -75, y: 0 },
+	{ x: -65, y: 0 },
 ];
 
 const ANIM = {
@@ -50,10 +50,10 @@ export default function ContentsPage({
 	progress = 0,
 	prefillStart = 0.06,
 
-	/** NEW: card layout knobs */
-	cardWidth = 210, // base width in px
+	/** Layout knobs */
+	cardWidth = 210, // card width (px)
 	autoScaleCards = true, // shrink to fit per lane
-	clampCards = true, // keep within left/right bounds
+	clampCards = false, // allow offsets to push past edges by default
 	clampMargin = 12, // padding from edges when clamped
 }) {
 	const startActivities = 4;
@@ -118,6 +118,7 @@ export default function ContentsPage({
 		const svg = railRef.current;
 		const measure = measurePathRef.current;
 		if (!svg || !measure) return;
+
 		const place = () => {
 			const len = measure.getTotalLength?.() ?? 0;
 			setPathLen(len);
@@ -131,7 +132,9 @@ export default function ContentsPage({
 			});
 			setNodePos(pos);
 		};
+
 		place();
+
 		let ro;
 		if (typeof window !== "undefined" && "ResizeObserver" in window) {
 			ro = new ResizeObserver(place);
@@ -158,12 +161,11 @@ export default function ContentsPage({
 
 	const baseInit = 1;
 	const baseTarget = 0;
+
 	const prevProgOffsetRef = useRef(null);
 	useLayoutEffect(() => {
 		if (prevProgOffsetRef.current == null) prevProgOffsetRef.current = 1;
 	}, []);
-	const initialProgOffset =
-		prevProgOffsetRef.current != null ? prevProgOffsetRef.current : 1;
 	useLayoutEffect(() => {
 		prevProgOffsetRef.current = 1 - adjusted;
 	}, [adjusted]);
@@ -326,7 +328,7 @@ export default function ContentsPage({
 								const scale = autoScaleCards
 									? Math.min(1, maxCardW / cardWidth)
 									: 1;
-								const CARD_W = cardWidth; // use prop
+								const CARD_W = cardWidth;
 
 								// position with optional clamp
 								const dx = offsets[i]?.x || 0;
