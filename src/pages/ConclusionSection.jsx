@@ -170,18 +170,6 @@ export default function ConclusionSection({ content = {} }) {
 						))}
 					</div>
 				</motion.section>
-
-				{/* Thank you */}
-				<motion.div
-					className="mt-8 text-center"
-					variants={tailReveal}
-					initial="hidden"
-					animate="show"
-				>
-					<span className="inline-block px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-medium">
-						Thank you for learning together ✨
-					</span>
-				</motion.div>
 			</div>
 		</motion.div>
 	);

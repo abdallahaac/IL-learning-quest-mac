@@ -10,7 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const DEFAULT_CARD_OFFSETS = [
-	{ x: -120, y: 0 },
+	{ x: -80, y: 0 },
 	{ x: -100, y: 10 },
 	{ x: -75, y: 10 },
 	{ x: -50, y: 0 },
@@ -49,6 +49,12 @@ export default function ContentsPage({
 	cardPosOverrides,
 	progress = 0,
 	prefillStart = 0.06,
+
+	/** NEW: card layout knobs */
+	cardWidth = 210, // base width in px
+	autoScaleCards = true, // shrink to fit per lane
+	clampCards = true, // keep within left/right bounds
+	clampMargin = 12, // padding from edges when clamped
 }) {
 	const startActivities = 4;
 	const teamIndex = startActivities + activityCount;
@@ -89,7 +95,6 @@ export default function ContentsPage({
 	const prefersReduced = useReducedMotion();
 
 	const NODE_R = 26;
-	const CARD_W = 210;
 	const CARD_H = 84;
 	const CARD_GAP_Y = 40;
 
@@ -291,7 +296,10 @@ export default function ContentsPage({
 									filter: "drop-shadow(0 2px 6px rgba(59,130,246,0.35))",
 									pointerEvents: "none",
 								}}
-								initial={{ strokeDashoffset: initialProgOffset, opacity: 1 }}
+								initial={{
+									strokeDashoffset: prevProgOffsetRef.current ?? 1,
+									opacity: 1,
+								}}
 								animate={{ strokeDashoffset: 1 - adjusted, opacity: 1 }}
 								transition={{
 									duration: ANIM.progDuration,
@@ -306,45 +314,48 @@ export default function ContentsPage({
 							{items.map((it, i) => {
 								const pos = nodePos[i] || { x: 0, y: 0, deg: 0, t: 0 };
 								const hue = it.hue ?? 210;
-
-								// Single HEX per item. Expose it as --node-color for Tailwind arbitrary values.
 								const nodeHex = hslToHex(hue, 64, 55);
+
 								const lanes = items.length;
 								const laneW = 1200 / lanes;
 								const laneCenterX = laneW * (i + 0.5);
 								const lanePadding = 24;
+
+								// width & scaling
 								const maxCardW = Math.max(140, laneW - lanePadding * 2);
-								const scale = Math.min(1, maxCardW / 210);
+								const scale = autoScaleCards
+									? Math.min(1, maxCardW / cardWidth)
+									: 1;
+								const CARD_W = cardWidth; // use prop
+
+								// position with optional clamp
 								const dx = offsets[i]?.x || 0;
 								const dy = offsets[i]?.y || 0;
 								let cardLeft = laneCenterX + dx;
 								const cardTop = pos.y + NODE_R + CARD_GAP_Y + dy;
-								const halfW = (CARD_W * scale) / 2;
-								const margin = 12;
-								const minCenter = margin + halfW;
-								const maxCenter = 1200 - (margin + halfW);
-								cardLeft = Math.min(Math.max(cardLeft, minCenter), maxCenter);
 
-								const completed = adjusted >= (nodePos[i]?.t ?? 0);
+								if (clampCards) {
+									const halfW = (CARD_W * scale) / 2;
+									const minCenter = clampMargin + halfW;
+									const maxCenter = 1200 - (clampMargin + halfW);
+									cardLeft = Math.min(Math.max(cardLeft, minCenter), maxCenter);
+								}
 
 								return (
 									<li key={i} className="absolute" style={{ left: 0, top: 0 }}>
-										{/* Node (TABBABLE). CSS var provides the color; Tailwind consumes it. */}
+										{/* Node (tabbable) */}
 										<motion.button
 											id={`toc-node-${i}`}
 											type="button"
 											onClick={() => onNavigate?.(it.index)}
 											className="outline-none pointer-events-auto rounded-full focus-visible:ring-4 focus-visible:ring-sky-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white/80"
-											aria-label={`${it.label}, Page ${it.index + 1}${
-												completed ? " (completed)" : ""
-											}`}
+											aria-label={`${it.label}, Page ${it.index + 1}`}
 											style={{
 												position: "absolute",
 												left: pos.x,
 												top: pos.y,
 												transform: "translate(-50%, -50%)",
 												WebkitTapHighlightColor: "transparent",
-												// expose color for Tailwind arbitrary values:
 												["--node-color"]: nodeHex,
 											}}
 											initial={{ scale: 0, opacity: 0 }}
@@ -376,8 +387,8 @@ export default function ContentsPage({
 											<motion.div
 												className="backdrop-blur-md flex items-center justify-center no-backdrop-glass border-2 rounded-full"
 												style={{
-													width: NODE_R * 2,
-													height: NODE_R * 2,
+													width: 52,
+													height: 52,
 													borderColor: "var(--node-color)",
 													background: `hsla(${hue}, 70%, 97%, 0.85)`,
 													boxShadow:
@@ -390,17 +401,13 @@ export default function ContentsPage({
 											>
 												<FontAwesomeIcon
 													icon={it.icon}
-													className={
-														completed
-															? "text-sky-600 text-lg"
-															: "text-lg text-[var(--node-color)]"
-													}
+													className="text-lg text-[var(--node-color)]"
 													aria-hidden
 												/>
 											</motion.div>
 										</motion.button>
 
-										{/* Card — CLICKABLE, not tabbable; uses the same var for the dot */}
+										{/* Card (clickable, not tabbable) */}
 										<motion.button
 											id={`toc-card-${i}`}
 											type="button"
@@ -436,14 +443,7 @@ export default function ContentsPage({
 											>
 												<div className="px-4 py-3 hover:shadow-[0_14px_40px_rgba(2,6,23,0.16)]">
 													<div className="flex items-center gap-2">
-														<span
-															className={
-																"inline-block w-2.5 h-2.5 rounded-full " +
-																(completed
-																	? "bg-sky-600"
-																	: "bg-[var(--node-color)]")
-															}
-														/>
+														<span className="inline-block w-2.5 h-2.5 rounded-full bg-[var(--node-color)]" />
 														<span className="text-sm font-semibold text-slate-900 line-clamp-1">
 															{it.label}
 														</span>
