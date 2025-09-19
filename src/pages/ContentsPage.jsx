@@ -17,14 +17,38 @@ const DEFAULT_CARD_OFFSETS = [
 	{ x: -30, y: 0 },
 ];
 
+const ANIM = {
+	baseDuration: 3.6,
+	baseDelay: 0.0,
+	progDuration: 2.6,
+	progDelay: 0.45,
+	nodeDelay0: 0.22,
+	nodeStagger: 0.11,
+	cardDelay0: 0.5,
+	cardStagger: 0.09,
+};
+
+/* one-time HSL→HEX helper so Firefox/Chrome match exactly */
+function hslToHex(h, s, l) {
+	s /= 100;
+	l /= 100;
+	const k = (n) => (n + h / 30) % 12;
+	const a = s * Math.min(l, 1 - l);
+	const f = (n) =>
+		l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+	const toHex = (x) =>
+		Math.round(255 * x)
+			.toString(16)
+			.padStart(2, "0");
+	return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+}
+
 export default function ContentsPage({
 	activityCount = 0,
 	onNavigate,
 	cardPosOverrides,
-	/** 0..1 sequential course progress */
 	progress = 0,
-	/** tiny head-start before first node */
-	prefillStart = 0.12,
+	prefillStart = 0.06,
 }) {
 	const startActivities = 4;
 	const teamIndex = startActivities + activityCount;
@@ -65,8 +89,8 @@ export default function ContentsPage({
 	const prefersReduced = useReducedMotion();
 
 	const NODE_R = 26;
-	const CARD_W = 240;
-	const CARD_H = 90;
+	const CARD_W = 210;
+	const CARD_H = 84;
 	const CARD_GAP_Y = 40;
 
 	const offsets = useMemo(() => {
@@ -89,11 +113,9 @@ export default function ContentsPage({
 		const svg = railRef.current;
 		const measure = measurePathRef.current;
 		if (!svg || !measure) return;
-
 		const place = () => {
 			const len = measure.getTotalLength?.() ?? 0;
 			setPathLen(len);
-
 			const n = items.length;
 			const pos = Array.from({ length: n }).map((_, i) => {
 				const t = 0.08 + (i * 0.84) / Math.max(1, n - 1);
@@ -104,9 +126,7 @@ export default function ContentsPage({
 			});
 			setNodePos(pos);
 		};
-
 		place();
-
 		let ro;
 		if (typeof window !== "undefined" && "ResizeObserver" in window) {
 			ro = new ResizeObserver(place);
@@ -126,32 +146,23 @@ export default function ContentsPage({
 		document.getElementById(`toc-node-${next}`)?.focus();
 	};
 
-	// --- compute dash numbers above your return() ---
-	const hasLen = pathLen > 0;
-	const pre = Math.max(0, Math.min(0.3, prefillStart)); // tiny head-start
+	// progress math (unit-space dashes)
+	const pre = Math.max(0, Math.min(0.3, prefillStart));
 	const clamped = Math.max(0, Math.min(1, progress));
-	const adjusted = pre + (1 - pre) * clamped; // 0..1 with prefill
+	const adjusted = pre + (1 - pre) * clamped;
 
-	// Dash math: show `visible = len * adjusted` from the left
-	const dashArray = hasLen ? `${pathLen} ${pathLen}` : "1 1";
-	const targetOffset = hasLen ? pathLen - pathLen * adjusted : 1;
-
-	// We need a defined numeric "from" value so FM can animate.
-	// Seed it to the *prefill* amount on first measure.
-	const prevOffsetRef = useRef(null);
+	const baseInit = 1;
+	const baseTarget = 0;
+	const prevProgOffsetRef = useRef(null);
 	useLayoutEffect(() => {
-		if (hasLen && prevOffsetRef.current == null) {
-			prevOffsetRef.current = pathLen - pathLen * pre; // small prefill on mount
-		}
-	}, [hasLen, pathLen, pre]);
-
-	const initialOffset =
-		prevOffsetRef.current != null ? prevOffsetRef.current : targetOffset;
-
-	// After each render, remember where we ended so the next change animates from there
+		if (prevProgOffsetRef.current == null) prevProgOffsetRef.current = 1;
+	}, []);
+	const initialProgOffset =
+		prevProgOffsetRef.current != null ? prevProgOffsetRef.current : 1;
 	useLayoutEffect(() => {
-		if (hasLen) prevOffsetRef.current = targetOffset;
-	}, [hasLen, targetOffset]);
+		prevProgOffsetRef.current = 1 - adjusted;
+	}, [adjusted]);
+
 	return (
 		<div
 			className="flex-1 flex flex-col items-center px-4"
@@ -196,12 +207,17 @@ export default function ContentsPage({
 						<svg
 							ref={railRef}
 							className="block w-full"
-							style={{ height: 230, overflow: "visible" }}
+							width="100%"
+							height="230"
 							viewBox="0 0 1200 230"
 							aria-hidden="true"
 							focusable="false"
+							style={{
+								overflow: "visible",
+								colorInterpolation: "sRGB",
+								colorInterpolationFilters: "sRGB",
+							}}
 						>
-							{/* hidden path for length/points */}
 							<path
 								ref={measurePathRef}
 								d="M0,165 C220,65 420,205 600,125 C780,45 980,205 1200,125"
@@ -217,10 +233,12 @@ export default function ContentsPage({
 									y1="0%"
 									x2="100%"
 									y2="0%"
+									gradientUnits="userSpaceOnUse"
+									style={{ colorInterpolation: "sRGB" }}
 								>
-									<stop offset="0%" stopColor="hsl(204 90% 55%)" />
-									<stop offset="50%" stopColor="hsl(228 85% 60%)" />
-									<stop offset="100%" stopColor="hsl(262 80% 62%)" />
+									<stop offset="0%" stopColor="#25A1F4" />
+									<stop offset="50%" stopColor="#4265F0" />
+									<stop offset="100%" stopColor="#8951EC" />
 								</linearGradient>
 								<filter
 									id="softDrop"
@@ -228,6 +246,7 @@ export default function ContentsPage({
 									y="-50%"
 									width="200%"
 									height="200%"
+									colorInterpolationFilters="sRGB"
 								>
 									<feDropShadow
 										dx="0"
@@ -241,44 +260,44 @@ export default function ContentsPage({
 							{/* base rail */}
 							<motion.path
 								d="M0,165 C220,65 420,205 600,125 C780,45 980,205 1200,125"
+								pathLength="1"
 								fill="none"
 								stroke="hsl(220 25% 72%)"
 								strokeWidth="10"
 								strokeLinecap="round"
 								filter="url(#softDrop)"
 								vectorEffect="non-scaling-stroke"
-								initial={prefersReduced ? undefined : { pathLength: 0 }}
-								animate={prefersReduced ? undefined : { pathLength: 1 }}
-								transition={
-									prefersReduced
-										? { duration: 0 }
-										: { duration: 1.2, ease: "easeOut" }
-								}
+								style={{ strokeDasharray: "1 1" }}
+								initial={{ strokeDashoffset: baseInit }}
+								animate={{ strokeDashoffset: baseTarget }}
+								transition={{
+									duration: ANIM.baseDuration,
+									ease: "easeInOut",
+									delay: ANIM.baseDelay,
+								}}
 							/>
 
-							{/* progress (animate dashoffset between numeric values) */}
-							{/* PROGRESS (animates from prefill -> new progress) */}
+							{/* progress rail */}
 							<motion.path
 								d="M0,165 C220,65 420,205 600,125 C780,45 980,205 1200,125"
+								pathLength="1"
 								fill="none"
 								stroke="url(#railProgress)"
 								strokeWidth="14"
 								strokeLinecap="round"
 								vectorEffect="non-scaling-stroke"
 								style={{
-									strokeDasharray: dashArray, // "<len> <len>"
+									strokeDasharray: "1 1",
 									filter: "drop-shadow(0 2px 6px rgba(59,130,246,0.35))",
 									pointerEvents: "none",
 								}}
-								initial={{
-									strokeDashoffset: initialOffset,
-									opacity: hasLen ? 1 : 0,
+								initial={{ strokeDashoffset: initialProgOffset, opacity: 1 }}
+								animate={{ strokeDashoffset: 1 - adjusted, opacity: 1 }}
+								transition={{
+									duration: ANIM.progDuration,
+									ease: "easeInOut",
+									delay: ANIM.progDelay,
 								}}
-								animate={{
-									strokeDashoffset: targetOffset,
-									opacity: hasLen ? 1 : 0,
-								}}
-								transition={{ duration: 0.6, ease: "easeOut" }}
 							/>
 						</svg>
 
@@ -287,26 +306,30 @@ export default function ContentsPage({
 							{items.map((it, i) => {
 								const pos = nodePos[i] || { x: 0, y: 0, deg: 0, t: 0 };
 								const hue = it.hue ?? 210;
-								const base = `hsl(${hue} 72% 44%)`;
-								const glass = `hsla(${hue} 70% 97% / 0.85)`;
-								const border = `hsl(${hue} 64% 55%)`;
 
+								// Single HEX per item. Expose it as --node-color for Tailwind arbitrary values.
+								const nodeHex = hslToHex(hue, 64, 55);
 								const lanes = items.length;
 								const laneW = 1200 / lanes;
 								const laneCenterX = laneW * (i + 0.5);
 								const lanePadding = 24;
 								const maxCardW = Math.max(140, laneW - lanePadding * 2);
-								const scale = Math.min(1, maxCardW / 240);
-
+								const scale = Math.min(1, maxCardW / 210);
 								const dx = offsets[i]?.x || 0;
 								const dy = offsets[i]?.y || 0;
-								const cardLeft = laneCenterX + dx;
+								let cardLeft = laneCenterX + dx;
 								const cardTop = pos.y + NODE_R + CARD_GAP_Y + dy;
+								const halfW = (CARD_W * scale) / 2;
+								const margin = 12;
+								const minCenter = margin + halfW;
+								const maxCenter = 1200 - (margin + halfW);
+								cardLeft = Math.min(Math.max(cardLeft, minCenter), maxCenter);
 
-								const completed = adjusted >= pos.t;
+								const completed = adjusted >= (nodePos[i]?.t ?? 0);
 
 								return (
 									<li key={i} className="absolute" style={{ left: 0, top: 0 }}>
+										{/* Node (TABBABLE). CSS var provides the color; Tailwind consumes it. */}
 										<motion.button
 											id={`toc-node-${i}`}
 											type="button"
@@ -320,23 +343,20 @@ export default function ContentsPage({
 												left: pos.x,
 												top: pos.y,
 												transform: "translate(-50%, -50%)",
+												WebkitTapHighlightColor: "transparent",
+												// expose color for Tailwind arbitrary values:
+												["--node-color"]: nodeHex,
 											}}
-											initial={
-												prefersReduced ? undefined : { scale: 0, opacity: 0 }
-											}
-											animate={
-												prefersReduced ? undefined : { scale: 1, opacity: 1 }
-											}
-											transition={
-												prefersReduced
-													? { duration: 0 }
-													: {
-															delay: 0.08 + i * 0.06,
-															type: "spring",
-															stiffness: 260,
-															damping: 22,
-													  }
-											}
+											initial={{ scale: 0, opacity: 0 }}
+											animate={{ scale: 1, opacity: 1 }}
+											whileHover={{ scale: 1.06 }}
+											whileTap={{ scale: 0.96 }}
+											transition={{
+												delay: ANIM.nodeDelay0 + i * ANIM.nodeStagger,
+												type: "spring",
+												stiffness: 230,
+												damping: 26,
+											}}
 											onKeyDown={(e) => {
 												if (e.key === "ArrowRight" || e.key === "ArrowDown") {
 													e.preventDefault();
@@ -353,90 +373,87 @@ export default function ContentsPage({
 												}
 											}}
 										>
-											<div
-												className="backdrop-blur-md flex items-center justify-center"
+											<motion.div
+												className="backdrop-blur-md flex items-center justify-center no-backdrop-glass border-2 rounded-full"
 												style={{
 													width: NODE_R * 2,
 													height: NODE_R * 2,
-													borderRadius: 9999,
-													border: `2px solid ${border}`,
-													background: glass,
+													borderColor: "var(--node-color)",
+													background: `hsla(${hue}, 70%, 97%, 0.85)`,
 													boxShadow:
 														"0 8px 24px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
+												}}
+												whileHover={{
+													boxShadow:
+														"0 10px 28px rgba(15,23,42,0.22), inset 0 1px 0 rgba(255,255,255,0.75)",
 												}}
 											>
 												<FontAwesomeIcon
 													icon={it.icon}
-													className="text-lg"
-													style={{
-														color: completed ? "hsl(204 90% 45%)" : base,
-													}}
+													className={
+														completed
+															? "text-sky-600 text-lg"
+															: "text-lg text-[var(--node-color)]"
+													}
 													aria-hidden
 												/>
-											</div>
+											</motion.div>
 										</motion.button>
 
-										<svg
-											className="absolute"
-											style={{ left: 0, top: 0, width: "100%", height: "100%" }}
-											viewBox="0 0 1200 230"
-											aria-hidden="true"
-										>
-											<path
-												d={`M ${pos.x} ${pos.y + NODE_R}
-                           C ${pos.x} ${pos.y + NODE_R + 28},
-                             ${cardLeft} ${cardTop - 36},
-                             ${cardLeft} ${cardTop}`}
-												fill="none"
-												stroke={`hsl(${hue} 40% 60% / 0.55)`}
-												strokeWidth="2"
-											/>
-										</svg>
-
+										{/* Card — CLICKABLE, not tabbable; uses the same var for the dot */}
 										<motion.button
 											id={`toc-card-${i}`}
 											type="button"
 											onClick={() => onNavigate?.(it.index)}
+											tabIndex={-1}
+											aria-hidden="true"
 											className="pointer-events-auto absolute text-left origin-top outline-none rounded-2xl focus-visible:ring-4 focus-visible:ring-sky-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white/80"
-											aria-label={`Open ${it.label}, Page ${it.index + 1}`}
 											style={{
 												left: cardLeft,
 												top: cardTop,
 												width: CARD_W,
 												height: CARD_H,
 												transform: `translate(-50%, 0) scale(${scale})`,
+												WebkitTapHighlightColor: "transparent",
+												["--node-color"]: nodeHex,
 											}}
-											initial={
-												prefersReduced ? undefined : { opacity: 0, y: 10 }
-											}
-											animate={
-												prefersReduced ? undefined : { opacity: 1, y: 0 }
-											}
-											transition={
-												prefersReduced
-													? { duration: 0 }
-													: { delay: 0.22 + i * 0.05, duration: 0.35 }
-											}
+											initial={{ opacity: 0, y: 14 }}
+											animate={{ opacity: 1, y: 0 }}
+											whileHover={{ y: -2, scale: 1.02 }}
+											whileTap={{ scale: 0.99 }}
+											transition={{
+												delay: ANIM.cardDelay0 + i * ANIM.cardStagger,
+												duration: 0.55,
+												ease: "easeOut",
+											}}
 										>
-											<div className="rounded-2xl border border-slate-300/80 bg-white/92 backdrop-blur shadow-[0_10px_30px_rgba(2,6,23,0.12)] px-4 py-3 hover:shadow-[0_14px_40px_rgba(2,6,23,0.16)] transition-shadow">
-												<div className="flex items-center gap-2">
-													<span
-														className="inline-block w-2.5 h-2.5 rounded-full"
-														style={{
-															background: completed
-																? "hsl(204 90% 45%)"
-																: `hsl(${hue} 70% 45%)`,
-														}}
-													/>
-													<span className="text-sm font-semibold text-slate-900 line-clamp-1">
-														{it.label}
-													</span>
-												</div>
-												<div className="text-xs text-slate-600 mt-1">
-													Page {it.index + 1}
-												</div>
-												<div className="text-[11px] text-slate-700 mt-1">
-													Open →
+											<div
+												className="rounded-2xl border bg-white/92 backdrop-blur transition-shadow no-backdrop-glass"
+												style={{
+													borderColor: "rgba(203,213,225,0.8)",
+													boxShadow: "0 10px 30px rgba(2,6,23,0.12)",
+												}}
+											>
+												<div className="px-4 py-3 hover:shadow-[0_14px_40px_rgba(2,6,23,0.16)]">
+													<div className="flex items-center gap-2">
+														<span
+															className={
+																"inline-block w-2.5 h-2.5 rounded-full " +
+																(completed
+																	? "bg-sky-600"
+																	: "bg-[var(--node-color)]")
+															}
+														/>
+														<span className="text-sm font-semibold text-slate-900 line-clamp-1">
+															{it.label}
+														</span>
+													</div>
+													<div className="text-xs text-slate-600 mt-1">
+														Page {it.index + 1}
+													</div>
+													<div className="text-[11px] text-slate-700 mt-1">
+														Open →
+													</div>
 												</div>
 											</div>
 										</motion.button>
@@ -449,13 +466,12 @@ export default function ContentsPage({
 					<div className="mt-6 text-center">
 						<motion.div
 							className="text-slate-600 text-xs md:text-sm"
-							initial={prefersReduced ? undefined : { opacity: 0, y: 6 }}
-							animate={prefersReduced ? undefined : { opacity: 1, y: 0 }}
-							transition={
-								prefersReduced
-									? { duration: 0 }
-									: { duration: 0.45, delay: 0.2 }
-							}
+							initial={{ opacity: 0, y: 6 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{
+								duration: 0.6,
+								delay: ANIM.cardDelay0 + items.length * ANIM.cardStagger,
+							}}
 							aria-hidden="true"
 						>
 							Use arrow keys to move • Enter to open

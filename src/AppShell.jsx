@@ -18,8 +18,17 @@ import TeamReflectionPage from "./pages/TeamReflectionPage.jsx";
 import ActivityPage from "./pages/ActivityPage.jsx";
 import PatternMorph from "./components/PatternMorph.jsx";
 
-// ---- Local storage helpers ----
+/* ========================================================================
+   Persistence helpers (SCORM + localStorage)
+   ======================================================================== */
+
+// Bump these to invalidate old saved progress across builds.
+const STATE_VERSION = 3;
+const BUILD_ID = "toc-progress-2025-09-19-02";
+
+// Single LS key for all saved state.
 const LS_KEY = "quest_state_v1";
+
 function loadFromLS() {
 	try {
 		const raw = localStorage.getItem(LS_KEY);
@@ -62,17 +71,39 @@ export default function AppShell() {
 	// Hash-based routing
 	const [route, push] = useHashRoute();
 
-	// ---- Hydrate state from SCORM OR localStorage (localStorage fallback) ----
+	/* --------------------------------------------------------------------
+	   Hydrate state from SCORM/localStorage (with version/build checks)
+	   -------------------------------------------------------------------- */
 	const [state, setState] = useState(() => {
 		const scormSaved = getSuspendData?.();
 		const lsSaved = loadFromLS();
-		const saved = scormSaved ?? lsSaved ?? null;
+		let saved = scormSaved ?? lsSaved ?? null;
+
+		let forceFresh = false;
+		try {
+			const url = new URL(window.location.href);
+			forceFresh = url.searchParams.has("fresh");
+		} catch {}
+
+		const usingSaved =
+			!!saved &&
+			!forceFresh &&
+			saved.version === STATE_VERSION &&
+			saved.buildId === BUILD_ID;
+
+		console.log(
+			"[AppShell] Hydrate:",
+			{ hasScorm: !!scormSaved, hasLS: !!lsSaved },
+			{ forceFresh, usingSaved, saved }
+		);
+
+		if (!usingSaved) saved = null;
 
 		const initialIndex = Math.min(saved?.pageIndex ?? 0, totalPages - 1);
+
 		const visitedFromSave = Array.isArray(saved?.visited)
 			? new Set(saved.visited)
 			: new Set();
-		// Always include the current page as visited
 		if (!visitedFromSave.has(initialIndex)) visitedFromSave.add(initialIndex);
 
 		return {
@@ -91,12 +122,16 @@ export default function AppShell() {
 			if (idx === s.pageIndex && s.visited.has(idx)) return s;
 			const nextVisited = new Set(s.visited);
 			nextVisited.add(idx);
+			console.log("[AppShell] Route change →", {
+				idx,
+				nextVisited: [...nextVisited],
+			});
 			return { ...s, pageIndex: idx, visited: nextVisited };
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [route.pageIndex, totalPages]);
 
-	// ---- Persist to BOTH SCORM (if available) and localStorage ----
+	// Persist to SCORM (if available) and localStorage
 	useEffect(() => {
 		const payload = {
 			pageIndex: state.pageIndex,
@@ -104,10 +139,10 @@ export default function AppShell() {
 			completed: state.completed,
 			finished: state.finished,
 			visited: Array.from(state.visited),
+			version: STATE_VERSION,
+			buildId: BUILD_ID,
 		};
-		// SCORM
 		if (setSuspendData) setSuspendData(payload);
-		// localStorage
 		saveToLS(payload);
 	}, [state, setSuspendData]);
 
@@ -201,7 +236,9 @@ export default function AppShell() {
 
 	const BG_SEQUENCE = ["dots", "plus", "grid", "plus", "dots"];
 
-	// -------- Sequential progress for the 5 TOC slots --------
+	/* --------------------------------------------------------------------
+	   Sequential progress for the 5 TOC slots (drives the rail fill)
+	   -------------------------------------------------------------------- */
 	const idxByType = (t) => pages.findIndex((p) => p.type === t);
 	const idxIntro = idxByType("intro");
 	const idxPrep = idxByType("preparation");
@@ -224,15 +261,14 @@ export default function AppShell() {
 
 	// Slots: Intro | Prep+Activities (partial) | Team | Conclusion | Resources
 	const slots = [
-		visitedHas(idxIntro) ? 1 : 0, // Intro (all or nothing)
-		prepPlusActivities, // Activities fraction gated by Prep visit
+		visitedHas(idxIntro) ? 1 : 0,
+		prepPlusActivities,
 		visitedHas(idxTeam) ? 1 : 0,
 		visitedHas(idxConclusion) ? 1 : 0,
 		visitedHas(idxResources) ? 1 : 0,
 	];
 
-	// Enforce sequential fill: only count fully completed slots,
-	// plus partial for the first incomplete one.
+	// Enforce sequential fill: sum complete slots + first partial slot
 	let acc = 0;
 	for (let i = 0; i < slots.length; i++) {
 		const f = Math.max(0, Math.min(1, slots[i]));
@@ -244,6 +280,22 @@ export default function AppShell() {
 	}
 	const curvedProgress = acc / slots.length;
 
+	console.log("[AppShell] Progress inputs:", {
+		idxIntro,
+		idxPrep,
+		idxTeam,
+		idxConclusion,
+		idxResources,
+		visited: [...state.visited],
+		completedMap: state.completed,
+		completedCount,
+		activityTotal,
+		activityFrac,
+		prepPlusActivities,
+		slots,
+		curvedProgress,
+	});
+
 	const siteTitle = "Learning Quest on Indigenous Cultures";
 	const pageTitle =
 		currentPage.type === "cover" ? "" : currentPage.content.title;
@@ -252,10 +304,13 @@ export default function AppShell() {
 		"transition-opacity duration-500 ease-out will-change-[opacity] opacity-0 pointer-events-none";
 	const chromeShown = "transition-opacity duration-500 ease-out opacity-100";
 
-	// Show tiny prefill only until the learner has actually visited Intro
+	// Tiny head-start on the Contents rail before Intro is visited
 	const sawIntro = visitedHas(idxIntro);
-	const dynamicPrefill = sawIntro ? 0 : 0.2; // TEMP 20% prefill; set to 0.06–0.12 later
-	// Page content switch
+	const dynamicPrefill = sawIntro ? 0 : 0.06;
+
+	/* --------------------------------------------------------------------
+	   Page switch
+	   -------------------------------------------------------------------- */
 	let pageContent = null;
 	switch (currentPage.type) {
 		case "cover":

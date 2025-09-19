@@ -111,3 +111,25 @@ button,
 a {
 	cursor: pointer;
 }
+
+/* ================================
+   Fallback when backdrop-filter is unsupported
+   (Firefox pre-114 or older Chromium builds)
+   ================================ */
+@supports not (
+	(backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))
+) {
+	.no-backdrop-glass {
+		background: rgba(255, 255, 255, 0.95) !important;
+	}
+}
+
+/* Normalize “glass” on Firefox so colors don’t shift */
+@-moz-document url-prefix() {
+	.no-backdrop-glass {
+		/* Disable backdrop blur in FF to avoid color blending/tinting */
+		backdrop-filter: none !important;
+		-webkit-backdrop-filter: none !important;
+		background-color: rgba(255, 255, 255, 0.92) !important;
+	}
+}
