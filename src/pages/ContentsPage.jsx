@@ -183,7 +183,6 @@ export default function ContentsPage({
 				<div className="pt-8 px-6">
 					<div className="w-full flex justify-center">
 						<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200/70 bg-white/85 backdrop-blur shadow-sm">
-							<span className="inline-flex h-2.5 w-2.5 rounded-full bg-sky-600" />
 							<h2
 								id="tocTitle"
 								className="text-xl sm:text-2xl md:text-3xl font-semibold text-slate-900"

@@ -56,9 +56,13 @@ export default function IntroPage({ content }) {
 	const whatParas = paragraphs.slice(2, 5);
 
 	return (
-		// Make the page at least the viewport height, and add bottom padding
-		// so content doesn’t sit under the fixed footer.
-		<div className="relative bg-transparent min-h-[100svh] pb-24">
+		/**
+		 * Centering approach:
+		 * - Outer wrapper is a flex container.
+		 * - Inner content uses `my-auto` to vertically center ONLY when there’s extra space.
+		 * - `pb-24` protects the content from the fixed footer.
+		 */
+		<div className="relative bg-transparent min-h-[100svh]  flex">
 			{/* gradient layer — FIXED to cover the whole window */}
 			<div
 				aria-hidden
@@ -66,7 +70,7 @@ export default function IntroPage({ content }) {
 			/>
 
 			{/* content */}
-			<div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-10">
+			<div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-10 my-auto">
 				{/* Section: Introduction */}
 				<motion.section
 					role="region"

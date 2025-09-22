@@ -1,14 +1,15 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+/** palette prop keeps colors consistent with the Activity page */
 export default function NoteComposer({
-	value, // can be string or object
-	onChange, // receives same shape back
+	value,
+	onChange,
 	placeholder = "Type your reflections…",
-	suggestedTags = [], // optional chips
+	suggestedTags = [],
 	storageKey = "notes-default",
+	palette, // { text, ring, btn, badgeBg, border }
 }) {
-	// normalize to object { text, bullets:[], tags:[] }
 	const model = React.useMemo(() => {
 		if (typeof value === "string" || !value) {
 			return { text: value || "", bullets: [], tags: [] };
@@ -20,8 +21,16 @@ export default function NoteComposer({
 		};
 	}, [value]);
 
-	const [tab, setTab] = React.useState("write"); // "write" | "bullets" | "tags"
-	const signal = (next) => onChange(next);
+	const pal = {
+		text: palette?.text || "text-sky-700",
+		ring: palette?.ring || "focus-visible:ring-sky-700",
+		btn: palette?.btn || "bg-sky-700 hover:bg-sky-800 active:bg-sky-900",
+		badgeBg: palette?.badgeBg || "bg-sky-50",
+		border: palette?.border || "border-sky-100",
+	};
+
+	const [tab, setTab] = React.useState("write");
+	const signal = (next) => onChange?.(next);
 
 	const addBullet = () => signal({ ...model, bullets: [...model.bullets, ""] });
 	const updateBullet = (i, v) => {
@@ -50,11 +59,12 @@ export default function NoteComposer({
 					<button
 						key={k}
 						onClick={() => setTab(k)}
-						className={`px-3 py-1.5 text-sm rounded-lg border ${
-							tab === k
-								? "bg-sky-500 text-white border-sky-500"
-								: "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
-						}`}
+						className={`px-3 py-1.5 text-sm rounded-lg border
+              ${
+								tab === k
+									? `${pal.btn} text-white border-transparent`
+									: "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
+							}`}
 					>
 						{k === "write"
 							? "Write"
@@ -79,11 +89,12 @@ export default function NoteComposer({
 					</label>
 					<textarea
 						id={`${storageKey}-text`}
-						key={`${storageKey}-text`} // ensures fresh element per activity
+						key={`${storageKey}-text`}
 						value={model.text}
 						onChange={(e) => signal({ ...model, text: e.target.value })}
 						placeholder={placeholder}
-						className="w-full min-h-32 bg-gray-50 border border-gray-200 rounded-lg p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-sky-400 resize-vertical"
+						className={`w-full min-h-32 bg-gray-50 border border-gray-200 rounded-lg p-3 text-gray-800
+              focus:outline-none focus:ring-2 ${pal.ring} focus:border-transparent resize-vertical`}
 					/>
 				</motion.div>
 			)}
@@ -101,7 +112,7 @@ export default function NoteComposer({
 						</label>
 						<button
 							onClick={addBullet}
-							className="px-2 py-1 rounded-md bg-sky-500 text-white text-sm hover:bg-sky-600"
+							className={`px-2 py-1 rounded-md text-white text-sm ${pal.btn}`}
 						>
 							Add
 						</button>
@@ -111,7 +122,7 @@ export default function NoteComposer({
 							<li key={i} className="flex gap-2">
 								<span className="mt-2 text-gray-400">•</span>
 								<input
-									className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-400"
+									className={`flex-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5 focus:outline-none focus:ring-2 ${pal.ring}`}
 									value={b}
 									onChange={(e) => updateBullet(i, e.target.value)}
 									placeholder="Add a point…"
@@ -161,11 +172,12 @@ export default function NoteComposer({
 								<button
 									key={t}
 									onClick={() => toggleTag(t)}
-									className={`px-3 py-1.5 rounded-full border text-sm ${
-										on
-											? "bg-emerald-50 text-emerald-700 border-emerald-300"
-											: "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
-									}`}
+									className={`px-3 py-1.5 rounded-full border text-sm
+                    ${
+											on
+												? "bg-emerald-50 text-emerald-700 border-emerald-300"
+												: "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
+										}`}
 								>
 									{t}
 								</button>
