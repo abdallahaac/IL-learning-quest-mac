@@ -167,7 +167,7 @@ export default function Activity({
 					className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 place-content-center"
 					items={items}
 					palette={palette}
-				/>``
+				/>
 			</div>
 		);
 	} else if (idx === 1) {

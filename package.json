@@ -19,6 +19,7 @@
 		"@fortawesome/react-fontawesome": "^3.0.2",
 		"@headlessui/react": "^2.2.8",
 		"clsx": "^2.1.1",
+		"docx": "^9.5.1",
 		"framer-motion": "^12.23.13",
 		"gsap": "^3.13.0",
 		"lucide-react": "^0.544.0",
