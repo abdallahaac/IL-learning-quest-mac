@@ -5,7 +5,7 @@ import {
 	BookOpen,
 	Bookmark,
 	ExternalLink,
-	Library,
+	Users, // relevant icon for advocates
 } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
 
@@ -37,6 +37,17 @@ export default function Activity08({
 	const linkFooter =
 		"mt-2 flex items-center justify-center gap-1 text-rose-600 text-xs font-medium";
 
+	// Egale card-specific class variables
+	const egaleCard =
+		"group relative block w-full rounded-2xl border border-gray-200 " +
+		"bg-white/90 backdrop-blur-sm p-5 shadow-sm transition " +
+		"hover:shadow-md hover:-translate-y-0.5 " +
+		"focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2";
+	const egaleIconBadge =
+		"absolute left-5 top-5 w-10 h-10 rounded-xl grid place-items-center bg-rose-50 text-rose-600";
+	const egaleCenter =
+		"min-h-[108px] flex flex-col items-center justify-center text-center";
+
 	const notePalette = {
 		ring: "focus-visible:ring-rose-600",
 		btn: "bg-rose-600 hover:bg-rose-700 active:bg-rose-800",
@@ -44,46 +55,76 @@ export default function Activity08({
 		border: "border-rose-100",
 	};
 
-	const TitleRow = ({ Icon, children }) => (
-		<div className="relative flex items-center pl-14">
-			<div className={`${cardBadge} absolute left-0 top-1/2 -translate-y-1/2`}>
-				<Icon className="w-5 h-5" />
-			</div>
-			<div className="w-full text-center font-medium text-gray-800 group-hover:underline">
-				{children}
-			</div>
-		</div>
-	);
-
-	// Reusable slightly-transparent bullet-card in ROSE theme
-	const BulletCard = ({ icon: Icon = Library, title, items = [] }) => {
-		const tipCard =
-			"mx-auto max-w-md w-full rounded-2xl border border-dashed border-rose-200 bg-rose-50/40 p-4 shadow-sm text-center";
-		return (
-			<div className={tipCard} role="note" aria-label={title}>
-				<div className="flex flex-col items-center gap-3">
-					<div className="w-10 h-10 rounded-xl grid place-items-center bg-white text-rose-600 border border-rose-100">
-						<Icon className="w-5 h-5" aria-hidden="true" />
+	/** TitleRow */
+	const TitleRow = ({ Icon, children, centered = false }) => {
+		if (centered) {
+			return (
+				<div className="grid grid-cols-[40px_1fr] items-center gap-3 min-h-[2.75rem]">
+					<div className={cardBadge}>
+						<Icon className="w-5 h-5" />
 					</div>
-
-					{title ? (
-						<div className="font-medium text-gray-800">{title}</div>
-					) : null}
-
-					<ul className="text-sm text-gray-800 list-disc list-inside space-y-1 text-left w-full max-w-xs mx-auto marker:text-rose-500">
-						{items.map((it) => (
-							<li key={it}>{it}</li>
-						))}
-					</ul>
+					<div className="justify-self-center text-center font-medium text-gray-800 group-hover:underline">
+						{children}
+					</div>
+				</div>
+			);
+		}
+		return (
+			<div className="relative flex items-center pl-14">
+				<div
+					className={`${cardBadge} absolute left-0 top-1/2 -translate-y-1/2`}
+				>
+					<Icon className="w-5 h-5" />
+				</div>
+				<div className="w-full text-center font-medium text-gray-800 group-hover:underline">
+					{children}
 				</div>
 			</div>
+		);
+	};
+
+	/** TipCard */
+	const TipCard = ({
+		icon: Icon = Users,
+		title = "Advocates to explore",
+		subtitle,
+		items = [],
+	}) => {
+		return (
+			<section
+				className="mx-auto max-w-xl w-full rounded-2xl border border-dashed border-rose-200 bg-rose-50/40 p-4 shadow-sm"
+				role="note"
+				aria-label={title}
+			>
+				<header className="flex items-start gap-3">
+					<div className="shrink-0 w-10 h-10 rounded-xl grid place-items-center bg-white text-rose-600 border border-rose-100">
+						<Icon className="w-5 h-5" aria-hidden="true" />
+					</div>
+					<div className="min-w-0">
+						<h3 className="font-semibold text-slate-900">{title}</h3>
+						{subtitle ? (
+							<p className="text-sm text-slate-600">{subtitle}</p>
+						) : null}
+					</div>
+				</header>
+				<ul className="mt-3 flex flex-wrap gap-2" aria-label={`${title} list`}>
+					{items.map((it) => (
+						<li key={it}>
+							<span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white/70 px-3 py-1.5 text-sm text-rose-800 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-600">
+								<span className="inline-block h-1.5 w-1.5 rounded-full bg-rose-500" />
+								{it}
+							</span>
+						</li>
+					))}
+				</ul>
+			</section>
 		);
 	};
 
 	return (
 		<div className="relative bg-transparent min-h-[80svh]">
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header in rose-600 */}
+				{/* Header */}
 				<header className="text-center space-y-2">
 					<p className="text-rose-600 font-semibold uppercase tracking-wide text-sm sm:text-base">
 						Activity {activityNumber}
@@ -103,7 +144,7 @@ export default function Activity08({
 					</p>
 				</header>
 
-				{/* Resources */}
+				{/* Resources + Tip */}
 				<section>
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 						<a
@@ -138,26 +179,33 @@ export default function Activity08({
 							</div>
 						</a>
 
+						{/* Egale card using variables */}
 						<a
 							href="https://egale.ca/awareness/two-spirits-one-voice/"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
 							title="Open: Two Spirits, One Voice (new tab)"
 							aria-label="Open Two Spirits, One Voice in a new tab"
+							className={egaleCard}
 						>
-							<TitleRow Icon={Bookmark}>
-								Two Spirits, One Voice (Egale)
-							</TitleRow>
-							<div className={linkFooter}>
-								<ExternalLink className="w-4 h-4" />
-								<span>Open link</span>
+							<div className={egaleIconBadge} aria-hidden="true">
+								<Bookmark className="w-5 h-5" />
+							</div>
+							<div className={egaleCenter}>
+								<div className="font-medium text-gray-800 group-hover:underline">
+									Two Spirits, One Voice (Egale)
+								</div>
+								<div className="mt-1 flex items-center justify-center gap-1 text-rose-600 text-xs font-medium">
+									<ExternalLink className="w-4 h-4" aria-hidden="true" />
+									<span>Open link</span>
+								</div>
 							</div>
 						</a>
 
-						{/* Advocates — transparent bullet-only card in rose */}
-						<BulletCard
+						{/* TipCard with icon + pill list */}
+						<TipCard
 							title="Advocates to explore"
+							subtitle="Follow and learn from these voices"
 							items={[
 								"Dr. James Makokis",
 								"Jaris Swidrovich",

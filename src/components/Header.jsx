@@ -20,6 +20,13 @@ export default function Header({
 			role="banner"
 		>
 			{/* relative so the stepper can be absolutely centered on md+ */}
+
+			{/* 
+				<div
+				className="relative max-w-8xl mx-auto px-20 py-5 md:py-6 
+                 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] items-center gap-y-2 
+                 min-h-[80px]" // NEW: ensures a taller header
+			> */}
 			<div
 				className="relative max-w-7xl mx-auto px-4 py-5 md:py-6 
                  grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] items-center gap-y-2 
