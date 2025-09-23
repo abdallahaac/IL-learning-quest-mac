@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
 	Feather,
@@ -34,7 +34,6 @@ export default function Activity07({
 
 	const [model, setModel] = useState(initialModel);
 	const saveNotes = (next) => {
-		// allow any number of cards; completion is gated separately
 		setModel(next);
 		onNotes?.(next);
 	};
@@ -84,22 +83,35 @@ export default function Activity07({
 	).length;
 	const canComplete = validCount >= 3; // at least 3
 
-	// celebration when you first hit >= 3 valid cards
-	// celebration trigger + reset when user goes back below 3
+	// celebration: fire only on upward crossing during this *session*
 	const [celebrate, setCelebrate] = useState(false);
 	const [hasCelebrated, setHasCelebrated] = useState(false);
+	const prevValidRef = useRef(validCount);
+
+	// on mount, if we already have 3+, do NOT celebrate, but mark as "already celebrated"
+	useEffect(() => {
+		setHasCelebrated(validCount >= 3);
+		prevValidRef.current = validCount;
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []); // run once
 
 	useEffect(() => {
-		if (validCount >= 3 && !hasCelebrated) {
-			// first time reaching the threshold → show celebration
+		const prev = prevValidRef.current;
+
+		// upward crossing: (<3) -> (>=3)
+		if (prev < 3 && validCount >= 3) {
 			setCelebrate(true);
 			setHasCelebrated(true);
-		} else if (validCount < 3 && hasCelebrated) {
-			// user removed a word → reset so it can trigger again later
-			setCelebrate(false); // ensure overlay is not visible
-			setHasCelebrated(false); // allow future celebrations when back to 3+
 		}
-	}, [validCount, hasCelebrated]);
+
+		// if we drop below 3, allow future celebrations again
+		if (validCount < 3) {
+			setHasCelebrated(false);
+		}
+
+		// keep the ref in sync
+		prevValidRef.current = validCount;
+	}, [validCount]);
 
 	// gentle shake when trying to complete too early
 	const [shake, setShake] = useState(false);
@@ -140,18 +152,14 @@ export default function Activity07({
 			</div>
 		</div>
 	);
-	useEffect(() => {
-		if (!hasCelebrated && validCount >= 3) {
-			setCelebrate(true);
-			setHasCelebrated(true);
-		}
-	}, [validCount, hasCelebrated]);
+
 	return (
 		<div className="relative bg-transparent min-h-[80svh]">
 			{/* celebration burst (fades out) */}
 			<AnimatePresence initial={false} mode="wait">
 				{celebrate && <Celebration onClose={() => setCelebrate(false)} />}
 			</AnimatePresence>
+
 			{/* wider container for a more homogeneous layout */}
 			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
 				{/* Header */}
@@ -403,6 +411,8 @@ export default function Activity07({
 		</div>
 	);
 }
+
+/* ----- Flashcards: whole-card flip, non-mirrored, tiny headers without bg ----- */
 function Flashcards({ cards = [], palette = {} }) {
 	const palBtn =
 		palette?.btn || "bg-sky-700 hover:bg-sky-800 active:bg-sky-900";
@@ -437,11 +447,11 @@ function Flashcards({ cards = [], palette = {} }) {
 				onClick={() => curr && setFlipped(!flipped)}
 				className={`relative w-full aspect-[4/3] rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden
           ${curr ? "cursor-pointer" : "opacity-60 cursor-not-allowed"}`}
-				style={{ perspective: 1000 }} /* ensure 3D */
+				style={{ perspective: 1000 }} // 3D context
 				title={curr ? "Click to flip" : undefined}
 				type="button"
 			>
-				{/* Inner flipper (this is what rotates) */}
+				{/* Inner flipper (rotates as a whole card) */}
 				<motion.div
 					animate={{ rotateY: flipped ? 180 : 0 }}
 					transition={{ duration: 0.45 }}
@@ -449,6 +459,7 @@ function Flashcards({ cards = [], palette = {} }) {
 						transformStyle: "preserve-3d",
 						width: "100%",
 						height: "100%",
+						willChange: "transform",
 					}}
 					className="relative"
 				>
@@ -479,7 +490,7 @@ function Flashcards({ cards = [], palette = {} }) {
 							WebkitBackfaceVisibility: "hidden",
 						}}
 					>
-						<div className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium text-teal-700 ">
+						<div className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium text-teal-700">
 							Meaning / Translation
 						</div>
 						<div className="h-full w-full grid place-items-center px-6 pt-8">
@@ -534,6 +545,7 @@ function ConfettiDot() {
 		/>
 	);
 }
+
 function Celebration({ onClose }) {
 	useEffect(() => {
 		const onEsc = (e) => e.key === "Escape" && onClose?.();
