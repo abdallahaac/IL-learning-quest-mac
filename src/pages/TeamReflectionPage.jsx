@@ -4,11 +4,65 @@ import { motion, AnimatePresence } from "framer-motion";
 import CommitmentsCard from "../components/CommitmentsCard";
 
 export default function TeamReflectionPage({ content, notes, onNotes }) {
-	// ---- THEME (change ACCENT to match your set) ------------------------------
+	// ---- THEME (set once for the suite) ---------------------------------------
 	const ACCENT = "#67AAF9";
 	const wrap = "max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6";
 	const card = "rounded-2xl border border-gray-200 bg-white shadow-sm";
 	const ringAccent = `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${ACCENT}] focus-visible:ring-offset-2`;
+
+	// ---- DEFAULT CONTENT (uses your provided text) ----------------------------
+	const defaultContent = {
+		title: "Team Reflection",
+		reflectionPrompt:
+			"Based on what I’ve learned so far, one thing I want to carry forward in my role is...",
+		steps: [
+			{
+				heading: "Set the tone for respectful dialogue",
+				items: [
+					"Begin each meeting by revisiting group agreements or shared values, such as respect, open-mindedness, and confidentiality.",
+					"Invite team members to share how they’re feeling about the learning journey so far.",
+				],
+			},
+			{
+				heading: "Share learnings and reflections",
+				items: [
+					"Ask each team member to share highlights from one or more activities they completed.",
+					"Encourage them to discuss what surprised them, challenged their assumptions, or left a lasting impression.",
+					"Use open-ended prompts, such as: What did you learn that shifted your perspective? How did this activity connect to your personal or professional life? What questions do you still have?",
+				],
+			},
+			{
+				heading: "Connect learning to the workplace",
+				items: [
+					"Discuss how insights from the quest relate to your team’s work and the public service more broadly.",
+					"Ask: How can this knowledge help build better relationships with Indigenous communities? What changes—big or small—can we make to support reconciliation in our daily work?",
+				],
+			},
+			{
+				heading: "Make a commitment",
+				items: [
+					"Invite each team member to identify one action they will take to continue learning or contribute to reconciliation:",
+					"This could include using Indigenous-owned resources, incorporating Indigenous perspectives into work, or continuing personal education.",
+				],
+			},
+			{
+				heading: "Keep the conversation going",
+				items: [
+					"Schedule future check-ins or informal gatherings to continue the conversation.",
+					"Encourage participants to post resources, reflections, or questions in your Teams chat.",
+				],
+			},
+		],
+	};
+
+	const modelContent = {
+		...defaultContent,
+		...(content || {}),
+		steps:
+			Array.isArray(content?.steps) && content.steps.length
+				? content.steps
+				: defaultContent.steps,
+	};
 
 	// ---- MODEL ----------------------------------------------------------------
 	const model = useMemo(() => {
@@ -23,9 +77,8 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 
 	const [text, setText] = useState(model.text);
 	const [checks, setChecks] = useState(() => {
-		const total = content?.steps?.length ?? 0;
-		const base = Array.from({ length: total }, (_, i) => !!model.checks[i]);
-		return base;
+		const total = modelContent?.steps?.length ?? 0;
+		return Array.from({ length: total }, (_, i) => !!model.checks[i]);
 	});
 
 	// Persist text/steps to parent
@@ -44,7 +97,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 	};
 
 	// ---- UI state helpers -----------------------------------------------------
-	const totalSteps = content?.steps?.length ?? 0;
+	const totalSteps = modelContent?.steps?.length ?? 0;
 	const completed = checks.filter(Boolean).length;
 	const pct = totalSteps ? Math.round((completed / totalSteps) * 100) : 0;
 
@@ -56,7 +109,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		return () => clearTimeout(t);
 	}, [text, checks, model.commitments]);
 
-	// Small celebratory pulse when 100% reached (not on first render if already complete)
+	// Little celebratory pulse when 100% reached (not on first render if already complete)
 	const [didCelebrate, setDidCelebrate] = useState(
 		completed === totalSteps && totalSteps > 0
 	);
@@ -69,8 +122,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 	}, [completed, totalSteps, didCelebrate]);
 
 	// ---- ATTENTION HINT (glow) ------------------------------------------------
-	// Show a gentle glow on the FIRST unchecked button to suggest it’s clickable.
-	// Stops after any interaction or 8s.
+	// Gentle glow on the FIRST unchecked button to suggest it’s clickable (stops after interaction or 8s)
 	const [showHint, setShowHint] = useState(() => !model.checks?.some(Boolean));
 	useEffect(() => {
 		const t = setTimeout(() => setShowHint(false), 8000);
@@ -80,7 +132,6 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 	const shouldHintIndex =
 		showHint && firstUncheckedIndex !== -1 ? firstUncheckedIndex : -1;
 
-	// Glow keyframes (box-shadow + scale)
 	const glowKeyframes = {
 		boxShadow: [
 			`0 0 0 0 ${ACCENT}00`,
@@ -90,7 +141,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		scale: [1, 1.05, 1],
 	};
 
-	// Quick prompts
+	// Quick prompts aligned to your content
 	const quickPrompts = [
 		"One thing that surprised us…",
 		"A perspective we hadn’t considered…",
@@ -98,14 +149,13 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		"How this connects to our work…",
 	];
 
-	// Word count
 	const wordCount = (text || "").trim() ? text.trim().split(/\s+/).length : 0;
 
 	// ---- RENDER ---------------------------------------------------------------
 	return (
 		<div className="relative bg-transparent min-h-[80svh]">
 			<div className={wrap}>
-				{/* Header */}
+				{/* Header (homologous) */}
 				<header className="text-center space-y-2">
 					<p
 						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
@@ -115,7 +165,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 					</p>
 					<div className="flex items-center justify-center gap-3">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							{content?.title || "Team Reflection"}
+							{modelContent?.title || "Team Reflection"}
 						</h1>
 						<Users
 							className="w-7 h-7"
@@ -182,7 +232,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 
 					{/* Steps list with check toggles */}
 					<ol className="space-y-4">
-						{content?.steps?.map((s, i) => {
+						{modelContent?.steps?.map((s, i) => {
 							const isChecked = !!checks[i];
 							const isHinted = i === shouldHintIndex;
 							return (
@@ -210,7 +260,6 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 										title={isChecked ? "Unmark complete" : "Mark complete"}
 										whileHover={{ scale: 1.06 }}
 										whileTap={{ scale: 0.96 }}
-										// Gentle glow loop only for the first unchecked step while hint is active
 										animate={
 											isHinted
 												? glowKeyframes
@@ -296,9 +345,11 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 								htmlFor="reflection"
 								className="block text-sm font-medium text-slate-800"
 							>
-								{content?.reflectionPrompt || "Reflection"}
+								{modelContent?.reflectionPrompt || "Reflection"}
 							</label>
-							<span className="text-xs text-slate-500">{wordCount} words</span>
+							<span className="text-xs text-slate-500">
+								{wordCount} {wordCount === 1 ? "word" : "words"}
+							</span>
 						</div>
 
 						{/* quick prompts */}

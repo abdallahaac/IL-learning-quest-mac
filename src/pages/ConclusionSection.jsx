@@ -1,37 +1,38 @@
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { Sparkles, CheckCircle2, HeartHandshake } from "lucide-react";
 
-function CheckIcon(props) {
-	return (
-		<svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" {...props}>
-			<path
-				fillRule="evenodd"
-				d="M16.707 5.293a1 1 0 010 1.414l-7.25 7.25a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414l2.293 2.293 6.543-6.543a1 1 0 011.414 0z"
-				clipRule="evenodd"
-			/>
-		</svg>
+export default function ConclusionSection({
+	content = {},
+	accent = "#8B5CF6", // NEW: change accent here (e.g., "#22C55E" for emerald)
+}) {
+	// --- CONTENT (keeps your exact wording, just structured) --------------------
+	const defaultContent = {
+		title: "Conclusion",
+		paragraphs: [
+			"As your team wraps up the Learning Quest on Indigenous Cultures, take a moment to recognize the learning, reflection, and conversations you’ve shared. Each activity was an opportunity to explore new perspectives, challenge assumptions, and grow together.",
+			"This quest was designed to be flexible and personal. Whether you completed every step or focused on a few, what matters most is the awareness and understanding you’ve built along the way.",
+			"Your team discussions helped bring the learning to life through open dialogue, shared insights, and thoughtful questions. These conversations are just the beginning.",
+			"As you move forward, think about how you can carry this learning into your daily work. What actions will you take? What commitments will you make?",
+			"Reconciliation is an ongoing journey. Thank you for taking these important steps together and with openness, respect, and intention.",
+		],
+	};
+
+	const { title, paragraphs = [] } = {
+		...defaultContent,
+		...content,
+	};
+
+	// Slice into highlights (first 3), closing (4th), and coda (5th)
+	const highlights = [paragraphs[0], paragraphs[1], paragraphs[2]].filter(
+		Boolean
 	);
-}
+	const closing = paragraphs[3];
+	const coda = paragraphs[4];
 
-export default function ConclusionSection({ content = {} }) {
-	const { title, paragraphs = [] } = content;
 	const reduceMotion = useReducedMotion();
 
-	const highlights = [
-		paragraphs[0] ??
-			"You explored new perspectives, shared reflections, and grew together.",
-		paragraphs[1] ??
-			"Whether you completed every step or a few, awareness and understanding are what matter.",
-		paragraphs[2] ??
-			"Carry this learning into your daily work—small actions build momentum.",
-	].slice(0, 3);
-
-	const closing = paragraphs[3];
-	const nextSteps = [
-		"Share one takeaway with your team this week.",
-		"Pick a small action to try in your next sprint or meeting.",
-	];
-
+	// --- Animations -------------------------------------------------------------
 	const STAGGER = 0.16;
 	const DELAY_CHILDREN = 0.12;
 	const DELAY_AFTER_HIGHLIGHTS = reduceMotion
@@ -81,23 +82,27 @@ export default function ConclusionSection({ content = {} }) {
 		},
 	};
 
-	const card =
-		"rounded-xl border border-gray-200 bg-white/95 shadow-sm p-4 text-left";
+	// --- Styles ----------------------------------------------------------------
+	const wrap = "relative max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6";
+	const card = "rounded-2xl border border-gray-200 bg-white shadow-sm";
+	const ringAccent = `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${accent}] focus-visible:ring-offset-2`;
 
 	return (
 		<motion.div
-			className="relative flex-1 px-4 py-12 bg-transparent"
+			className="relative bg-transparent min-h-[60svh]"
 			variants={pageFade}
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft gradient overlay */}
+			{/* soft accent ribbon */}
 			<div
-				aria-hidden
-				className="absolute inset-0 z-0 pointer-events-none
-                   bg-gradient-to-b from-emerald-50/80 via-white/60 to-slate-50/80"
+				aria-hidden="true"
+				className="pointer-events-none absolute inset-x-0 top-0 h-48 -z-10"
+				style={{
+					background: `linear-gradient(180deg, ${accent}14, transparent 70%)`, // ~8% tint fade
+				}}
 			/>
-			<div className="relative z-10 max-w-4xl mx-auto">
+			<div className={wrap}>
 				{/* Header */}
 				<motion.header
 					className="text-center space-y-2"
@@ -105,37 +110,60 @@ export default function ConclusionSection({ content = {} }) {
 					initial="hidden"
 					animate="show"
 				>
-					<h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
-						{title || "Conclusion"}
-					</h2>
-					<p className="text-gray-600">
+					<span
+						className="inline-block rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase"
+						style={{
+							color: accent,
+							backgroundColor: `${accent}1A`, // ~10% tint
+							border: `1px solid ${accent}33`, // ~20% tint
+						}}
+					>
+						Wrap-Up
+					</span>
+					<div className="flex items-center justify-center gap-3">
+						<h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+							{title}
+						</h2>
+					</div>
+					<p className="text-slate-700 text-lg sm:text-xl max-w-2xl mx-auto">
 						A quick wrap-up and a couple of gentle next steps.
 					</p>
 				</motion.header>
 
 				{/* Highlights */}
 				<motion.section
-					className="mt-8 grid md:grid-cols-3 gap-4"
+					className="grid grid-cols-1 md:grid-cols-3 gap-4"
 					variants={gridStagger}
 					initial="hidden"
 					animate="show"
 				>
 					{highlights.map((h, i) => (
-						<motion.article key={i} className={card} variants={cardPop}>
+						<motion.article
+							key={i}
+							className={`${card} p-4`}
+							variants={cardPop}
+						>
 							<div className="flex items-start gap-3">
-								<span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-gray-700">
-									<CheckIcon className="h-4 w-4" />
+								<span
+									className="mt-0.5 inline-flex h-8 w-8 items-center justify-center "
+									style={{
+										color: accent,
+										borderColor: `${accent}33`,
+									}}
+									aria-hidden="true"
+								>
+									<CheckCircle2 className="h-4 w-4" />
 								</span>
-								<p className="text-[15px] leading-6 text-gray-800">{h}</p>
+								<p className="text-[15px] leading-6 text-slate-800">{h}</p>
 							</div>
 						</motion.article>
 					))}
 				</motion.section>
 
-				{/* Closing */}
+				{/* Closing paragraph */}
 				{closing && (
 					<motion.p
-						className="mt-8 text-center text-gray-700 leading-relaxed max-w-3xl mx-auto"
+						className="text-center text-slate-700 leading-relaxed max-w-3xl mx-auto"
 						variants={tailReveal}
 						initial="hidden"
 						animate="show"
@@ -144,26 +172,61 @@ export default function ConclusionSection({ content = {} }) {
 					</motion.p>
 				)}
 
-				{/* Next steps */}
+				{/* Callout coda */}
+				{coda && (
+					<motion.div
+						className="mt-2"
+						variants={tailReveal}
+						initial="hidden"
+						animate="show"
+					>
+						<div
+							className="mx-auto max-w-3xl rounded-xl p-4 sm:p-5 text-center"
+							style={{
+								background: `linear-gradient(135deg, ${accent}12 0%, ${accent}08 100%)`,
+								border: `1px solid ${accent}2e`,
+							}}
+						>
+							<div
+								className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full"
+								style={{
+									backgroundColor: `${accent}1A`,
+									border: `1px solid ${accent}33`,
+									color: accent,
+								}}
+							>
+								<HeartHandshake className="w-4 h-4" />
+							</div>
+							<p className="text-[15px] leading-6 text-slate-800">{coda}</p>
+						</div>
+					</motion.div>
+				)}
+
+				{/* Next steps chips */}
 				<motion.section
-					className="mt-10"
+					className={`${card} p-4 sm:p-5`}
 					variants={tailReveal}
 					initial="hidden"
 					animate="show"
 				>
 					<div className="text-center mb-3">
-						<span className="inline-block text-sm font-medium text-gray-800">
+						<span className="inline-block text-sm font-semibold text-slate-900">
 							Next steps
 						</span>
 					</div>
-					<div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+					<div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:flex-wrap">
 						{[
 							"Share one takeaway with your team this week.",
 							"Pick a small action to try in your next sprint or meeting.",
 						].map((n, i) => (
 							<span
 								key={i}
-								className="inline-flex items-center rounded-full border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-800 shadow-sm"
+								className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm ${ringAccent}`}
+								style={{
+									color: accent,
+									backgroundColor: `${accent}0D`, // ~5% tint
+									border: `1px solid ${accent}33`,
+								}}
 							>
 								{n}
 							</span>

@@ -17,16 +17,14 @@ import ResourcesPage from "./pages/ResourcesPage.jsx";
 import TeamReflectionPage from "./pages/TeamReflectionPage.jsx";
 import ActivityPage from "./pages/ActivityPage.jsx";
 import PatternMorph from "./components/PatternMorph.jsx";
+import useResizeObserver from "./hooks/useResizeObserver.jsx";
 
 /* ========================================================================
    Persistence helpers (SCORM + localStorage)
    ======================================================================== */
 
-// Bump these to invalidate old saved progress across builds.
 const STATE_VERSION = 3;
 const BUILD_ID = "toc-progress-2025-09-19-02";
-
-// Single LS key for all saved state.
 const LS_KEY = "quest_state_v1";
 
 function loadFromLS() {
@@ -72,8 +70,8 @@ export default function AppShell() {
 	const [route, push] = useHashRoute();
 
 	/* --------------------------------------------------------------------
-	   Hydrate state from SCORM/localStorage (with version/build checks)
-	   -------------------------------------------------------------------- */
+     Hydrate state from SCORM/localStorage (with version/build checks)
+     -------------------------------------------------------------------- */
 	const [state, setState] = useState(() => {
 		const scormSaved = getSuspendData?.();
 		const lsSaved = loadFromLS();
@@ -237,8 +235,8 @@ export default function AppShell() {
 	const BG_SEQUENCE = ["dots", "plus", "grid", "plus", "dots"];
 
 	/* --------------------------------------------------------------------
-	   Sequential progress for the 5 TOC slots (drives the rail fill)
-	   -------------------------------------------------------------------- */
+     Sequential progress for the 5 TOC slots (drives the rail fill)
+     -------------------------------------------------------------------- */
 	const idxByType = (t) => pages.findIndex((p) => p.type === t);
 	const idxIntro = idxByType("intro");
 	const idxPrep = idxByType("preparation");
@@ -248,7 +246,6 @@ export default function AppShell() {
 
 	const visitedHas = (i) => (i >= 0 ? state.visited.has(i) : false);
 
-	// Activities: fraction explicitly "Marked Complete"
 	const completedCount = activityIds.reduce(
 		(acc, id) => acc + (state.completed[id] ? 1 : 0),
 		0
@@ -256,10 +253,8 @@ export default function AppShell() {
 	const activityFrac =
 		activityPages.length > 0 ? completedCount / activityPages.length : 0;
 
-	// Gate activities progress behind a visit to Preparation
 	const prepPlusActivities = visitedHas(idxPrep) ? activityFrac : 0;
 
-	// Slots: Intro | Prep+Activities (partial) | Team | Conclusion | Resources
 	const slots = [
 		visitedHas(idxIntro) ? 1 : 0,
 		prepPlusActivities,
@@ -268,7 +263,6 @@ export default function AppShell() {
 		visitedHas(idxResources) ? 1 : 0,
 	];
 
-	// Enforce sequential fill: sum complete slots + first partial slot
 	let acc = 0;
 	for (let i = 0; i < slots.length; i++) {
 		const f = Math.max(0, Math.min(1, slots[i]));
@@ -304,13 +298,12 @@ export default function AppShell() {
 		"transition-opacity duration-500 ease-out will-change-[opacity] opacity-0 pointer-events-none";
 	const chromeShown = "transition-opacity duration-500 ease-out opacity-100";
 
-	// Tiny head-start on the Contents rail before Intro is visited
 	const sawIntro = visitedHas(idxIntro);
 	const dynamicPrefill = sawIntro ? 0 : 0.06;
 
 	/* --------------------------------------------------------------------
-	   Page switch
-	   -------------------------------------------------------------------- */
+     Page switch
+     -------------------------------------------------------------------- */
 	let pageContent = null;
 	switch (currentPage.type) {
 		case "cover":
@@ -375,41 +368,60 @@ export default function AppShell() {
 		default:
 			pageContent = <SectionPage content={currentPage.content} />;
 	}
+	// measure the fixed header height
+	const [headerRef, headerSize] = useResizeObserver();
+	const headerHeight = headerSize.height || 0;
 
+	// ---- LAYOUT with sticky header ----
 	return (
-		<div className={`relative min-h-screen flex flex-col ${themeClass}`}>
+		<div
+			className={`relative h-screen flex flex-col ${themeClass}`}
+			style={{ "--header-h": `${headerHeight}px` }}
+		>
+			{/* Background art behind everything */}
 			<PatternMorph pageIndex={state.pageIndex} sequence={BG_SEQUENCE} />
 
-			{/* Header (STICKY) */}
-			<div
-				aria-hidden={isCover && coverIntroActive}
-				className={isCover && coverIntroActive ? chromeHidden : chromeShown}
-			>
-				<Header
-					siteTitle={siteTitle}
-					pageTitle={pageTitle}
-					isActivity={isActivity}
-					activityIndex={currentPage.activityIndex}
-					totalActivities={activityTotal}
-					onHome={() => gotoPage(0)}
-					onContents={() => gotoPage(1)}
-					activityIds={activityIds}
-					completedMap={state.completed}
-					onJumpToActivity={jumpToActivity}
-				/>
+			{/* Fixed header (measured) */}
+			<Header
+				containerRef={headerRef}
+				siteTitle={siteTitle}
+				pageTitle={pageTitle}
+				isActivity={isActivity}
+				activityIndex={currentPage.activityIndex}
+				totalActivities={activityTotal}
+				onHome={() => gotoPage(0)}
+				onContents={() => gotoPage(1)}
+				activityIds={activityIds}
+				completedMap={state.completed}
+				onJumpToActivity={jumpToActivity}
+			/>
+
+			{/* Scroll container (add top padding equal to header height) */}
+			<div className="flex-1 relative min-h-0">
+				<div
+					className="
+            flex h-full flex-col overflow-y-auto min-h-0
+          "
+					style={{
+						paddingTop: "var(--header-h)",
+						// Prevent layout shift from scrollbar width differences
+						scrollbarGutter: "stable",
+					}}
+				>
+					<main className="flex-1 relative min-h-0">
+						<div style={{ zIndex: 10 }}>
+							<TransitionView screenKey={`page-${state.pageIndex}`}>
+								{pageContent}
+							</TransitionView>
+						</div>
+
+						{/* keep footer off content */}
+						<div aria-hidden className="h-24 sm:h-20" />
+					</main>
+				</div>
 			</div>
 
-			{/* MAIN */}
-			<main className="flex-1 overflow-y-auto relative">
-				<div style={{ zIndex: 10 }}>
-					<TransitionView screenKey={`page-${state.pageIndex}`}>
-						{pageContent}
-					</TransitionView>
-				</div>
-				<div aria-hidden className="h-24 sm:h-20" />
-			</main>
-
-			{/* Footer (FIXED) */}
+			{/* Fixed footer unchanged */}
 			<div
 				aria-hidden={isCover && coverIntroActive}
 				className={isCover && coverIntroActive ? chromeHidden : chromeShown}

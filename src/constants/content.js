@@ -73,45 +73,49 @@ export const PREPARATION_CONTENT = {
 };
 
 // src/data/content.js
+// src/data/content.js
 export const TEAM_CONTENT = {
 	title: "Team Reflection",
 	steps: [
 		{
-			heading: "Set the tone",
+			heading: "Set the tone for respectful dialogue",
 			items: [
-				"Revisit group agreements (respect, openness, confidentiality).",
-				"Quick check-in: how’s everyone feeling today?",
+				"Begin each meeting by revisiting group agreements or shared values, such as respect, open-mindedness, and confidentiality.",
+				"Invite team members to share how they’re feeling about the learning journey so far.",
 			],
 		},
 		{
-			heading: "Share highlights",
+			heading: "Share learnings and reflections",
 			items: [
-				"Each person shares one activity or takeaway.",
-				"Note any surprises or shifts in perspective.",
+				"Ask each team member to share highlights from one or more activities they completed.",
+				"Encourage them to discuss what surprised them, challenged their assumptions, or left a lasting impression.",
+				"Use open-ended prompts, such as: What did you learn that shifted your perspective? How did this activity connect to your personal or professional life? What questions do you still have?",
 			],
 		},
 		{
-			heading: "Apply to work",
+			heading: "Connect learning to the workplace",
 			items: [
-				"Where does this learning connect to our work?",
-				"One small change we can try next sprint.",
+				"Discuss how insights from the quest relate to your team’s work and the public service more broadly.",
+				"Ask: How can this knowledge help build better relationships with Indigenous communities? What changes—big or small—can we make to support reconciliation in our daily work?",
 			],
 		},
 		{
 			heading: "Make a commitment",
 			items: [
-				"Each person: one concrete action to continue learning or support reconciliation.",
+				"Invite each team member to identify one action they will take to continue learning or contribute to reconciliation:",
+				"This could include using Indigenous-owned resources, incorporating Indigenous perspectives into work, or continuing personal education.",
 			],
 		},
 		{
-			heading: "Keep it going",
+			heading: "Keep the conversation going",
 			items: [
-				"Schedule a short follow-up.",
-				"Share resources or questions in the team chat.",
+				"Schedule future check-ins or informal gatherings to continue the conversation.",
+				"Encourage participants to post resources, reflections, or questions in your Teams chat.",
 			],
 		},
 	],
-	reflectionPrompt: "One insight I’m taking forward is…",
+	reflectionPrompt:
+		"Based on what I’ve learned so far, one thing I want to carry forward in my role is...",
 };
 
 export const CONCLUSION_CONTENT = {

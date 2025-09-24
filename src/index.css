@@ -6,9 +6,25 @@
 
 @import "tailwindcss";
 
+@import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html,
+body,
+#root {
+	height: 100% !important;
+}
+body {
+	overflow: hidden;
+} /* <-- ensures only your inner scrollport scrolls */
+* {
+	min-height: 0;
+	min-width: 0;
+} /* <-- safe default; flex children can shrink */
+
+/* (rest of your styles unchanged) */
 
 /* ================================
    Typewriter cursor blink
