@@ -371,6 +371,13 @@ export default function AppShell() {
 	// measure the fixed header height
 	const [headerRef, headerSize] = useResizeObserver();
 	const headerHeight = headerSize.height || 0;
+	const activitySteps = activityPages.map(({ p, idx }, i) => ({
+		key: p.content.id,
+		label: `Activity ${i + 1}`,
+		index: idx, // the page index to jump to
+		completed: !!state.completed[p.content.id],
+		visited: state.visited.has(idx),
+	}));
 
 	// ---- LAYOUT with sticky header ----
 	return (
@@ -431,10 +438,10 @@ export default function AppShell() {
 					totalPages={totalPages}
 					onPrev={prev}
 					onNext={next}
-					finished={state.finished}
-					showPrev={state.pageIndex > 0}
-					showNext={state.pageIndex > 0 && state.pageIndex < totalPages - 1}
 					nextLabel={getNextLabel()}
+					activitySteps={activitySteps}
+					onJumpToPage={(idx) => gotoPage(idx)}
+					dockAlign="right" // or "left"
 				/>
 			</div>
 		</div>
