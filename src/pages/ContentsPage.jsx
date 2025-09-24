@@ -70,7 +70,7 @@ export default function ContentsPage({
 	const items = useMemo(
 		() => [
 			{
-				label: "Introduction & Quest Info",
+				label: "Introduction ",
 				index: 2,
 				icon: faBookOpen,
 				hue: 215,
@@ -462,9 +462,6 @@ export default function ContentsPage({
 													</div>
 													<div className="text-xs text-slate-600 mt-1">
 														Page {it.index + 1}
-													</div>
-													<div className="text-[11px] text-slate-700 mt-1">
-														Open →
 													</div>
 												</div>
 											</div>
