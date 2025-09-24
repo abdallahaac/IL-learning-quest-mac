@@ -13,7 +13,8 @@ export default function Footer({
 
 	return (
 		<footer
-			className="fixed bottom-0 left-0 w-full z-50 bg-white/90 backdrop-blur border-t border-gray-200"
+			className="fixed bottom-0 left-0 w-full z-50  bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur
+        border-b border-slate-200 shadow-sm border-t border-gray-200"
 			role="contentinfo"
 		>
 			<div className="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
