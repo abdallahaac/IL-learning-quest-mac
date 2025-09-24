@@ -1,6 +1,15 @@
 import React, { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Leaf, ExternalLink, BookOpen } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
+
+/* Tailwind emerald hexes */
+const EMERALD_50 = "#ECFDF5"; // bg-emerald-50
+const EMERALD_200 = "#A7F3D0"; // border-emerald-200
+const EMERALD_700 = "#047857"; // text/ring default
+
+/* #RRGGBB + "AA" → #RRGGBBAA */
+const withAlpha = (hex, aa) => `${hex}${aa}`;
 
 export default function Activity02({
 	content,
@@ -8,6 +17,7 @@ export default function Activity02({
 	completed,
 	onNotes,
 	onToggleComplete,
+	accent = EMERALD_700, // change to re-skin the whole activity
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Plants, uses, teachings you discovered…";
@@ -17,17 +27,45 @@ export default function Activity02({
 		onNotes?.(v);
 	};
 
-	// Distinct color scheme from Activity 1 (emerald)
-	const cardBadge =
-		"w-10 h-10 rounded-xl grid place-items-center bg-emerald-50 text-emerald-700";
-	const linkCard =
-		"group block max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
-		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
-		"cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2";
-	const linkFooter =
-		"mt-2 flex items-center justify-center gap-1 text-emerald-700 text-xs font-medium";
+	const reduceMotion = useReducedMotion();
 
-	// Pass an emerald palette to NoteComposer (different from Activity 1)
+	// animations
+	const pageFade = {
+		hidden: { opacity: 0 },
+		show: { opacity: 1, transition: { duration: 0.35 } },
+	};
+	const titleFade = {
+		hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
+		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+	};
+	const gridStagger = {
+		hidden: {},
+		show: {
+			transition: {
+				delayChildren: reduceMotion ? 0 : 0.1,
+				staggerChildren: reduceMotion ? 0 : 0.14,
+			},
+		},
+	};
+	const cardPop = {
+		hidden: {
+			opacity: 0,
+			y: reduceMotion ? 0 : 8,
+			scale: reduceMotion ? 1 : 0.99,
+		},
+		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
+	};
+
+	// shared classes
+	const linkCardBase =
+		"group block max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
+		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer " +
+		"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
+	const linkFooterBase =
+		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
+
+	// NoteComposer palette
 	const notePalette = {
 		text: "text-emerald-700",
 		ring: "focus-visible:ring-emerald-700",
@@ -39,10 +77,43 @@ export default function Activity02({
 	const activityNumber = 2;
 
 	return (
-		<div className="relative bg-transparent min-h-[80svh]">
+		<motion.div
+			className="relative bg-transparent min-h-[100svh]" // CHANGED (from 80svh)
+			variants={pageFade}
+			initial="hidden"
+			animate="show"
+		>
+			{/* Full-window gradient so it reaches the footer area */}
+			<motion.div
+				aria-hidden
+				className="fixed inset-0 -z-10 pointer-events-none" // CHANGED (from absolute)
+				style={{
+					backgroundImage: `
+            linear-gradient(
+              to bottom,
+              ${withAlpha(EMERALD_50, "B3")} 0%,   /* ~70% emerald-50 tint */
+              rgba(255,255,255,0.0) 45%,
+              rgba(248,250,252,0) 100%
+            )
+          `,
+				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.6 }}
+			/>
+
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				<header className="text-center space-y-2">
-					<p className="text-emerald-700 font-semibold uppercase tracking-wide text-sm sm:text-base">
+				{/* Header */}
+				<motion.header
+					className="text-center space-y-4"
+					variants={titleFade}
+					initial="hidden"
+					animate="show"
+				>
+					<p
+						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
+						style={{ color: accent }}
+					>
 						Activity {activityNumber}
 					</p>
 
@@ -50,78 +121,110 @@ export default function Activity02({
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
 							Indigenous Medicinal Plants
 						</h1>
-						<Leaf className="w-7 h-7 text-emerald-700" aria-hidden="true" />
+						<Leaf
+							className="w-7 h-7"
+							aria-hidden="true"
+							style={{ color: accent }}
+						/>
 					</div>
-					<p className="text-slate-700 text-lg sm:text-xl max-w-2xl mx-auto">
-						Discover Indigenous medicinal uses for plants in your area.
-						<br /> <strong> Describe what you learned.</strong>{" "}
-					</p>
-				</header>
 
-				<section className="flex justify-center">
+					{/* Tip card */}
+					<TipCard accent={accent}>
+						Explore traditional plant knowledge and medicinal uses.
+						<br />
+						Note teachings, sources, and how they connect to your context.
+					</TipCard>
+				</motion.header>
+
+				{/* Links */}
+				<motion.section
+					className="flex justify-center"
+					variants={gridStagger}
+					initial="hidden"
+					animate="show"
+				>
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center">
-						{/* Card 1: Métis uses (PDF) */}
-						<a
+						<motion.a
 							href="https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open PDF: La Michinn – Revised and Catalogued (new tab)"
 							aria-label="Open PDF: La Michinn – Revised and Catalogued in a new tab"
+							variants={cardPop}
 						>
 							<div className="flex items-center gap-3">
-								<div className={cardBadge}>
+								<div
+									className={badgeBase}
+									style={{
+										backgroundColor: withAlpha(accent, "1A"),
+										color: accent,
+									}}
+								>
 									<BookOpen className="w-5 h-5" aria-hidden="true" />
 								</div>
 								<div className="font-medium text-gray-800 group-hover:underline">
 									Métis traditional uses for plants (PDF)
 								</div>
 							</div>
-							<div className={linkFooter}>
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 
-						{/* Card 2: FAO book */}
-						<a
+						<motion.a
 							href="https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: Traditional plant foods of Indigenous Peoples in Canada (new tab)"
 							aria-label="Open: Traditional plant foods of Indigenous Peoples in Canada in a new tab"
+							variants={cardPop}
 						>
 							<div className="flex items-center gap-3">
-								<div className={cardBadge}>
+								<div
+									className={badgeBase}
+									style={{
+										backgroundColor: withAlpha(accent, "1A"),
+										color: accent,
+									}}
+								>
 									<BookOpen className="w-5 h-5" aria-hidden="true" />
 								</div>
 								<div className="font-medium text-gray-800 group-hover:underline">
 									Traditional plant foods of Indigenous Peoples in Canada (book)
 								</div>
 							</div>
-							<div className={linkFooter}>
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 					</div>
-				</section>
+				</motion.section>
 
+				{/* Notes */}
 				<NoteComposer
 					value={localNotes}
-					onChange={saveNotes}
+					onChange={(v) => {
+						setLocalNotes(v);
+						onNotes?.(v);
+					}}
 					storageKey={`notes-${content?.id || "02"}`}
-					placeholder={placeholder || "Type your reflections…"}
+					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					palette={notePalette} // distinct emerald styling
+					palette={notePalette}
 					downloadFileName={`Activity-${content?.id || "02"}-Reflection.docx`}
 					docTitle={content?.title || "Reflection"}
 				/>
 
+				{/* Complete toggle */}
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -137,6 +240,25 @@ export default function Activity02({
 					</button>
 				</div>
 			</div>
-		</div>
+		</motion.div>
+	);
+}
+
+/* Reusable dashed/translucent tip card (exact style parity) */
+function TipCard({ accent = EMERALD_700, children }) {
+	return (
+		<section
+			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			role="note"
+			aria-label="Activity tip"
+			style={{
+				borderColor: EMERALD_200, // light emerald border
+				backgroundColor: withAlpha(EMERALD_50, "66"), // emerald-50 at ~40% transparency
+			}}
+		>
+			<p className="text-base sm:text-lg text-center text-slate-900">
+				{children}
+			</p>
+		</section>
 	);
 }

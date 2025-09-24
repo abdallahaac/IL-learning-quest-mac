@@ -1,13 +1,17 @@
 import React, { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
 	HeartHandshake,
 	Link2,
 	BookOpen,
 	Bookmark,
 	ExternalLink,
-	Users, // relevant icon for advocates
+	Users,
 } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
+
+/* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
+const withAlpha = (hex, aa) => `${hex}${aa}`;
 
 export default function Activity08({
 	content,
@@ -15,6 +19,7 @@ export default function Activity08({
 	completed,
 	onNotes,
 	onToggleComplete,
+	accent = "#E11D48", // rose-600 — change this to re-skin
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Voices you followed; what you learned…";
@@ -25,185 +30,192 @@ export default function Activity08({
 		onNotes?.(v);
 	};
 
-	const activityNumber = 8;
+	const reduceMotion = useReducedMotion();
 
-	// --- Warm rose-600 theme ---
-	const cardBadge =
-		"w-10 h-10 rounded-xl grid place-items-center bg-rose-50 text-rose-600";
-	const linkCard =
+	// --- animations (same rhythm as other redesigned pages) ---
+	const STAGGER = 0.14;
+	const DELAY_CHILDREN = 0.1;
+
+	const pageFade = {
+		hidden: { opacity: 0 },
+		show: { opacity: 1, transition: { duration: 0.35 } },
+	};
+	const titleFade = {
+		hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
+		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+	};
+	const gridStagger = {
+		hidden: {},
+		show: {
+			transition: {
+				delayChildren: reduceMotion ? 0 : DELAY_CHILDREN,
+				staggerChildren: reduceMotion ? 0 : STAGGER,
+			},
+		},
+	};
+	const cardPop = {
+		hidden: {
+			opacity: 0,
+			y: reduceMotion ? 0 : 8,
+			scale: reduceMotion ? 1 : 0.99,
+		},
+		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
+	};
+
+	// --- shared classes (use outline for focus so we can color via inline) ---
+	const linkCardBase =
 		"group block w-full rounded-2xl border border-gray-200 bg-white p-4 " +
 		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
-		"cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2";
-	const linkFooter =
-		"mt-2 flex items-center justify-center gap-1 text-rose-600 text-xs font-medium";
+		"cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
+	const linkFooterBase =
+		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
 
-	// Egale card-specific class variables
-	const egaleCard =
-		"group relative block w-full rounded-2xl border border-gray-200 " +
-		"bg-white/90 backdrop-blur-sm p-5 shadow-sm transition " +
-		"hover:shadow-md hover:-translate-y-0.5 " +
-		"focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2";
-	const egaleIconBadge =
-		"absolute left-5 top-5 w-10 h-10 rounded-xl grid place-items-center bg-rose-50 text-rose-600";
-	const egaleCenter =
-		"min-h-[108px] flex flex-col items-center justify-center text-center";
+	const activityNumber = 8;
 
-	const notePalette = {
-		ring: "focus-visible:ring-rose-600",
-		btn: "bg-rose-600 hover:bg-rose-700 active:bg-rose-800",
-		badgeBg: "bg-rose-50",
-		border: "border-rose-100",
-	};
-
-	/** TitleRow */
-	const TitleRow = ({ Icon, children, centered = false }) => {
-		if (centered) {
-			return (
-				<div className="grid grid-cols-[40px_1fr] items-center gap-3 min-h-[2.75rem]">
-					<div className={cardBadge}>
-						<Icon className="w-5 h-5" />
-					</div>
-					<div className="justify-self-center text-center font-medium text-gray-800 group-hover:underline">
-						{children}
-					</div>
-				</div>
-			);
-		}
-		return (
-			<div className="relative flex items-center pl-14">
-				<div
-					className={`${cardBadge} absolute left-0 top-1/2 -translate-y-1/2`}
-				>
-					<Icon className="w-5 h-5" />
-				</div>
-				<div className="w-full text-center font-medium text-gray-800 group-hover:underline">
-					{children}
-				</div>
-			</div>
-		);
-	};
-
-	/** TipCard */
-	const TipCard = ({
-		icon: Icon = Users,
-		title = "Advocates to explore",
-		subtitle,
-		items = [],
-	}) => {
-		return (
-			<section
-				className="mx-auto max-w-xl w-full rounded-2xl border border-dashed border-rose-200 bg-rose-50/40 p-4 shadow-sm"
-				role="note"
-				aria-label={title}
+	// Left-badge, centered title
+	const TitleRow = ({ Icon, children }) => (
+		<div className="relative flex items-center pl-14">
+			<div
+				className={badgeBase + " absolute left-0 top-1/2 -translate-y-1/2"}
+				style={{ backgroundColor: withAlpha(accent, "1A"), color: accent }}
 			>
-				<header className="flex items-start gap-3">
-					<div className="shrink-0 w-10 h-10 rounded-xl grid place-items-center bg-white text-rose-600 border border-rose-100">
-						<Icon className="w-5 h-5" aria-hidden="true" />
-					</div>
-					<div className="min-w-0">
-						<h3 className="font-semibold text-slate-900">{title}</h3>
-						{subtitle ? (
-							<p className="text-sm text-slate-600">{subtitle}</p>
-						) : null}
-					</div>
-				</header>
-				<ul className="mt-3 flex flex-wrap gap-2" aria-label={`${title} list`}>
-					{items.map((it) => (
-						<li key={it}>
-							<span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white/70 px-3 py-1.5 text-sm text-rose-800 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-600">
-								<span className="inline-block h-1.5 w-1.5 rounded-full bg-rose-500" />
-								{it}
-							</span>
-						</li>
-					))}
-				</ul>
-			</section>
-		);
-	};
+				<Icon className="w-5 h-5" />
+			</div>
+			<div className="w-full text-center font-medium text-slate-900 group-hover:underline">
+				{children}
+			</div>
+		</div>
+	);
 
 	return (
-		<div className="relative bg-transparent min-h-[80svh]">
-			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
+		<motion.div
+			className="relative bg-transparent min-h-[80svh]"
+			variants={pageFade}
+			initial="hidden"
+			animate="show"
+		>
+			{/* soft accent gradient */}
+			<motion.div
+				aria-hidden
+				className="absolute inset-0 -z-10 pointer-events-none"
+				style={{
+					backgroundImage: `linear-gradient(
+            to bottom,
+            ${withAlpha(accent, "26")} 0%,   /* ~15% */
+            rgba(255,255,255,0) 45%,
+            rgba(248,250,252,0) 100%
+          )`,
+				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 0.4 }}
+				transition={{ duration: 0.6 }}
+			/>
+
+			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
 				{/* Header */}
-				<header className="text-center space-y-2">
-					<p className="text-rose-600 font-semibold uppercase tracking-wide text-sm sm:text-base">
+				<motion.header
+					className="text-center space-y-4"
+					variants={titleFade}
+					initial="hidden"
+					animate="show"
+				>
+					<p
+						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
+						style={{ color: accent }}
+					>
 						Activity {activityNumber}
 					</p>
+
 					<div className="flex items-center justify-center gap-3">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							2SLGBTQQIA+ / Two-Spirit & Indigiqueer Communities
+							2SLGBTQQIA+ / Two-Spirit &amp; Indigiqueer Communities
 						</h1>
 						<HeartHandshake
-							className="w-7 h-7 text-rose-600"
+							className="w-7 h-7"
 							aria-hidden="true"
+							style={{ color: accent }}
 						/>
 					</div>
-					<p className="text-slate-700 text-lg sm:text-xl max-w-2xl mx-auto">
+
+					<TipCard accent={accent}>
 						Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous
 						2SLGBTQQIA+ communities and their histories.
-					</p>
-				</header>
+					</TipCard>
+				</motion.header>
 
-				{/* Resources + Tip */}
-				<section>
+				{/* Resources + Advocates tip */}
+				<motion.section variants={gridStagger} initial="hidden" animate="show">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-						<a
+						<motion.a
 							href="https://nativegov.org/resources/indigenous-knowledge-and-two-spirit-leadership/"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: Indigenous knowledge & Two-Spirit leadership (new tab)"
 							aria-label="Open Indigenous knowledge & Two-Spirit leadership in a new tab"
+							variants={cardPop}
 						>
 							<TitleRow Icon={Link2}>
-								Indigenous knowledge & Two-Spirit leadership
+								Indigenous knowledge &amp; Two-Spirit leadership
 							</TitleRow>
-							<div className={linkFooter}>
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 
-						<a
+						<motion.a
 							href="https://w2sa.ca/two-spirit-library"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: Two-Spirit Library (new tab)"
 							aria-label="Open Two-Spirit Library in a new tab"
+							variants={cardPop}
 						>
 							<TitleRow Icon={BookOpen}>Two-Spirit Library (W2SA)</TitleRow>
-							<div className={linkFooter}>
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 
-						{/* Egale card using variables */}
-						<a
+						<motion.a
 							href="https://egale.ca/awareness/two-spirits-one-voice/"
 							target="_blank"
 							rel="noreferrer"
+							className={linkCardBase + " relative"}
+							style={{ outlineColor: accent }}
 							title="Open: Two Spirits, One Voice (new tab)"
 							aria-label="Open Two Spirits, One Voice in a new tab"
-							className={egaleCard}
+							variants={cardPop}
 						>
-							<div className={egaleIconBadge} aria-hidden="true">
+							{/* floating badge inside the card */}
+							<div
+								className={badgeBase + " absolute left-4 top-4"}
+								style={{
+									backgroundColor: withAlpha(accent, "1A"),
+									color: accent,
+								}}
+							>
 								<Bookmark className="w-5 h-5" />
 							</div>
-							<div className={egaleCenter}>
-								<div className="font-medium text-gray-800 group-hover:underline">
-									Two Spirits, One Voice (Egale)
-								</div>
-								<div className="mt-1 flex items-center justify-center gap-1 text-rose-600 text-xs font-medium">
-									<ExternalLink className="w-4 h-4" aria-hidden="true" />
-									<span>Open link</span>
-								</div>
-							</div>
-						</a>
 
-						{/* TipCard with icon + pill list */}
-						<TipCard
+							<div className="w-full text-center font-medium text-slate-900 group-hover:underline pt-10">
+								Two Spirits, One Voice (Egale)
+							</div>
+
+							<div className={linkFooterBase} style={{ color: accent }}>
+								<ExternalLink className="w-4 h-4" />
+								<span>Open link</span>
+							</div>
+						</motion.a>
+
+						<AdvocatesTip
+							accent={accent}
 							title="Advocates to explore"
 							subtitle="Follow and learn from these voices"
 							items={[
@@ -216,33 +228,24 @@ export default function Activity08({
 							]}
 						/>
 					</div>
-				</section>
+				</motion.section>
 
-				{/* Notes */}
+				{/* Notes — uses hex accent support in NoteComposer */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
 					storageKey={`notes-${content?.id || "08"}`}
-					suggestedTags={[
-						"Inspiring",
-						"Community",
-						"Language",
-						"Action",
-						"History",
-					]}
-					placeholder={placeholder || "Type your reflections…"}
+					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					palette={notePalette}
-					wrapperClassName=""
-					textareaClassName="placeholder:text-gray-400"
+					accent={accent} // hex-aware NoteComposer
 					downloadFileName={`Activity-${content?.id || "08"}-Reflection.docx`}
 					docTitle={content?.title || "Reflection"}
 				/>
 
-				{/* Complete */}
+				{/* Complete toggle (kept like other activities) */}
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -258,6 +261,90 @@ export default function Activity08({
 					</button>
 				</div>
 			</div>
-		</div>
+		</motion.div>
+	);
+}
+
+/* Accent-aware dashed tip (homogenous with other pages) */
+function TipCard({ accent = "#E11D48", children }) {
+	return (
+		<section
+			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			role="note"
+			aria-label="Activity tip"
+			style={{
+				borderColor: withAlpha(accent, "33"), // ~20%
+				backgroundColor: withAlpha(accent, "14"), // ~8% tint
+			}}
+		>
+			<p className="text-base sm:text-lg text-center text-slate-900">
+				{children}
+			</p>
+		</section>
+	);
+}
+
+/* Advocates list with pills, accent-aware */
+function AdvocatesTip({
+	accent = "#E11D48",
+	icon: Icon = Users,
+	title = "Advocates to explore",
+	subtitle,
+	items = [],
+}) {
+	return (
+		<motion.section
+			className="w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			role="note"
+			aria-label={title}
+			style={{
+				borderColor: withAlpha(accent, "33"),
+				backgroundColor: withAlpha(accent, "14"),
+			}}
+			variants={{
+				hidden: { opacity: 0, y: 8, scale: 0.99 },
+				show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
+			}}
+		>
+			<header className="flex items-start gap-3">
+				<div
+					className="shrink-0 w-10 h-10 rounded-xl grid place-items-center border"
+					style={{
+						backgroundColor: "#fff",
+						color: accent,
+						borderColor: withAlpha(accent, "33"),
+					}}
+				>
+					<Icon className="w-5 h-5" aria-hidden="true" />
+				</div>
+				<div className="min-w-0">
+					<h3 className="font-semibold text-slate-900">{title}</h3>
+					{subtitle ? (
+						<p className="text-sm text-slate-600">{subtitle}</p>
+					) : null}
+				</div>
+			</header>
+
+			<ul className="mt-3 flex flex-wrap gap-2" aria-label={`${title} list`}>
+				{items.map((it) => (
+					<li key={it}>
+						<span
+							className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm shadow-sm"
+							style={{
+								borderColor: withAlpha(accent, "33"),
+								backgroundColor: "rgba(255,255,255,0.7)",
+								color: "#7f1d1d", // deep rose-ish text for pills; still readable on white
+							}}
+						>
+							<span
+								className="inline-block h-1.5 w-1.5 rounded-full"
+								style={{ backgroundColor: accent }}
+							/>
+							{it}
+						</span>
+					</li>
+				))}
+			</ul>
+		</motion.section>
 	);
 }

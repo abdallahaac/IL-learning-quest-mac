@@ -18,7 +18,7 @@ export default function Header({
 			ref={containerRef}
 			role="banner"
 			className="
-        fixed inset-x-0 top-0 z-[70]
+        fixed inset-x-0 top-0 z-[80]
         bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur
         border-b border-slate-200 shadow-sm
       "

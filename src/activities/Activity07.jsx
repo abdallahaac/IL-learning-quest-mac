@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
 	Feather,
 	Link2,
@@ -8,14 +8,15 @@ import {
 	Bookmark,
 	ExternalLink,
 } from "lucide-react";
-import NoteComposer from "../components/NoteComposer.jsx";
+
+/* helper: #RRGGBB + "AA" → #RRGGBBAA */
+const withAlpha = (hex, aa) => `${hex}${aa}`;
 
 export default function Activity07({
 	content,
 	notes,
-	completed,
 	onNotes,
-	onToggleComplete,
+	accent = "#0D9488", // teal-600 — change to re-skin the page
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Words/phrases and where they’re used…";
@@ -77,213 +78,252 @@ export default function Activity07({
 
 	const activityNumber = 7;
 
-	// counts & gating
+	// celebration when reaching 3+ valid cards
 	const validCount = (model.cards || []).filter(
 		(c) => c?.front?.trim() && c?.back?.trim()
 	).length;
-	const canComplete = validCount >= 3; // at least 3
 
-	// celebration: fire only on upward crossing during this *session*
 	const [celebrate, setCelebrate] = useState(false);
-	const [hasCelebrated, setHasCelebrated] = useState(false);
 	const prevValidRef = useRef(validCount);
-
-	// on mount, if we already have 3+, do NOT celebrate, but mark as "already celebrated"
-	useEffect(() => {
-		setHasCelebrated(validCount >= 3);
-		prevValidRef.current = validCount;
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []); // run once
-
+	// allow celebration each time user goes from <3 to >=3
 	useEffect(() => {
 		const prev = prevValidRef.current;
-
-		// upward crossing: (<3) -> (>=3)
-		if (prev < 3 && validCount >= 3) {
-			setCelebrate(true);
-			setHasCelebrated(true);
-		}
-
-		// if we drop below 3, allow future celebrations again
-		if (validCount < 3) {
-			setHasCelebrated(false);
-		}
-
-		// keep the ref in sync
+		if (prev < 3 && validCount >= 3) setCelebrate(true);
 		prevValidRef.current = validCount;
 	}, [validCount]);
 
-	// gentle shake when trying to complete too early
-	const [shake, setShake] = useState(false);
-	const handleCompleteClick = () => {
-		if (canComplete) {
-			onToggleComplete?.();
-		} else {
-			setShake(true);
-			setTimeout(() => setShake(false), 450);
-		}
+	// motion rhythm
+	const reduceMotion = useReducedMotion();
+	const STAGGER = 0.14;
+	const DELAY_CHILDREN = 0.1;
+	const pageFade = {
+		hidden: { opacity: 0 },
+		show: { opacity: 1, transition: { duration: 0.35 } },
+	};
+	const titleFade = {
+		hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
+		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+	};
+	const gridStagger = {
+		hidden: {},
+		show: {
+			transition: {
+				delayChildren: reduceMotion ? 0 : DELAY_CHILDREN,
+				staggerChildren: reduceMotion ? 0 : STAGGER,
+			},
+		},
+	};
+	const cardPop = {
+		hidden: {
+			opacity: 0,
+			y: reduceMotion ? 0 : 8,
+			scale: reduceMotion ? 1 : 0.99,
+		},
+		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	// THEME: TEAL
-	const badge =
-		"w-10 h-10 rounded-xl grid place-items-center bg-teal-50 text-teal-600";
-	const linkCard =
+	// shared classes (accent via outlineColor inline)
+	const linkCardBase =
 		"group block w-full rounded-2xl border border-gray-200 bg-white p-4 " +
 		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
-		"cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2";
-	const linkFooter =
-		"mt-2 flex items-center justify-center gap-1 text-teal-600 text-xs font-medium";
+		"cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
+	const linkFooterBase =
+		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
 
-	const notePalette = {
-		ring: "focus-visible:ring-teal-600",
-		btn: "bg-teal-600 hover:bg-teal-700 active:bg-teal-800",
-		badgeBg: "bg-teal-50",
-		border: "border-teal-100",
-	};
-
-	// helper: icon-left, centered title
 	const TitleRow = ({ Icon, children }) => (
 		<div className="relative flex items-center pl-14">
-			<div className={`${badge} absolute left-0 top-1/2 -translate-y-1/2`}>
+			<div
+				className={badgeBase + " absolute left-0 top-1/2 -translate-y-1/2"}
+				style={{ backgroundColor: withAlpha(accent, "1A"), color: accent }}
+			>
 				<Icon className="w-5 h-5" />
 			</div>
-			<div className="w-full text-center font-medium text-gray-800 group-hover:underline">
+			<div className="w-full text-center font-medium text-slate-900 group-hover:underline">
 				{children}
 			</div>
 		</div>
 	);
 
 	return (
-		<div className="relative bg-transparent min-h-[80svh]">
-			{/* celebration burst (fades out) */}
+		<motion.div
+			className="relative bg-transparent min-h-[80svh]"
+			variants={pageFade}
+			initial="hidden"
+			animate="show"
+		>
+			{/* soft accent gradient */}
+			<motion.div
+				aria-hidden
+				className="absolute inset-0 -z-10 pointer-events-none"
+				style={{
+					backgroundImage: `linear-gradient(
+            to bottom,
+            ${withAlpha(accent, "26")} 0%,
+            rgba(255,255,255,0) 45%,
+            rgba(248,250,252,0) 100%
+          )`,
+				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 0.4 }}
+				transition={{ duration: 0.6 }}
+			/>
+
+			{/* celebration overlay */}
 			<AnimatePresence initial={false} mode="wait">
-				{celebrate && <Celebration onClose={() => setCelebrate(false)} />}
+				{celebrate && (
+					<Celebration accent={accent} onClose={() => setCelebrate(false)} />
+				)}
 			</AnimatePresence>
 
-			{/* wider container for a more homogeneous layout */}
 			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
 				{/* Header */}
-				<header className="text-center space-y-2">
-					<p className="text-teal-600 font-semibold uppercase tracking-wide text-sm sm:text-base">
+				<motion.header
+					className="text-center space-y-4"
+					variants={titleFade}
+					initial="hidden"
+					animate="show"
+				>
+					<p
+						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
+						style={{ color: accent }}
+					>
 						Activity {activityNumber}
 					</p>
+
 					<div className="flex items-center justify-center gap-3">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
 							Learn Three Words
 						</h1>
-						<Feather className="w-7 h-7 text-teal-600" aria-hidden="true" />
+						<Feather
+							className="w-7 h-7"
+							aria-hidden="true"
+							style={{ color: accent }}
+						/>
 					</div>
-					<p className="text-slate-700 text-lg sm:text-xl max-w-2xl mx-auto">
-						Learn to say three words in an Indigenous language. Share them with
-						your team and use them often.
-					</p>
-				</header>
 
-				{/* Resources (2 cols on sm+) */}
-				<section>
+					<TipCard accent={accent}>
+						Learn to say a few words in an Indigenous language. <br />
+						Share them with your team and use them often.
+					</TipCard>
+				</motion.header>
+
+				{/* Resources */}
+				<motion.section variants={gridStagger} initial="hidden" animate="show">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-						<a
+						<motion.a
 							href="https://www.firstvoices.com/"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: FirstVoices (new tab)"
 							aria-label="Open FirstVoices in a new tab"
+							variants={cardPop}
 						>
 							<TitleRow Icon={Link2}>FirstVoices</TitleRow>
-							<div className={linkFooter}>
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
 								<span>Open link</span>
 							</div>
-						</a>
-						<a
+						</motion.a>
+
+						<motion.a
 							href="https://tusaalanga.ca/glossary"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: Inuktut glossary (new tab)"
 							aria-label="Open Inuktut glossary in a new tab"
+							variants={cardPop}
 						>
 							<TitleRow Icon={BookText}>
 								Inuktut glossary (Inuktut Tusaalanga)
 							</TitleRow>
-							<div className={linkFooter}>
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
 								<span>Open link</span>
 							</div>
-						</a>
-						<a
+						</motion.a>
+
+						<motion.a
 							href="https://speakmichif.ca/learn/resources"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: Michif Language Revitalization Circle resources (new tab)"
 							aria-label="Open Michif Language Revitalization Circle resources in a new tab"
+							variants={cardPop}
 						>
 							<TitleRow Icon={BookOpen}>
 								Michif Language Revitalization Circle (resources)
 							</TitleRow>
-							<div className={linkFooter}>
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
 								<span>Open link</span>
 							</div>
-						</a>
-						<a
+						</motion.a>
+
+						<motion.a
 							href="https://www.louisrielinstitute.ca/metis-languages-learning-resources"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: Métis languages resources — Louis Riel Institute (new tab)"
 							aria-label="Open Métis languages resources in a new tab"
+							variants={cardPop}
 						>
 							<TitleRow Icon={Bookmark}>
 								Métis languages resources (Louis Riel Institute)
 							</TitleRow>
-							<div className={linkFooter}>
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 					</div>
-				</section>
+				</motion.section>
 
-				{/* Explanation panel */}
-				<div className="mx-auto max-w-3xl rounded-xl border border-teal-100 bg-teal-50/50 p-4 text-center">
-					<p className="text-sm text-slate-700">
-						Add <strong>at least three</strong> word cards below (word on the
-						front, meaning on the back). You’ll get a little celebration when
-						you hit three, and you can only mark this activity complete once you
-						have <strong>3+</strong>.
+				{/* Instructions panel — larger font + more opaque background for contrast */}
+				<div
+					className="mx-auto max-w-3xl rounded-2xl border p-5 md:p-6 text-center shadow-sm"
+					style={{
+						borderColor: withAlpha(accent, "4D"), // ~30%
+						backgroundColor: withAlpha(accent, "26"), // ~15% strong contrast
+					}}
+				>
+					<p className="text-base md:text-lg text-slate-900">
+						Add word cards below (word on the front, meaning on the back). Click
+						a card to flip it and practice anytime.
 					</p>
 				</div>
+
 				{/* Editor LEFT · Flip preview RIGHT */}
 				<section className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{/* LEFT: Editor card */}
-					<div className="bg-white/90 backdrop-blur border border-gray-200 rounded-xl shadow p-4">
+					<div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow p-4">
 						<div className="flex items-center justify-between">
 							<h3 className="text-lg font-semibold text-slate-900">
 								Add your words (Flip Cards)
 							</h3>
-							<span
-								className={`text-sm ${
-									canComplete ? "text-emerald-700" : "text-slate-500"
-								}`}
-							>
-								{validCount} / 3+
-							</span>
+							<span className="text-sm text-slate-500">{validCount} cards</span>
 						</div>
-						<p className="text-xs text-slate-600 mt-1">
+						<p className="text-sm text-slate-600 mt-1">
 							Tip: press <kbd>Enter</kbd> in the “Back” field to add quickly.
 						</p>
 
-						{/* Always-visible input row */}
+						{/* input row */}
 						<div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
 							<input
 								value={newFront}
 								onChange={(e) => setNewFront(e.target.value)}
 								placeholder="Front (word / phrase)"
 								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+                           focus:outline-none focus-visible:ring-2"
+								style={{ outlineColor: accent }}
 							/>
 							<input
 								value={newBack}
@@ -291,7 +331,8 @@ export default function Activity07({
 								onKeyDown={handleNewKey}
 								placeholder="Back (meaning / translation)"
 								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+                           focus:outline-none focus-visible:ring-2"
+								style={{ outlineColor: accent }}
 							/>
 						</div>
 
@@ -300,9 +341,9 @@ export default function Activity07({
 								type="button"
 								onClick={addCard}
 								disabled={!newFront.trim() || !newBack.trim()}
-								className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white
-                           bg-teal-600 hover:bg-teal-700 active:bg-teal-800 disabled:opacity-50
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
+								className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white disabled:opacity-50
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+								style={{ backgroundColor: accent, outlineColor: accent }}
 							>
 								Add card
 							</button>
@@ -322,7 +363,8 @@ export default function Activity07({
 												onChange={(e) => updateCard(i, "front", e.target.value)}
 												aria-label={`Front ${i + 1}`}
 												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6
-                                   focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+                                   focus:outline-none focus-visible:ring-2"
+												style={{ outlineColor: accent }}
 												placeholder="Front"
 											/>
 											<span className="hidden sm:block text-xs text-slate-500 px-1 text-center">
@@ -333,7 +375,8 @@ export default function Activity07({
 												onChange={(e) => updateCard(i, "back", e.target.value)}
 												aria-label={`Back ${i + 1}`}
 												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6
-                                   focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+                                   focus:outline-none focus-visible:ring-2"
+												style={{ outlineColor: accent }}
 												placeholder="Back"
 											/>
 											<button
@@ -356,49 +399,17 @@ export default function Activity07({
 					</div>
 
 					{/* RIGHT: Flip preview wrapped in a matching card */}
-					<div className="bg-white/90 backdrop-blur border border-gray-200 rounded-xl shadow p-4 flex items-center justify-center">
-						<Flashcards cards={model.cards || []} palette={notePalette} />
+					<div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow p-4 flex items-center justify-center">
+						<Flashcards cards={model.cards || []} accent={accent} />
 					</div>
 				</section>
-
-				{/* Complete button with gating (3 or more required) */}
-				<div className="flex items-center justify-between">
-					<span
-						className={`text-sm ${
-							canComplete ? "text-emerald-700" : "text-slate-500"
-						}`}
-					>
-						{canComplete
-							? "Great—at least 3 words added!"
-							: "Add at least 3 cards to complete this activity"}
-					</span>
-
-					<motion.button
-						type="button"
-						onClick={handleCompleteClick}
-						aria-pressed={!!completed}
-						animate={shake ? { x: [-4, 4, -3, 3, 0] } : { x: 0 }}
-						transition={{ duration: 0.45 }}
-						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-							canComplete
-								? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-800"
-						}`}
-						title={canComplete ? "Ready to mark complete" : "Add 3 words first"}
-					>
-						{completed ? "Marked Complete" : "Mark Complete"}
-					</motion.button>
-				</div>
 			</div>
-		</div>
+		</motion.div>
 	);
 }
 
-/* ----- Flashcards: whole-card flip, non-mirrored, tiny headers without bg ----- */
-function Flashcards({ cards = [], palette = {} }) {
-	const palBtn =
-		palette?.btn || "bg-sky-700 hover:bg-sky-800 active:bg-sky-900";
-
+/* ----- Flashcards ----- */
+function Flashcards({ cards = [], accent = "#0D9488" }) {
 	const safeCards = Array.isArray(cards) ? cards : [];
 	const [i, setI] = useState(0);
 	const [flipped, setFlipped] = useState(false);
@@ -423,17 +434,17 @@ function Flashcards({ cards = [], palette = {} }) {
 				{count ? `${i + 1} / ${count}` : "No cards yet"}
 			</div>
 
-			{/* Outer shell (static) */}
+			{/* Outer shell */}
 			<button
 				disabled={!curr}
 				onClick={() => curr && setFlipped(!flipped)}
 				className={`relative w-full aspect-[4/3] rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden
           ${curr ? "cursor-pointer" : "opacity-60 cursor-not-allowed"}`}
-				style={{ perspective: 1000 }} // 3D context
+				style={{ perspective: 1000 }}
 				title={curr ? "Click to flip" : undefined}
 				type="button"
 			>
-				{/* Inner flipper (rotates as a whole card) */}
+				{/* Inner flipper */}
 				<motion.div
 					animate={{ rotateY: flipped ? 180 : 0 }}
 					transition={{ duration: 0.45 }}
@@ -453,7 +464,10 @@ function Flashcards({ cards = [], palette = {} }) {
 							WebkitBackfaceVisibility: "hidden",
 						}}
 					>
-						<div className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium text-teal-700">
+						<div
+							className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium"
+							style={{ color: accent }}
+						>
 							New word
 						</div>
 						<div className="h-full w-full grid place-items-center px-6 pt-8">
@@ -472,7 +486,10 @@ function Flashcards({ cards = [], palette = {} }) {
 							WebkitBackfaceVisibility: "hidden",
 						}}
 					>
-						<div className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium text-teal-700">
+						<div
+							className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium"
+							style={{ color: accent }}
+						>
 							Meaning / Translation
 						</div>
 						<div className="h-full w-full grid place-items-center px-6 pt-8">
@@ -495,7 +512,8 @@ function Flashcards({ cards = [], palette = {} }) {
 				<button
 					onClick={next}
 					disabled={!count}
-					className={`px-4 py-2 rounded-lg text-white ${palBtn} disabled:opacity-50`}
+					className="px-4 py-2 rounded-lg text-white disabled:opacity-50"
+					style={{ backgroundColor: accent }}
 				>
 					Next
 				</button>
@@ -504,31 +522,8 @@ function Flashcards({ cards = [], palette = {} }) {
 	);
 }
 
-/* tiny confetti dots (each fades out with the overlay) */
-function ConfettiDot() {
-	const x = Math.random() * 100; // vw
-	const y = Math.random() * 100; // vh
-	const s = 6 + Math.random() * 10;
-	const dur = 0.8 + Math.random() * 0.8;
-	return (
-		<motion.span
-			initial={{ opacity: 0, scale: 0.6, x: "0vw", y: "0vh" }}
-			animate={{ opacity: 1, scale: 1, x: `${x - 50}vw`, y: `${y - 50}vh` }}
-			exit={{ opacity: 0 }}
-			transition={{ duration: dur, ease: "easeOut" }}
-			className="pointer-events-none fixed z-50 rounded-full"
-			style={{
-				width: s,
-				height: s,
-				background: ["#0d9488", "#14b8a6", "#99f6e4", "#34d399", "#fcd34d"][
-					Math.floor(Math.random() * 5)
-				],
-			}}
-		/>
-	);
-}
-
-function Celebration({ onClose }) {
+/* ---- Celebration overlay (confetti dots + quick toast) ---- */
+function Celebration({ onClose, accent = "#0D9488" }) {
 	useEffect(() => {
 		const onEsc = (e) => e.key === "Escape" && onClose?.();
 		window.addEventListener("keydown", onEsc);
@@ -541,36 +536,79 @@ function Celebration({ onClose }) {
 
 	return (
 		<motion.div
-			// click anywhere to dismiss
 			onClick={onClose}
 			initial={{ opacity: 0 }}
 			animate={{ opacity: 1 }}
-			exit={{ opacity: 0 }} // overlay fades out
+			exit={{ opacity: 0 }}
 			transition={{ duration: 0.35 }}
-			className="fixed inset-0 z-50 grid place-items-center bg-black/10"
+			className="fixed inset-0 z-50 grid place-items-center"
+			style={{ backgroundColor: "rgba(0,0,0,0.18)" }}
 		>
 			<motion.div
 				initial={{ scale: 0.9, rotate: -6, opacity: 0 }}
 				animate={{ scale: 1.05, rotate: 0, opacity: 1 }}
-				exit={{ scale: 0.96, opacity: 0 }} // card fades & shrinks out
+				exit={{ scale: 0.96, opacity: 0 }}
 				transition={{ type: "spring", stiffness: 220, damping: 16 }}
-				className="rounded-2xl bg-white/90 backdrop-blur border border-teal-200 shadow-xl px-6 py-4"
+				className="rounded-2xl border shadow-xl px-6 py-4"
+				style={{
+					backgroundColor: "rgba(255,255,255,0.95)",
+					borderColor: withAlpha(accent, "33"),
+				}}
 			>
-				<div className="flex items-center gap-3 text-teal-700">
+				<div className="flex items-center gap-3" style={{ color: accent }}>
 					<Feather className="w-6 h-6" />
-					<p className="text-lg font-semibold">
-						You have completed the activity!
-					</p>
+					<p className="text-lg font-semibold">Nice! You added 3 words 🎉</p>
 				</div>
-				<p className="text-sm text-slate-600 text-center mt-1">
-					Flip your cards to practice, then mark the activity complete.
+				<p className="text-sm text-slate-700 text-center mt-1">
+					Keep going—add more and practice by flipping the cards.
 				</p>
 			</motion.div>
 
-			{/* confetti dots */}
 			{[...Array(18)].map((_, i) => (
-				<ConfettiDot key={i} />
+				<ConfettiDot key={i} accent={accent} />
 			))}
 		</motion.div>
+	);
+}
+
+/* tiny confetti dots */
+function ConfettiDot({ accent = "#0D9488" }) {
+	const x = Math.random() * 100;
+	const y = Math.random() * 100;
+	const s = 6 + Math.random() * 10;
+	const dur = 0.8 + Math.random() * 0.8;
+	const colors = [accent, "#14b8a6", "#99f6e4", "#34d399", "#fcd34d"];
+	return (
+		<motion.span
+			initial={{ opacity: 0, scale: 0.6, x: "0vw", y: "0vh" }}
+			animate={{ opacity: 1, scale: 1, x: `${x - 50}vw`, y: `${y - 50}vh` }}
+			exit={{ opacity: 0 }}
+			transition={{ duration: dur, ease: "easeOut" }}
+			className="pointer-events-none fixed z-50 rounded-full"
+			style={{
+				width: s,
+				height: s,
+				background: colors[Math.floor(Math.random() * colors.length)],
+			}}
+		/>
+	);
+}
+
+/* Accent-aware, dashed/translucent tip (shared with other redesigned pages) */
+function TipCard({ accent = "#0D9488", children }) {
+	return (
+		<section
+			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			role="note"
+			aria-label="Activity tip"
+			style={{
+				borderColor: withAlpha(accent, "33"),
+				backgroundColor: withAlpha(accent, "14"),
+			}}
+		>
+			<p className="text-base sm:text-lg text-center text-slate-900">
+				{children}
+			</p>
+		</section>
 	);
 }

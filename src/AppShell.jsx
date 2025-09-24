@@ -389,13 +389,18 @@ export default function AppShell() {
 		completed: !!state.completed[p.content.id],
 		visited: state.visited.has(idx),
 	}));
-
+	// measure the fixed footer height  // NEW
+	const [footerRef, footerSize] = useResizeObserver();
+	const footerHeight = footerSize.height || 0;
 	// ---- LAYOUT with sticky header ----
 
 	return (
 		<div
-			className={`relative h-screen flex flex-col ${themeClass}`}
-			style={{ "--header-h": `${headerHeight}px` }}
+			className={` app-shell relative h-screen flex flex-col ${themeClass}`}
+			style={{
+				"--header-h": `${headerHeight}px`,
+				"--footer-h": `${footerHeight}px`, // NEW
+			}}
 		>
 			<PatternMorph pageIndex={state.pageIndex} sequence={BG_SEQUENCE} />
 

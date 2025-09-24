@@ -39,7 +39,8 @@ function FlipCard({ step, backText }) {
 						"group relative w-full",
 						"h-56 sm:h-64 lg:h-72",
 						"bg-white/95 border border-gray-200 rounded-xl shadow-sm",
-						"focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-700 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+						// focus ring swapped to #7443d6
+						"focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7443d6] focus-visible:ring-offset-2 focus-visible:ring-offset-white",
 						"transition-transform duration-500 will-change-transform",
 						flipped && !reduceMotion ? "[transform:rotateY(180deg)]" : "",
 						"p-0",
@@ -66,7 +67,7 @@ function FlipCard({ step, backText }) {
 						className="absolute inset-0 grid place-items-center backface-hidden px-4"
 						style={{ backfaceVisibility: "hidden" }}
 					>
-						<h4 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-sky-700 select-none">
+						<h4 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#7443d6] select-none">
 							Step {step}
 						</h4>
 						<SrOnly>
@@ -86,7 +87,7 @@ function FlipCard({ step, backText }) {
 						style={{ backfaceVisibility: "hidden" }}
 					>
 						<div className="max-h-full w-full overflow-auto">
-							<p className="text-sm leading-relaxed text-gray-800 text-center">
+							<p className="text-md leading-relaxed text-gray-800 text-center">
 								{backText}
 							</p>
 						</div>
@@ -122,16 +123,14 @@ export default function PreparationPage({ content, onStartActivities }) {
 
 	return (
 		<div className="relative bg-transparent min-h-[100svh] ">
-			{/* gradient (fades in) */}
+			{/* gradient (fades in) – shifted to purple family */}
 			<motion.div
 				aria-hidden
-				className="fixed inset-0 -z-10 pointer-events-none 
-             bg-gradient-to-b from-sky-700/5 from-10% via-white/30 via-95% to-slate-50/40"
+				className="absolute inset-0 z-0 pointer-events-none
+             bg-gradient-to-b from-[#7443d6]/80 via-white/60 to-slate-50/80"
 				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={
-					prefersReduced ? { duration: 0 } : { duration: 0.6, ease: "easeOut" }
-				}
+				animate={{ opacity: 0.1 }}
+				transition={{ duration: 0.6, ease: "easeInOut" }}
 			/>
 
 			<div className="relative z-10 px-4 py-10 sm:py-12 max-w-6xl mx-auto space-y-8">
@@ -142,7 +141,7 @@ export default function PreparationPage({ content, onStartActivities }) {
 					className="bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl border border-gray-200 p-6 sm:p-8 text-center"
 				>
 					<header className="space-y-1">
-						<h1 className="text-2xl font-bold text-sky-700">Preparation</h1>
+						<h1 className="text-2xl font-bold text-[#7443d6]">Preparation</h1>
 					</header>
 
 					{(p0 || p1) && (
@@ -152,18 +151,7 @@ export default function PreparationPage({ content, onStartActivities }) {
 						</div>
 					)}
 
-					{/* chips */}
-					<div className="mt-5 flex flex-wrap gap-2 justify-center">
-						<span className="text-xs px-3 py-1 rounded-full bg-sky-50 text-sky-700">
-							Lightweight cadence
-						</span>
-						<span className="text-xs px-3 py-1 rounded-full bg-sky-50 text-sky-700">
-							Team-first
-						</span>
-						<span className="text-xs px-3 py-1 rounded-full bg-sky-50 text-sky-700">
-							Safe & supportive
-						</span>
-					</div>
+					{/* chips REMOVED per request */}
 				</motion.section>
 
 				{/* HOW IT WORKS */}
@@ -172,7 +160,7 @@ export default function PreparationPage({ content, onStartActivities }) {
 					transition={fastEase}
 					className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-lg p-6 sm:p-8 text-center"
 				>
-					<h2 className="text-2xl font-bold text-sky-700">
+					<h2 className="text-2xl font-bold text-[#7443d6]">
 						How does the Learning Quest work?
 					</h2>
 

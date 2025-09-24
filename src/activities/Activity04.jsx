@@ -1,6 +1,10 @@
 import React, { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { Globe2, ExternalLink } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
+
+/* helper: #RRGGBB + "AA" → #RRGGBBAA */
+const withAlpha = (hex, aa) => `${hex}${aa}`;
 
 export default function Activity04({
 	content,
@@ -8,6 +12,7 @@ export default function Activity04({
 	completed,
 	onNotes,
 	onToggleComplete,
+	accent = "#4338CA", // INDIGO (change to re-skin this page)
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Which community? What you learned…";
@@ -17,113 +22,195 @@ export default function Activity04({
 		onNotes?.(v);
 	};
 
-	const activityNumber = 4;
+	const reduceMotion = useReducedMotion();
 
-	// Indigo accents (distinct from other activities)
-	const cardBadge =
-		"w-10 h-10 rounded-xl grid place-items-center bg-indigo-50 text-indigo-700";
-	const linkCard =
-		"group block mx-auto max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
-		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
-		"cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2";
-	const linkFooter =
-		"mt-2 flex items-center justify-center gap-1 text-indigo-700 text-xs font-medium";
+	// --- animations (same rhythm as other pages) ---
+	const STAGGER = 0.14;
+	const DELAY_CHILDREN = 0.1;
 
-	const notePalette = {
-		text: "text-indigo-700",
-		ring: "focus-visible:ring-indigo-700",
-		btn: "bg-indigo-700 hover:bg-indigo-800 active:bg-indigo-900",
-		badgeBg: "bg-indigo-50",
-		border: "border-indigo-100",
+	const pageFade = {
+		hidden: { opacity: 0 },
+		show: { opacity: 1, transition: { duration: 0.35 } },
+	};
+	const titleFade = {
+		hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
+		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+	};
+	const gridStagger = {
+		hidden: {},
+		show: {
+			transition: {
+				delayChildren: reduceMotion ? 0 : DELAY_CHILDREN,
+				staggerChildren: reduceMotion ? 0 : STAGGER,
+			},
+		},
+	};
+	const cardPop = {
+		hidden: {
+			opacity: 0,
+			y: reduceMotion ? 0 : 8,
+			scale: reduceMotion ? 1 : 0.99,
+		},
+		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
+	// shared classes (ring via outline so color can be inline)
+	const linkCardBase =
+		"group block max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
+		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer " +
+		"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
+	const linkFooterBase =
+		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
+
+	const activityNumber = 4;
+
 	return (
-		<div className="relative bg-transparent min-h-[80svh]">
+		<motion.div
+			className="relative bg-transparent min-h-[80svh]"
+			variants={pageFade}
+			initial="hidden"
+			animate="show"
+		>
+			{/* soft, accessible gradient (accent → clear) */}
+			<motion.div
+				aria-hidden
+				className="absolute inset-0 -z-10 pointer-events-none"
+				style={{
+					backgroundImage: `linear-gradient(
+            to bottom,
+            ${withAlpha(accent, "26")} 0%,   /* ~15% */
+            rgba(255,255,255,0) 45%,
+            rgba(248,250,252,0) 100%
+          )`,
+				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 0.3 }}
+				transition={{ duration: 0.6 }}
+			/>
+
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header with indigo label + icon */}
-				<header className="text-center space-y-2">
-					<p className="text-indigo-700 font-semibold uppercase tracking-wide text-sm sm:text-base">
+				{/* Header */}
+				<motion.header
+					className="text-center space-y-4"
+					variants={titleFade}
+					initial="hidden"
+					animate="show"
+				>
+					<p
+						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
+						style={{ color: accent }}
+					>
 						Activity {activityNumber}
 					</p>
+
 					<div className="flex items-center justify-center gap-3">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
 							Indigenous Peoples Outside Canada
 						</h1>
-						<Globe2 className="w-7 h-7 text-indigo-700" aria-hidden="true" />
+						<Globe2
+							className="w-7 h-7"
+							aria-hidden="true"
+							style={{ color: accent }}
+						/>
 					</div>
-					<p className="text-slate-700 text-lg sm:text-xl max-w-2xl mx-auto">
+
+					{/* dashed, translucent tip (consistent) */}
+					<TipCard accent={accent}>
 						Discover facts about an Indigenous population outside Canada.
 						<br />
 						<strong>What stood out to you?</strong>
-					</p>
-				</header>
+					</TipCard>
+				</motion.header>
 
-				{/* Two centered cards */}
-				<section className="flex justify-center">
+				{/* Link cards */}
+				<motion.section
+					className="flex justify-center"
+					variants={gridStagger}
+					initial="hidden"
+					animate="show"
+				>
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-content-center w-full">
 						{/* Card 1 */}
-						<a
+						<motion.a
 							href="https://newshour-classroom-tc.digi-producers.pbs.org/uploads/app/uploads/2014/11/A-global-map-of-indigenous-peoples.pdf"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: A global map of Indigenous peoples (PDF) — new tab"
 							aria-label="Open: A global map of Indigenous peoples (PDF) in a new tab"
+							variants={cardPop}
 						>
 							<div className="flex items-center gap-3">
-								<div className={cardBadge}>
+								<div
+									className={badgeBase}
+									style={{
+										backgroundColor: withAlpha(accent, "1A"),
+										color: accent,
+									}}
+								>
 									<Globe2 className="w-5 h-5" aria-hidden="true" />
 								</div>
-								<div className="font-medium text-gray-800 group-hover:underline">
+								<div className="font-medium text-slate-900 group-hover:underline">
 									Global map of Indigenous Peoples (PDF)
 								</div>
 							</div>
-							<div className={linkFooter}>
+							<div className={`${linkFooterBase} text-slate-800`}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 
 						{/* Card 2 */}
-						<a
+						<motion.a
 							href="https://www.visualcapitalist.com/cp/mapped-the-worlds-indigenous-peoples/"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
 							title="Open: Mapped — The world's Indigenous Peoples (Visual Capitalist) — new tab"
 							aria-label="Open: Mapped — The world's Indigenous Peoples (Visual Capitalist) in a new tab"
+							variants={cardPop}
 						>
 							<div className="flex items-center gap-3">
-								<div className={cardBadge}>
+								<div
+									className={badgeBase}
+									style={{
+										backgroundColor: withAlpha(accent, "1A"),
+										color: accent,
+									}}
+								>
 									<Globe2 className="w-5 h-5" aria-hidden="true" />
 								</div>
-								<div className="font-medium text-gray-800 group-hover:underline">
+								<div className="font-medium text-slate-900 group-hover:underline">
 									Mapped: The world’s Indigenous Peoples
 								</div>
 							</div>
-							<div className={linkFooter}>
+							<div className={`${linkFooterBase} text-slate-800`}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 					</div>
-				</section>
+				</motion.section>
 
-				{/* Indigo-styled NoteComposer */}
+				{/* Notes (hex-accent aware NoteComposer) */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
 					storageKey={`notes-${content?.id || "04"}`}
-					placeholder={placeholder || "Type your reflections…"}
+					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					palette={notePalette}
+					accent="#4F46E5" // indigo-600 for rings/buttons (feel free to use {accent})
 					downloadFileName={`Activity-${content?.id || "04"}-Reflection.docx`}
 					docTitle={content?.title || "Reflection"}
 				/>
 
+				{/* Complete toggle (same as others) */}
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -139,6 +226,25 @@ export default function Activity04({
 					</button>
 				</div>
 			</div>
-		</div>
+		</motion.div>
+	);
+}
+
+/* ---------- Reusable dashed/translucent tip (accent aware) ---------- */
+function TipCard({ accent = "#4338CA", children }) {
+	return (
+		<section
+			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			role="note"
+			aria-label="Activity tip"
+			style={{
+				borderColor: withAlpha(accent, "33"), // ~20%
+				backgroundColor: withAlpha(accent, "13"), // ~8% tint
+			}}
+		>
+			<p className="text-base sm:text-lg text-center text-slate-900">
+				{children}
+			</p>
+		</section>
 	);
 }

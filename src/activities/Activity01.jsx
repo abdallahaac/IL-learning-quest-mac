@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
 	Palette,
 	Image as ImageIcon,
@@ -7,12 +8,19 @@ import {
 } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
 
+// tiny helper to add alpha to a hex color (#RRGGBB + "AA")
+function withAlpha(hex, alphaHex) {
+	if (!/^#([0-9a-f]{6})$/i.test(hex)) return hex;
+	return `${hex}${alphaHex}`;
+}
+
 export default function Activity01({
 	content,
 	notes,
 	completed,
 	onNotes,
 	onToggleComplete,
+	accent = "#4380d6", // brand accent
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Your reflections on the artist…";
@@ -22,97 +30,172 @@ export default function Activity01({
 		onNotes?.(v);
 	};
 
-	// shared classes for link cards
-	const linkCard =
+	const reduceMotion = useReducedMotion();
+
+	// --- Animations
+	const STAGGER = 0.14,
+		DELAY_CHILDREN = 0.1;
+	const pageFade = {
+		hidden: { opacity: 0 },
+		show: { opacity: 1, transition: { duration: 0.35 } },
+	};
+	const titleFade = {
+		hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
+		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+	};
+	const gridStagger = {
+		hidden: {},
+		show: {
+			transition: {
+				delayChildren: reduceMotion ? 0 : DELAY_CHILDREN,
+				staggerChildren: reduceMotion ? 0 : STAGGER,
+			},
+		},
+	};
+	const cardPop = {
+		hidden: {
+			opacity: 0,
+			y: reduceMotion ? 0 : 8,
+			scale: reduceMotion ? 1 : 0.99,
+		},
+		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
+	};
+
+	// shared classes (focus outline kept for keyboard usability)
+	const linkCardBase =
 		"group block max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
-		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
-		"cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2";
-
-	const badge =
-		"w-10 h-10 rounded-xl grid place-items-center bg-sky-50 text-sky-700";
-
-	// center the 'Open link' row
-	const linkFooter =
-		"mt-2 flex items-center justify-center gap-1 text-sky-700 text-xs font-medium";
+		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer " +
+		"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
+	const linkFooterBase =
+		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
 
 	const activityNumber = 1;
 
 	return (
-		<div className="relative bg-transparent min-h-[80svh]">
+		<motion.div
+			className="relative bg-transparent min-h-[80svh]"
+			variants={pageFade}
+			initial="hidden"
+			animate="show"
+		>
+			{/* softer, more accessible gradient */}
+			<motion.div
+				aria-hidden
+				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
+				style={{
+					backgroundImage: `linear-gradient(to bottom, ${withAlpha(
+						accent,
+						"3D"
+					)}, rgba(255,255,255,0.65), rgba(248,250,252,0.8))`,
+				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 0.35 }}
+				transition={{ duration: 0.6 }}
+			/>
+
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				<header className="text-center space-y-2">
-					{/* Blue activity label */}
-					<p className="text-sky-700 font-semibold uppercase tracking-wide text-sm sm:text-base">
+				{/* Header */}
+				<motion.header
+					className="text-center space-y-4"
+					variants={titleFade}
+					initial="hidden"
+					animate="show"
+				>
+					<p
+						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
+						style={{ color: accent }}
+					>
 						Activity {activityNumber}
 					</p>
 
-					{/* Title + blue icon */}
 					<div className="flex items-center justify-center gap-3">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
 							Explore an Indigenous Artist
 						</h1>
-						<Palette className="w-7 h-7 text-sky-700" aria-hidden="true" />
+						{/* keep a single Palette icon by the title; we'll remove it from the tip to avoid redundancy */}
+						<Palette
+							className="w-7 h-7"
+							aria-hidden="true"
+							style={{ color: accent }}
+						/>
 					</div>
 
-					{/* Slightly larger body text */}
-					<p className="text-slate-700 text-lg sm:text-xl max-w-2xl mx-auto">
-						Explore works by an Indigenous artist that speak to you. <br />
-						<strong>
-							How do you relate to this artist? How do they inspire you?
-						</strong>
-					</p>
-				</header>
+					{/* Tip card (dashed + translucent, NO icon, high-contrast text) */}
+					<TipPrompt accent={accent} />
+				</motion.header>
 
-				<section className="flex justify-center">
+				{/* Links grid */}
+				<motion.section
+					className="flex justify-center"
+					variants={gridStagger}
+					initial="hidden"
+					animate="show"
+				>
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center">
-						{/* Card 1: Artists */}
-						<a
+						<motion.a
 							href="https://www.thecanadianencyclopedia.ca/en/article/important-indigenous-artists"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
+							variants={cardPop}
 							title="Open: List of important Indigenous artists in Canada (new tab)"
 							aria-label="Open list of important Indigenous artists in Canada in a new tab"
 						>
 							<div className="flex items-center gap-3">
-								<div className={badge}>
+								<div
+									className={badgeBase}
+									style={{
+										backgroundColor: withAlpha(accent, "1A"),
+										color: accent,
+									}}
+								>
 									<ImageIcon className="w-5 h-5" aria-hidden="true" />
 								</div>
-								<div className="font-medium text-gray-800 group-hover:underline">
+								<div className="font-medium text-slate-900 group-hover:underline">
 									List of important Indigenous artists in Canada
 								</div>
 							</div>
-							<div className={linkFooter}>
+							<div className={`${linkFooterBase} text-slate-800`}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 
-						{/* Card 2: Musicians */}
-						<a
+						<motion.a
 							href="https://www.thecanadianencyclopedia.ca/en/article/influential-indigenous-musicians"
 							target="_blank"
 							rel="noreferrer"
-							className={linkCard}
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
+							variants={cardPop}
 							title="Open: List of influential Indigenous musicians in Canada (new tab)"
 							aria-label="Open list of influential Indigenous musicians in Canada in a new tab"
 						>
 							<div className="flex items-center gap-3">
-								<div className={badge}>
+								<div
+									className={badgeBase}
+									style={{
+										backgroundColor: withAlpha(accent, "1A"),
+										color: accent,
+									}}
+								>
 									<Music4 className="w-5 h-5" aria-hidden="true" />
 								</div>
-								<div className="font-medium text-gray-800 group-hover:underline">
+								<div className="font-medium text-slate-900 group-hover:underline">
 									List of influential Indigenous musicians in Canada
 								</div>
 							</div>
-							<div className={linkFooter}>
+							<div className={`${linkFooterBase} text-slate-800`}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
-						</a>
+						</motion.a>
 					</div>
-				</section>
+				</motion.section>
 
+				{/* Notes */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -125,6 +208,7 @@ export default function Activity01({
 					docTitle={content?.title || "Reflection"}
 				/>
 
+				{/* Complete toggle */}
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -132,14 +216,35 @@ export default function Activity01({
 						aria-pressed={!!completed}
 						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
 							completed
-								? "border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
+								? "border-emerald-400 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+								: "border-gray-300 bg-gray-50 text-gray-900 hover:bg-gray-100"
 						}`}
 					>
 						{completed ? "Marked Complete" : "Mark Complete"}
 					</button>
 				</div>
 			</div>
-		</div>
+		</motion.div>
 	);
+
+	// dashed/translucent tip with strong text; no icon to avoid duplication with title
+	function TipPrompt({ accent = "#4380d6" }) {
+		return (
+			<section
+				className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
+				role="note"
+				aria-label="Activity reflection tip"
+				style={{
+					borderColor: withAlpha(accent, "33"), // ~20%
+					backgroundColor: withAlpha(accent, "14"), // ~8% tint (like bg-rose-50/40)
+				}}
+			>
+				<p className="text-base sm:text-lg text-center text-slate-900">
+					Explore works by an Indigenous artist that speak to you.
+					<br />
+					How do you relate to this artist? How do they inspire you?
+				</p>
+			</section>
+		);
+	}
 }

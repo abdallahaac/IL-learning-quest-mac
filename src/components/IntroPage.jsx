@@ -1,22 +1,12 @@
 // src/components/IntroPage.jsx
 import React from "react";
 import { motion } from "framer-motion";
-import {
-	Users,
-	Compass,
-	Clock,
-	CalendarCheck,
-	RefreshCcw,
-	CheckCircle2,
-} from "lucide-react";
+import { Users, Compass, Clock, CalendarCheck, RefreshCcw } from "lucide-react";
 
 export default function IntroPage({ content }) {
 	const title = content?.title || "Introduction & Quest Info";
 	const paragraphs = content?.paragraphs ?? [];
-	const howHeading =
-		content?.bullets?.[0]?.heading ?? "How does the Learning Quest work?";
 	const items = content?.bullets?.[0]?.items ?? [];
-
 	const detailedSteps = content?.details?.steps ?? [];
 
 	const steps = [
@@ -56,20 +46,13 @@ export default function IntroPage({ content }) {
 	const whatParas = paragraphs.slice(2, 5);
 
 	return (
-		/**
-		 * Centering approach:
-		 * - Outer wrapper is a flex container.
-		 * - Inner content uses `my-auto` to vertically center ONLY when there’s extra space.
-		 * - `pb-24` protects the content from the fixed footer.
-		 */
-		<div className="relative bg-transparent min-h-[100svh]  flex">
-			{/* gradient layer — FIXED to cover the whole window */}
+		<div className="relative bg-transparent min-h-[100svh] flex">
+			{/* background wash */}
 			<div
 				aria-hidden
 				className="fixed inset-0 -z-10 pointer-events-none bg-gradient-to-b from-sky-50/55 via-white/45 to-slate-50/55"
 			/>
 
-			{/* content */}
 			<div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-10 my-auto">
 				{/* Section: Introduction */}
 				<motion.section
@@ -80,10 +63,7 @@ export default function IntroPage({ content }) {
 					transition={{ duration: 0.4, ease: "easeOut" }}
 					className="bg-white/95 backdrop-blur-sm shadow-lg rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-5"
 				>
-					<h2
-						id="intro-section"
-						className="text-2xl font-bold text-indigo-700/90"
-					>
+					<h2 id="intro-section" className="text-2xl font-bold text-[#4380d6]">
 						{title}
 					</h2>
 
@@ -93,25 +73,25 @@ export default function IntroPage({ content }) {
 						</p>
 					))}
 
-					{/* quick summary chips */}
+					{/* quick summary chips — now dashed blue like the Tip card */}
 					<dl
 						className="grid sm:grid-cols-3 gap-3 sm:gap-4 mt-4"
 						aria-label="Quick summary"
 					>
-						<div className="bg-sky-50 border border-sky-100 rounded-lg p-3">
-							<dt className="text-xs font-medium text-sky-800">Format</dt>
+						<div className="rounded-2xl border border-dashed border-[#4380d6]/35 bg-[#4380d6]/10 p-3 shadow-sm">
+							<dt className="text-xs font-medium text-[#4380d6]">Format</dt>
 							<dd className="text-sm text-gray-800">
 								10 activities • self-paced
 							</dd>
 						</div>
-						<div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3">
-							<dt className="text-xs font-medium text-indigo-800">
+						<div className="rounded-2xl border border-dashed border-[#4380d6]/35 bg-[#4380d6]/10 p-3 shadow-sm">
+							<dt className="text-xs font-medium text-[#4380d6]">
 								Collaboration
 							</dt>
 							<dd className="text-sm text-gray-800">Individual or team</dd>
 						</div>
-						<div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3">
-							<dt className="text-xs font-medium text-emerald-800">Goal</dt>
+						<div className="rounded-2xl border border-dashed border-[#4380d6]/35 bg-[#4380d6]/10 p-3 shadow-sm">
+							<dt className="text-xs font-medium text-[#4380d6]">Goal</dt>
 							<dd className="text-sm text-gray-800">
 								Awareness & action for reconciliation
 							</dd>
@@ -129,10 +109,7 @@ export default function IntroPage({ content }) {
 					transition={{ duration: 0.4, ease: "easeOut" }}
 					className="bg-white/95 backdrop-blur-sm shadow-lg rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-5"
 				>
-					<h3
-						id="what-section"
-						className="text-2xl font-bold text-indigo-700/90"
-					>
+					<h3 id="what-section" className="text-2xl font-bold text-[#4380d6]">
 						What is the Learning Quest on Indigenous Cultures?
 					</h3>
 
@@ -143,12 +120,14 @@ export default function IntroPage({ content }) {
 					))}
 				</motion.section>
 
-				{/* Tip */}
-				<div className="bg-white/95 backdrop-blur-sm rounded-xl border border-gray-200 p-4 sm:p-5 shadow-sm">
-					<p className="text-sm text-gray-700">
+				{/* Tip — dashed blue #4380d6 */}
+				<div className="mx-auto max-w-xl w-full rounded-2xl border border-dashed border-[#4380d6]/35 bg-[#4380d6]/10 p-4 shadow-sm">
+					<p className="text-base sm:text-lg text-center text-slate-800">
 						Tip: Use a{" "}
-						<span className="font-medium">safe, respectful space</span> for team
-						check-ins and keep learning by sharing resources together.
+						<span className="font-medium text-[#4380d6]">
+							safe, respectful space
+						</span>{" "}
+						for team check-ins and keep learning by sharing resources together.
 					</p>
 				</div>
 			</div>

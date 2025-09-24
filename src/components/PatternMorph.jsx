@@ -11,8 +11,8 @@ import React, { useEffect, useMemo, useRef } from "react";
 export default function PatternMorph({
 	pageIndex = 0,
 	sequence = ["dots", "plus", "grid", "plus", "dots"],
-	bg = "#f8fafc",
-	ink = "rgba(0,0,0,0.09)",
+	bg = "#ffff",
+	ink = "rgba(0,0,0,0.10)",
 	duration = 800,
 }) {
 	const canvasRef = useRef(null);
