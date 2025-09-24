@@ -322,6 +322,17 @@ export default function AppShell() {
 					onNavigate={gotoPage}
 					progress={curvedProgress}
 					prefillStart={dynamicPrefill}
+					// ICON offsets (favicon positions)
+					nodeXOffsetOverrides={[-70, -70, -70, -80, -180]}
+					nodeYOffsetOverrides={[-100, 80, -105, 95, -130]}
+					// CARD offsets (card positions)
+					cardPosOverrides={[
+						{ x: -30, y: -190 },
+						{ x: -10, y: -0 },
+						{ x: -0, y: -190 },
+						{ x: 0, y: 10 },
+						{ x: -80, y: -210 },
+					]}
 				/>
 			);
 			break;
@@ -380,27 +391,23 @@ export default function AppShell() {
 	}));
 
 	// ---- LAYOUT with sticky header ----
+
 	return (
 		<div
 			className={`relative h-screen flex flex-col ${themeClass}`}
 			style={{ "--header-h": `${headerHeight}px` }}
 		>
-			{/* Background art behind everything */}
 			<PatternMorph pageIndex={state.pageIndex} sequence={BG_SEQUENCE} />
 
-			{/* Fixed header (measured) */}
+			{/* Fixed header with dock */}
 			<Header
 				containerRef={headerRef}
 				siteTitle={siteTitle}
-				pageTitle={pageTitle}
-				isActivity={isActivity}
-				activityIndex={currentPage.activityIndex}
-				totalActivities={activityTotal}
 				onHome={() => gotoPage(0)}
 				onContents={() => gotoPage(1)}
-				activityIds={activityIds}
-				completedMap={state.completed}
-				onJumpToActivity={jumpToActivity}
+				activitySteps={activitySteps}
+				currentPageIndex={state.pageIndex}
+				onJumpToPage={(idx) => gotoPage(idx)}
 			/>
 
 			{/* Scroll container (add top padding equal to header height) */}
@@ -439,9 +446,6 @@ export default function AppShell() {
 					onPrev={prev}
 					onNext={next}
 					nextLabel={getNextLabel()}
-					activitySteps={activitySteps}
-					onJumpToPage={(idx) => gotoPage(idx)}
-					dockAlign="right" // or "left"
 				/>
 			</div>
 		</div>

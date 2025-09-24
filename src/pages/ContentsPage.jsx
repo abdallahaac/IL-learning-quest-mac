@@ -10,10 +10,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const DEFAULT_CARD_OFFSETS = [
-	{ x: -100, y: 0 },
-	{ x: -92, y: 10 },
-	{ x: -82, y: 10 },
-	{ x: -75, y: 0 },
+	{ x: 50, y: -190 },
+	{ x: 50, y: -30 },
+	{ x: 70, y: -190 },
+	{ x: 100, y: 10 },
 	{ x: -65, y: 0 },
 ];
 
@@ -28,7 +28,6 @@ const ANIM = {
 	cardStagger: 0.09,
 };
 
-/* one-time HSL→HEX helper so Firefox/Chrome match exactly */
 function hslToHex(h, s, l) {
 	s /= 100;
 	l /= 100;
@@ -46,15 +45,22 @@ function hslToHex(h, s, l) {
 export default function ContentsPage({
 	activityCount = 0,
 	onNavigate,
-	cardPosOverrides,
 	progress = 0,
 	prefillStart = 0.06,
 
-	/** Layout knobs */
-	cardWidth = 210, // card width (px)
-	autoScaleCards = true, // shrink to fit per lane
-	clampCards = false, // allow offsets to push past edges by default
-	clampMargin = 12, // padding from edges when clamped
+	// Cards: manual x/y per card (kept from your previous setup)
+	cardPosOverrides,
+
+	// Layout knobs
+	cardWidth = 210,
+	autoScaleCards = true,
+	clampCards = false,
+	clampMargin = 12,
+
+	// NEW: per-favicon offsets
+	// move each ICON horizontally and vertically (px)
+	nodeXOffsetOverrides = [], // e.g. [ -12, 0, 8, -6, 10 ]
+	nodeYOffsetOverrides = [], // e.g. [  -8, 6, 0,  4, -2 ]
 }) {
 	const startActivities = 4;
 	const teamIndex = startActivities + activityCount;
@@ -98,6 +104,7 @@ export default function ContentsPage({
 	const CARD_H = 84;
 	const CARD_GAP_Y = 40;
 
+	// Cards: normalize overrides
 	const offsets = useMemo(() => {
 		const src = Array.isArray(cardPosOverrides)
 			? cardPosOverrides
@@ -107,6 +114,16 @@ export default function ContentsPage({
 			return { x: Number(o.x) || 0, y: Number(o.y) || 0 };
 		});
 	}, [cardPosOverrides, items]);
+
+	// Icons: normalize per-node X/Y overrides
+	const nodeX = useMemo(
+		() => items.map((_, i) => Number(nodeXOffsetOverrides?.[i]) || 0),
+		[items, nodeXOffsetOverrides]
+	);
+	const nodeY = useMemo(
+		() => items.map((_, i) => Number(nodeYOffsetOverrides?.[i]) || 0),
+		[items, nodeYOffsetOverrides]
+	);
 
 	const railRef = useRef(null);
 	const measurePathRef = useRef(null);
@@ -154,7 +171,6 @@ export default function ContentsPage({
 		document.getElementById(`toc-node-${next}`)?.focus();
 	};
 
-	// progress math (unit-space dashes)
 	const pre = Math.max(0, Math.min(0.3, prefillStart));
 	const clamped = Math.max(0, Math.min(1, progress));
 	const adjusted = pre + (1 - pre) * clamped;
@@ -179,7 +195,6 @@ export default function ContentsPage({
 				aria-labelledby="tocTitle"
 				className="w-full max-w-7xl mx-auto rounded-3xl border border-white/60 bg-white/45 backdrop-blur-xl shadow-[0_10px_40px_rgba(2,6,23,0.08)]"
 			>
-				{/* Title */}
 				<div className="pt-8 px-6">
 					<div className="w-full flex justify-center">
 						<div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-slate-200/70 bg-white/85 backdrop-blur shadow-sm">
@@ -207,7 +222,6 @@ export default function ContentsPage({
 					<div className="mx-auto mt-4 h-px w-3/4 bg-gradient-to-r from-transparent via-slate-300/70 to-transparent" />
 				</div>
 
-				{/* Rail */}
 				<div className="relative px-6 pt-8 pb-10">
 					<div className="relative w-full" style={{ minHeight: 360 }}>
 						<svg
@@ -263,7 +277,6 @@ export default function ContentsPage({
 								</filter>
 							</defs>
 
-							{/* base rail */}
 							<motion.path
 								d="M0,165 C220,65 420,205 600,125 C780,45 980,205 1200,125"
 								pathLength="1"
@@ -283,7 +296,6 @@ export default function ContentsPage({
 								}}
 							/>
 
-							{/* progress rail */}
 							<motion.path
 								d="M0,165 C220,65 420,205 600,125 C780,45 980,205 1200,125"
 								pathLength="1"
@@ -310,7 +322,6 @@ export default function ContentsPage({
 							/>
 						</svg>
 
-						{/* Nodes + cards */}
 						<ul className="absolute inset-0" role="list" aria-label="Sections">
 							{items.map((it, i) => {
 								const pos = nodePos[i] || { x: 0, y: 0, deg: 0, t: 0 };
@@ -322,14 +333,14 @@ export default function ContentsPage({
 								const laneCenterX = laneW * (i + 0.5);
 								const lanePadding = 24;
 
-								// width & scaling
+								// Card width & scaling
 								const maxCardW = Math.max(140, laneW - lanePadding * 2);
 								const scale = autoScaleCards
 									? Math.min(1, maxCardW / cardWidth)
 									: 1;
 								const CARD_W = cardWidth;
 
-								// position with optional clamp
+								// Card position (manual per-card overrides)
 								const dx = offsets[i]?.x || 0;
 								const dy = offsets[i]?.y || 0;
 								let cardLeft = laneCenterX + dx;
@@ -344,7 +355,7 @@ export default function ContentsPage({
 
 								return (
 									<li key={i} className="absolute" style={{ left: 0, top: 0 }}>
-										{/* Node (tabbable) */}
+										{/* ICON (favicon) — now supports per-node X and Y offsets */}
 										<motion.button
 											id={`toc-node-${i}`}
 											type="button"
@@ -353,8 +364,8 @@ export default function ContentsPage({
 											aria-label={`${it.label}, Page ${it.index + 1}`}
 											style={{
 												position: "absolute",
-												left: pos.x,
-												top: pos.y,
+												left: pos.x + nodeX[i], // ← apply per-favicon X offset
+												top: pos.y + nodeY[i], // ← apply per-favicon Y offset
 												transform: "translate(-50%, -50%)",
 												WebkitTapHighlightColor: "transparent",
 												["--node-color"]: nodeHex,
@@ -408,7 +419,7 @@ export default function ContentsPage({
 											</motion.div>
 										</motion.button>
 
-										{/* Card (clickable, not tabbable) */}
+										{/* CARD (clickable) */}
 										<motion.button
 											id={`toc-card-${i}`}
 											type="button"

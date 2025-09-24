@@ -179,16 +179,6 @@ export default function Activity07({
 					</p>
 				</header>
 
-				{/* Explanation panel */}
-				<div className="mx-auto max-w-3xl rounded-xl border border-teal-100 bg-teal-50/50 p-4 text-center">
-					<p className="text-sm text-slate-700">
-						Add <strong>at least three</strong> word cards below (word on the
-						front, meaning on the back). You’ll get a little celebration when
-						you hit three, and you can only mark this activity complete once you
-						have <strong>3+</strong>.
-					</p>
-				</div>
-
 				{/* Resources (2 cols on sm+) */}
 				<section>
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -257,6 +247,15 @@ export default function Activity07({
 					</div>
 				</section>
 
+				{/* Explanation panel */}
+				<div className="mx-auto max-w-3xl rounded-xl border border-teal-100 bg-teal-50/50 p-4 text-center">
+					<p className="text-sm text-slate-700">
+						Add <strong>at least three</strong> word cards below (word on the
+						front, meaning on the back). You’ll get a little celebration when
+						you hit three, and you can only mark this activity complete once you
+						have <strong>3+</strong>.
+					</p>
+				</div>
 				{/* Editor LEFT · Flip preview RIGHT */}
 				<section className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{/* LEFT: Editor card */}
@@ -361,23 +360,6 @@ export default function Activity07({
 						<Flashcards cards={model.cards || []} palette={notePalette} />
 					</div>
 				</section>
-
-				{/* NoteComposer (teal buttons; neutral text) */}
-				<NoteComposer
-					value={model}
-					onChange={saveNotes}
-					storageKey={`notes-${content?.id || "07"}`}
-					placeholder={placeholder || "Type your reflections…"}
-					size="md"
-					rows={8}
-					minHeight="min-h-72"
-					panelMinHClass="min-h-72"
-					palette={notePalette}
-					wrapperClassName=""
-					textareaClassName="placeholder:text-gray-400"
-					downloadFileName={`Activity-${content?.id || "07"}-Reflection.docx`}
-					docTitle={content?.title || "Reflection"}
-				/>
 
 				{/* Complete button with gating (3 or more required) */}
 				<div className="flex items-center justify-between">
