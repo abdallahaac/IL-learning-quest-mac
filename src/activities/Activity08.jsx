@@ -73,6 +73,30 @@ export default function Activity08({
 
 	const activityNumber = 8;
 
+	// Title & tip (used both in UI and export)
+	const pageTitle =
+		content?.title || "2SLGBTQQIA+ / Two-Spirit & Indigiqueer Communities";
+
+	const tipText =
+		"Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous 2SLGBTQQIA+ communities and their histories.";
+
+	// Exportable resources as bullet hyperlinks (no table)
+	const pageLinks = [
+		{
+			label:
+				"Indigenous knowledge & Two-Spirit leadership (Native Governance Center)",
+			url: "https://nativegov.org/resources/indigenous-knowledge-and-two-spirit-leadership/",
+		},
+		{
+			label: "Two-Spirit Library (W2SA)",
+			url: "https://w2sa.ca/two-spirit-library",
+		},
+		{
+			label: "Two Spirits, One Voice (Egale)",
+			url: "https://egale.ca/awareness/two-spirits-one-voice/",
+		},
+	];
+
 	// Left-badge, centered title
 	const TitleRow = ({ Icon, children }) => (
 		<div className="relative flex items-center pl-14">
@@ -108,7 +132,7 @@ export default function Activity08({
           )`,
 				}}
 				initial={{ opacity: 0 }}
-				animate={{ opacity: 0.4 }}
+				animate={{ opacity: 0.2 }}
 				transition={{ duration: 0.6 }}
 			/>
 
@@ -230,7 +254,7 @@ export default function Activity08({
 					</div>
 				</motion.section>
 
-				{/* Notes — uses hex accent support in NoteComposer */}
+				{/* Notes — hex-accent NoteComposer, homogeneous with other pages */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -240,9 +264,21 @@ export default function Activity08({
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent={accent} // hex-aware NoteComposer
+					accent={accent}
 					downloadFileName={`Activity-${content?.id || "08"}-Reflection.docx`}
-					docTitle={content?.title || "Reflection"}
+					/* Exported title becomes: "Activity 8: {pageTitle}" */
+					docTitle={pageTitle}
+					docSubtitle={content?.subtitle}
+					/* Include activity number in exported title header */
+					activityNumber={activityNumber}
+					/* Include on-page tip in exported document (split into sentences) */
+					docIntro={tipText}
+					/* Export resources as header + bullet list of hyperlink labels (no table) */
+					includeLinks={true}
+					linksHeading="Resources"
+					pageLinks={pageLinks}
+					/* Use accent for exported headings */
+					headingColor={accent}
 				/>
 
 				{/* Complete toggle (kept like other activities) */}
@@ -333,7 +369,7 @@ function AdvocatesTip({
 							style={{
 								borderColor: withAlpha(accent, "33"),
 								backgroundColor: "rgba(255,255,255,0.7)",
-								color: "#7f1d1d", // deep rose-ish text for pills; still readable on white
+								color: "#7f1d1d",
 							}}
 						>
 							<span

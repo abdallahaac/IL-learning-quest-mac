@@ -237,7 +237,7 @@ export default function NoteComposer({
 							bold: true,
 							size: 48,
 							font: "Arial",
-							color: headingHex,
+							color: "#4380d6",
 						}), // ~24pt
 					],
 				});
@@ -259,7 +259,7 @@ export default function NoteComposer({
 							bold: true,
 							size: 32,
 							font: "Arial",
-							color: headingHex,
+							color: "#4380d6",
 						}),
 					], // ~16pt
 				});

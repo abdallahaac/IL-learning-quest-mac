@@ -48,7 +48,7 @@ export default function Header({
 					) : (
 						<h1 className="text-[1.15rem] sm:text-lg md:text-xl font-semibold text-slate-900 leading-snug tracking-tight max-w-[36ch] line-clamp-2">
 							{siteTitle}
-						</h1>
+					</h1>
 					)}
 				</div>
 
