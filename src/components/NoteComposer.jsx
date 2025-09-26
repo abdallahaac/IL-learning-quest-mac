@@ -9,8 +9,9 @@ const normalizeHex = (h) => {
 	if (!/^#([0-9a-f]{6})$/i.test(s)) return null;
 	return s.toUpperCase();
 };
+
 const hexToRgb = (hex) => {
-	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
 	if (!m) return { r: 0, g: 0, b: 0 };
 	return {
 		r: parseInt(m[1], 16),
@@ -18,8 +19,8 @@ const hexToRgb = (hex) => {
 		b: parseInt(m[3], 16),
 	};
 };
+
 const shadeHex = (hex, amt) => {
-	// amt in [-1..1], negative = darker, positive = lighter
 	const { r, g, b } = hexToRgb(hex);
 	const t = amt < 0 ? 0 : 255;
 	const p = Math.abs(amt);
@@ -29,15 +30,16 @@ const shadeHex = (hex, amt) => {
 	const to2 = (n) => n.toString(16).padStart(2, "0");
 	return `#${to2(nr)}${to2(ng)}${to2(nb)}`;
 };
+
 const isLight = (hex) => {
 	const { r, g, b } = hexToRgb(hex);
-	const srgb = [r, g, b].map((v) => v / 255);
 	const toLin = (c) =>
 		c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-	const [R, G, B] = srgb.map(toLin);
+	const [R, G, B] = [r, g, b].map((v) => toLin(v / 255));
 	const L = 0.2126 * R + 0.7152 * G + 0.0722 * B;
 	return L > 0.5;
 };
+
 function escapeHtml(s = "") {
 	return s
 		.replaceAll("&", "&amp;")
@@ -53,9 +55,9 @@ export default function NoteComposer({
 	onChange,
 	placeholder = "Type your reflections…",
 	storageKey = "notes-default",
-	palette, // fallback tailwind palette { text, ring, btn, badgeBg, border }
-	accent, // hex like "#f59e0b" (enables hex-mode)
-	textColor, // "white" | "black" to override auto-contrast
+	palette, // optional tailwind palette { text, ring, border }
+	accent, // hex like "#f59e0b"
+	textColor, // "white" | "black"
 
 	// sizing / overrides
 	size = "md", // "sm" | "md" | "lg" | "xl"
@@ -69,6 +71,15 @@ export default function NoteComposer({
 	enableDownload = true,
 	downloadFileName = "Reflection.docx",
 	docTitle = "Reflection",
+	docSubtitle, // optional subtitle
+	includeLinks = false, // Resources section toggle
+	pageLinks = [], // [{ label, url }]
+	linksHeading = "Resources",
+
+	// NEW
+	docIntro, // string or string[] (Tip card content)
+	headingColor = "#2563eb", // blue headings
+	activityNumber, // optional number to prepend in exported title
 }) {
 	/** model */
 	const model = React.useMemo(() => {
@@ -105,7 +116,7 @@ export default function NoteComposer({
 	const pal = useHex
 		? {
 				text: "text-slate-900",
-				ringClass: "focus:outline-none", // we'll use inline boxShadow instead
+				ringClass: "focus:outline-none",
 				border: "border-gray-200",
 		  }
 		: {
@@ -151,7 +162,7 @@ export default function NoteComposer({
 	const [tab, setTab] = React.useState("write");
 	const signal = (next) => onChange?.(next);
 
-	/** bullets helpers (restored) */
+	/** bullets helpers */
 	const computedBullets =
 		model.bullets && model.bullets.length > 0 ? model.bullets : [""];
 
@@ -187,35 +198,165 @@ export default function NoteComposer({
 		}
 	};
 
-	/** download to DOCX (kept) */
+	/** download to DOCX (Arial + blue headings + intro + Activity number in title + bullet hyperlinks) */
 	const downloadDocx = async () => {
-		const title = docTitle || "Reflection";
+		const baseTitle = docTitle || "Reflection";
+		const mainTitle =
+			activityNumber != null && activityNumber !== ""
+				? `Activity ${activityNumber}: ${baseTitle}`
+				: baseTitle;
+
+		const subtitle = docSubtitle;
 		const bullets = (model.bullets || []).filter(Boolean);
+		const links = includeLinks
+			? (Array.isArray(pageLinks) ? pageLinks : []).filter(
+					(l) => l && (l.url || l.href)
+			  )
+			: [];
+
+		const headingHex = normalizeHex(headingColor) || "#2563EB";
+
 		try {
-			const { Document, Packer, Paragraph, HeadingLevel, TextRun } =
-				await import("docx");
-			const children = [
-				new Paragraph({ text: title, heading: HeadingLevel.HEADING_1 }),
-			];
+			const {
+				Document,
+				Packer,
+				Paragraph,
+				TextRun,
+				AlignmentType,
+				ExternalHyperlink,
+			} = await import("docx");
+
+			// helpers with explicit Arial + spacing + colored headings
+			const Title = (t) =>
+				new Paragraph({
+					alignment: AlignmentType.LEFT,
+					spacing: { before: 0, after: 300 }, // ~15pt after
+					children: [
+						new TextRun({
+							text: t,
+							bold: true,
+							size: 48,
+							font: "Arial",
+							color: headingHex,
+						}), // ~24pt
+					],
+				});
+
+			const SubtitleP = (t) =>
+				new Paragraph({
+					spacing: { before: 0, after: 240 },
+					children: [
+						new TextRun({ text: t, italics: true, size: 28, font: "Arial" }), // ~14pt
+					],
+				});
+
+			const H2 = (t) =>
+				new Paragraph({
+					spacing: { before: 280, after: 160 },
+					children: [
+						new TextRun({
+							text: t,
+							bold: true,
+							size: 32,
+							font: "Arial",
+							color: headingHex,
+						}),
+					], // ~16pt
+				});
+
+			const Body = (t) =>
+				new Paragraph({
+					spacing: { before: 0, after: 120, line: 360 }, // 1.5 line
+					children: [new TextRun({ text: t, size: 24, font: "Arial" })], // ~12pt
+				});
+
+			const Bullet = (t) =>
+				new Paragraph({
+					spacing: { before: 0, after: 60 },
+					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
+					bullet: { level: 0 },
+				});
+
+			// Bullet item with hyperlink label
+			const BulletLink = (label, url) =>
+				new Paragraph({
+					spacing: { before: 0, after: 60 },
+					bullet: { level: 0 },
+					children: [
+						new ExternalHyperlink({
+							link: url,
+							children: [
+								new TextRun({
+									text: label || url || "-",
+									font: "Arial",
+									size: 24,
+									underline: {},
+									color: "0563C1", // Word's default hyperlink blue
+								}),
+							],
+						}),
+					],
+				});
+
+			const children = [];
+
+			// Title / Subtitle (Activity N: Title)
+			children.push(Title(mainTitle));
+			if (subtitle) children.push(SubtitleP(subtitle));
+
+			// Activity tip (docIntro) — split into sentences
+			if (docIntro && String(docIntro).trim()) {
+				const parts = Array.isArray(docIntro)
+					? docIntro
+					: String(docIntro)
+							.split(/(?<=[.!?])\s+/)
+							.map((s) => s.trim())
+							.filter(Boolean);
+
+				children.push(H2("Activity tip"));
+				parts.forEach((p) => children.push(Body(p)));
+			}
+
+			// Saved response
 			if (model.text?.trim()) {
-				children.push(
-					new Paragraph({
-						children: [new TextRun({ text: model.text, size: 24 })],
-					})
-				);
+				children.push(H2("Saved reflections"));
+				model.text
+					.split(/\n{2,}/)
+					.map((p) => p.trim())
+					.filter(Boolean)
+					.forEach((p) => children.push(Body(p)));
 			}
+
+			// Bullets
 			if (bullets.length) {
-				children.push(
-					new Paragraph({
-						text: "Bullet points",
-						heading: HeadingLevel.HEADING_2,
-					})
-				);
-				bullets.forEach((b) =>
-					children.push(new Paragraph({ text: b, bullet: { level: 0 } }))
-				);
+				children.push(H2("Bullet points"));
+				bullets.forEach((b) => children.push(Bullet(b)));
 			}
-			const doc = new Document({ sections: [{ properties: {}, children }] });
+
+			// Resources — header + bullet hyperlinks (no table)
+			if (links.length) {
+				children.push(H2(linksHeading || "Resources"));
+				links.forEach((l) => {
+					const label = String(
+						l.label || l.title || l.url || l.href || ""
+					).trim();
+					const url = String(l.url || l.href || "").trim();
+					children.push(BulletLink(label, url));
+				});
+			}
+
+			const doc = new Document({
+				styles: {
+					default: {
+						document: {
+							run: { font: "Arial", size: 24 }, // global default ~12pt Arial
+							paragraph: { spacing: { line: 360 } }, // 1.5 line default
+						},
+					},
+				},
+				sections: [{ properties: {}, children }],
+			});
+
 			const blob = await Packer.toBlob(doc);
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
@@ -226,26 +367,123 @@ export default function NoteComposer({
 			a.remove();
 			URL.revokeObjectURL(url);
 		} catch {
+			// Fallback: HTML .doc (Arial + spacing + blue headers + bullet hyperlinks)
+			const parts = [];
+
+			const safeTitle =
+				activityNumber != null && activityNumber !== ""
+					? `Activity ${escapeHtml(String(activityNumber))}: ${escapeHtml(
+							baseTitle
+					  )}`
+					: escapeHtml(baseTitle);
+
+			parts.push(
+				`<h1 style="font-family:Arial; font-size:24pt; color:${escapeHtml(
+					headingHex
+				)}; margin:0 0 15pt;">${safeTitle}</h1>`
+			);
+			if (subtitle) {
+				parts.push(
+					`<p style="font-family:Arial; font-size:14pt; font-style:italic; margin:0 0 12pt;">${escapeHtml(
+						subtitle
+					)}</p>`
+				);
+			}
+
+			// Activity tip
+			if (docIntro && String(docIntro).trim()) {
+				const tipParts = Array.isArray(docIntro)
+					? docIntro
+					: String(docIntro)
+							.split(/(?<=[.!?])\s+/)
+							.map((s) => s.trim())
+							.filter(Boolean);
+
+				parts.push(
+					`<h2 style="font-family:Arial; font-size:16pt; color:${escapeHtml(
+						headingHex
+					)}; margin:24pt 0 12pt;">Activity tip</h2>`
+				);
+				tipParts.forEach((p) =>
+					parts.push(
+						`<p style="font-family:Arial; font-size:12pt; line-height:1.5; margin:0 0 9pt;">${escapeHtml(
+							p
+						)}</p>`
+					)
+				);
+			}
+
+			// Saved response
+			if (model.text?.trim()) {
+				parts.push(
+					`<h2 style="font-family:Arial; font-size:16pt; color:${escapeHtml(
+						headingHex
+					)}; margin:24pt 0 12pt;">Saved response</h2>`
+				);
+				const paras = model.text
+					.split(/\n{2,}/)
+					.map((p) => p.trim())
+					.filter(Boolean)
+					.map(
+						(p) =>
+							`<p style="font-family:Arial; font-size:12pt; line-height:1.5; margin:0 0 9pt;">${escapeHtml(
+								p
+							).replace(/\n/g, "<br/>")}</p>`
+					)
+					.join("");
+				parts.push(paras);
+			}
+
+			// Bullets
+			const bs = (model.bullets || []).filter(Boolean);
+			if (bs.length) {
+				parts.push(
+					`<h2 style="font-family:Arial; font-size:16pt; color:${escapeHtml(
+						headingHex
+					)}; margin:24pt 0 12pt;">Bullet points</h2>`
+				);
+				parts.push(
+					`<ul style="font-family:Arial; font-size:12pt; line-height:1.5; margin:0 0 12pt 18pt;">${bs
+						.map((b) => `<li style="margin:0 0 6pt;">${escapeHtml(b)}</li>`)
+						.join("")}</ul>`
+				);
+			}
+
+			// Resources — bullets with hyperlink labels
+			if (includeLinks && links.length) {
+				parts.push(
+					`<h2 style="font-family:Arial; font-size:16pt; color:${escapeHtml(
+						headingHex
+					)}; margin:24pt 0 12pt;">${escapeHtml(
+						linksHeading || "Resources"
+					)}</h2>`
+				);
+				parts.push(
+					`<ul style="font-family:Arial; font-size:12pt; line-height:1.5; margin:0 0 12pt 18pt;">${links
+						.map((l) => {
+							const label = String(
+								l.label || l.title || l.url || l.href || ""
+							).trim();
+							const url = String(l.url || l.href || "").trim();
+							const safeLabel = escapeHtml(label || "-");
+							const safeUrl = escapeHtml(url || "");
+							return `<li style="margin:0 0 6pt;">${
+								safeUrl
+									? `<a href="${safeUrl}" style="text-decoration:underline; color:#0563C1;">${safeLabel}</a>`
+									: safeLabel
+							}</li>`;
+						})
+						.join("")}</ul>`
+				);
+			}
+
 			const html = `
-        <html><head><meta charset="utf-8"><title>${escapeHtml(
-					title
-				)}</title></head>
-        <body>
-          <h1>${escapeHtml(title)}</h1>
-          ${
-						model.text
-							? `<p>${escapeHtml(model.text).replace(/\n/g, "<br/>")}</p>`
-							: ""
-					}
-          ${
-						bullets.length
-							? `<h2>Bullet points</h2><ul>${bullets
-									.map((b) => `<li>${escapeHtml(b)}</li>`)
-									.join("")}</ul>`
-							: ""
-					}
+        <html><head><meta charset="utf-8"><title>${safeTitle}</title></head>
+        <body style="font-family:Arial; line-height:1.5;">
+          ${parts.join("\n")}
         </body></html>
       `.trim();
+
 			const blob = new Blob([html], { type: "application/msword" });
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
@@ -338,7 +576,7 @@ export default function NoteComposer({
 						<textarea
 							id={`${storageKey}-text`}
 							value={model.text}
-							onChange={(e) => signal({ ...model, text: e.target.value })}
+							onChange={(e) => onChange?.({ ...model, text: e.target.value })}
 							placeholder={placeholder}
 							rows={rows}
 							className={`w-full ${minHeight} bg-gray-50 border border-gray-200 rounded-lg text-gray-800
@@ -367,7 +605,6 @@ export default function NoteComposer({
 						<label className={`block font-medium text-gray-700 ${sz.label}`}>
 							Bullet points
 						</label>
-
 						<ul className="space-y-2">
 							{computedBullets.map((b, i) => (
 								<li key={i} className="flex gap-2">

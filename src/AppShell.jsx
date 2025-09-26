@@ -246,13 +246,17 @@ export default function AppShell() {
 
 	const visitedHas = (i) => (i >= 0 ? state.visited.has(i) : false);
 
-	const completedCount = activityIds.reduce(
-		(acc, id) => acc + (state.completed[id] ? 1 : 0),
+	// Count how many activity page *indices* have been visited
+	const activityVisitedCount = activityPageIndices.reduce(
+		(acc, idx) => acc + (state.visited.has(idx) ? 1 : 0),
 		0
 	);
-	const activityFrac =
-		activityPages.length > 0 ? completedCount / activityPages.length : 0;
 
+	// Fraction of activities visited
+	const activityFrac =
+		activityPages.length > 0 ? activityVisitedCount / activityPages.length : 0;
+
+	// Only contribute activities once the Preparation page has been visited
 	const prepPlusActivities = visitedHas(idxPrep) ? activityFrac : 0;
 
 	const slots = [
@@ -281,8 +285,7 @@ export default function AppShell() {
 		idxConclusion,
 		idxResources,
 		visited: [...state.visited],
-		completedMap: state.completed,
-		completedCount,
+		activityVisitedCount,
 		activityTotal,
 		activityFrac,
 		prepPlusActivities,
@@ -385,10 +388,11 @@ export default function AppShell() {
 	const activitySteps = activityPages.map(({ p, idx }, i) => ({
 		key: p.content.id,
 		label: `Activity ${i + 1}`,
-		index: idx, // the page index to jump to
-		completed: !!state.completed[p.content.id],
+		index: idx,
+		completed: state.visited.has(idx), // reflect 'visited' instead of 'completed'
 		visited: state.visited.has(idx),
 	}));
+
 	// measure the fixed footer height  // NEW
 	const [footerRef, footerSize] = useResizeObserver();
 	const footerHeight = footerSize.height || 0;

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
 
-// tiny helper to add alpha to a hex color (#RRGGBB + "AA")
+// helper: add alpha to a hex color (#RRGGBB + "AA")
 function withAlpha(hex, alphaHex) {
 	if (!/^#([0-9a-f]{6})$/i.test(hex)) return hex;
 	return `${hex}${alphaHex}`;
@@ -29,6 +29,21 @@ export default function Activity01({
 		setLocalNotes(v);
 		onNotes?.(v);
 	};
+
+	const pageLinks = [
+		{
+			label: "List of important Indigenous artists in Canada",
+			url: "https://www.thecanadianencyclopedia.ca/en/article/important-indigenous-artists",
+		},
+		{
+			label: "List of influential Indigenous musicians in Canada",
+			url: "https://www.thecanadianencyclopedia.ca/en/article/influential-indigenous-musicians",
+		},
+	];
+
+	// Tip text to include in the Word doc (will be split into sentences)
+	const tipText =
+		"Explore works by an Indigenous artist that speak to you. How do you relate to this artist? How do they inspire you?";
 
 	const reduceMotion = useReducedMotion();
 
@@ -61,7 +76,7 @@ export default function Activity01({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	// shared classes (focus outline kept for keyboard usability)
+	// shared classes
 	const linkCardBase =
 		"group block max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
 		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer " +
@@ -79,7 +94,7 @@ export default function Activity01({
 			initial="hidden"
 			animate="show"
 		>
-			{/* softer, more accessible gradient */}
+			{/* soft, accessible gradient */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
@@ -113,7 +128,6 @@ export default function Activity01({
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
 							Explore an Indigenous Artist
 						</h1>
-						{/* keep a single Palette icon by the title; we'll remove it from the tip to avoid redundancy */}
 						<Palette
 							className="w-7 h-7"
 							aria-hidden="true"
@@ -121,7 +135,7 @@ export default function Activity01({
 						/>
 					</div>
 
-					{/* Tip card (dashed + translucent, NO icon, high-contrast text) */}
+					{/* On-page tip card (UI) */}
 					<TipPrompt accent={accent} />
 				</motion.header>
 
@@ -157,7 +171,10 @@ export default function Activity01({
 									List of important Indigenous artists in Canada
 								</div>
 							</div>
-							<div className={`${linkFooterBase} text-slate-800`}>
+							<div
+								className={`${linkFooterBase} text-slate-800`}
+								style={{ color: "#4380d6" }}
+							>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
@@ -187,7 +204,10 @@ export default function Activity01({
 									List of influential Indigenous musicians in Canada
 								</div>
 							</div>
-							<div className={`${linkFooterBase} text-slate-800`}>
+							<div
+								className={`${linkFooterBase} text-slate-800`}
+								style={{ color: "#4380d6" }}
+							>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
@@ -199,13 +219,25 @@ export default function Activity01({
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
-					storageKey={`notes-${content.id}`}
+					storageKey={`notes-${content?.id || "01"}`}
+					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					downloadFileName={`Activity-${content.id || "01"}-Reflection.docx`}
-					docTitle={content?.title || "Reflection"}
+					accent="#4380d6"
+					downloadFileName={`Activity-${content?.id || "01"}-Reflection.docx`}
+					docTitle={content?.title || "Explore an Indigenous Artist"}
+					docSubtitle={content?.subtitle}
+					includeLinks={true}
+					linksHeading="Resources"
+					pageLinks={pageLinks}
+					/* send Tip card text to the doc (will be split into sentences) */
+					docIntro={tipText}
+					/* make DOCX headers blue & clear */
+					headingColor="#2563eb" // blue-600
+					/* NEW: show Activity number in the exported document */
+					activityNumber={activityNumber}
 				/>
 
 				{/* Complete toggle */}
@@ -227,7 +259,7 @@ export default function Activity01({
 		</motion.div>
 	);
 
-	// dashed/translucent tip with strong text; no icon to avoid duplication with title
+	// dashed/translucent tip (UI)
 	function TipPrompt({ accent = "#4380d6" }) {
 		return (
 			<section
@@ -235,8 +267,8 @@ export default function Activity01({
 				role="note"
 				aria-label="Activity reflection tip"
 				style={{
-					borderColor: withAlpha(accent, "33"), // ~20%
-					backgroundColor: withAlpha(accent, "14"), // ~8% tint (like bg-rose-50/40)
+					borderColor: withAlpha(accent, "33"),
+					backgroundColor: withAlpha(accent, "14"),
 				}}
 			>
 				<p className="text-base sm:text-lg text-center text-slate-900">

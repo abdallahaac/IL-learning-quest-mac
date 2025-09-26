@@ -64,16 +64,19 @@ export default function Activity03({
 	const linkFooterBase =
 		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
 
-	// NoteComposer palette tinted to accent (amber)
-	const notePalette = {
-		text: "text-slate-900",
-		ring: "focus-visible:ring-amber-700",
-		btn: "bg-amber-700 hover:bg-amber-800 active:bg-amber-900",
-		badgeBg: "bg-white",
-		border: "border-gray-200",
-	};
-
 	const activityNumber = 3;
+
+	// Export resources as bullet hyperlinks
+	const pageLinks = [
+		{
+			label: "Native/Indigenous recipes (First Nations Development Institute)",
+			url: "https://www.firstnations.org/knowledge-center/recipes/",
+		},
+	];
+
+	// Tip text for export (will be split into sentences)
+	const tipText =
+		"Try making a traditional First Nations, Inuit or Métis recipe. Share your experience (potluck optional!).";
 
 	return (
 		<motion.div
@@ -166,7 +169,10 @@ export default function Activity03({
 									Institute)
 								</div>
 							</div>
-							<div className={`${linkFooterBase} text-slate-800`}>
+							<div
+								className={`${linkFooterBase} text-slate-800`}
+								style={{ color: "#b45309" }}
+							>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
@@ -184,9 +190,21 @@ export default function Activity03({
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent="#b45309" // ← NEW: hex accent (works with "b45309" too)
+					accent={accent}
 					downloadFileName={`Activity-${content?.id || "03"}-Reflection.docx`}
-					docTitle={content?.title || "Reflection"}
+					/* Exported title becomes: "Activity 3: Make a Traditional Recipe" */
+					docTitle={content?.title || "Make a Traditional Recipe"}
+					docSubtitle={content?.subtitle}
+					/* Make the activity number part of the exported title */
+					activityNumber={activityNumber}
+					/* Include the tip text at the top of the export */
+					docIntro={tipText}
+					/* Export resources as a header + bullet list of hyperlink labels */
+					includeLinks={true}
+					linksHeading="Resources"
+					pageLinks={pageLinks}
+					/* Amber headings in the exported DOCX/HTML */
+					headingColor={accent}
 				/>
 
 				{/* Complete toggle (kept consistent with other pages) */}

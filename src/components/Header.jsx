@@ -75,7 +75,12 @@ export default function Header({
 									icon={faTableColumns}
 									aria-hidden="true"
 								/>
-								<span className="hidden sm:inline">Contents</span>
+								<span
+									className="hidden sm:inline 
+								"
+								>
+									Contents
+								</span>
 								<span className="sm:hidden">TOC</span>
 							</button>
 						)}

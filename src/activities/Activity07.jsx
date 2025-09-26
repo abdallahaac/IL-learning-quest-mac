@@ -1,3 +1,4 @@
+// activity7 (homogenized with NoteComposer)
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
@@ -16,12 +17,14 @@ export default function Activity07({
 	content,
 	notes,
 	onNotes,
-	accent = "#0D9488", // teal-600 — change to re-skin the page
+	completed,
+	onToggleComplete,
+	accent = "#0D9488",
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Words/phrases and where they’re used…";
 
-	// normalize notes to object so we can store cards inside it
+	// normalize notes -> object with cards
 	const initialModel = useMemo(() => {
 		if (typeof notes === "string" || !notes) {
 			return { text: notes || "", bullets: [], cards: [] };
@@ -39,7 +42,549 @@ export default function Activity07({
 		onNotes?.(next);
 	};
 
-	// ----- FLASHCARD EDITOR STATE -----
+	/* -------------------------------------------------------------
+     DOWNLOAD #1: CARDS ONLY (unchanged)
+  -------------------------------------------------------------- */
+	const downloadCardsDocx = async () => {
+		const cards = Array.isArray(model.cards)
+			? model.cards.filter((c) => c?.front?.trim() && c?.back?.trim())
+			: [];
+		if (!cards.length) return;
+
+		const baseTitle = content?.title || "Learn Three Words";
+		const fileName = `${(baseTitle || "activity-words")
+			.toLowerCase()
+			.replace(/\s+/g, "-")}-cards.docx`;
+
+		try {
+			const {
+				Document,
+				Packer,
+				Paragraph,
+				Table,
+				TableRow,
+				TableCell,
+				WidthType,
+				TextRun,
+				AlignmentType,
+				BorderStyle,
+			} = await import("docx");
+
+			const heading = new Paragraph({
+				children: [
+					new TextRun({ text: baseTitle, bold: true, size: 48, font: "Arial" }),
+				],
+				spacing: { after: 300 },
+			});
+
+			const intro = new Paragraph({
+				children: [
+					new TextRun({
+						text: "New word → Meaning",
+						italics: true,
+						font: "Arial",
+						size: 24,
+					}),
+				],
+				spacing: { after: 200 },
+			});
+
+			const headerRow = new TableRow({
+				children: [
+					new TableCell({
+						children: [
+							new Paragraph({
+								children: [
+									new TextRun({
+										text: "Word",
+										bold: true,
+										font: "Arial",
+										size: 24,
+									}),
+								],
+							}),
+						],
+					}),
+					new TableCell({
+						children: [
+							new Paragraph({
+								children: [
+									new TextRun({
+										text: "Meaning",
+										bold: true,
+										font: "Arial",
+										size: 24,
+									}),
+								],
+							}),
+						],
+					}),
+				],
+				tableHeader: true,
+			});
+
+			const bodyRows = cards.map(
+				({ front, back }) =>
+					new TableRow({
+						children: [
+							new TableCell({
+								children: [
+									new Paragraph({
+										children: [
+											new TextRun({
+												text: String(front),
+												font: "Arial",
+												size: 24,
+											}),
+										],
+									}),
+								],
+							}),
+							new TableCell({
+								children: [
+									new Paragraph({
+										children: [
+											new TextRun({
+												text: String(back),
+												font: "Arial",
+												size: 24,
+											}),
+										],
+									}),
+								],
+							}),
+						],
+					})
+			);
+
+			const table = new Table({
+				width: { size: 100, type: WidthType.PERCENTAGE },
+				rows: [headerRow, ...bodyRows],
+				borders: {
+					top: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+					bottom: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+					left: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+					right: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+					insideHorizontal: {
+						style: BorderStyle.SINGLE,
+						size: 1,
+						color: "E5E7EB",
+					},
+					insideVertical: {
+						style: BorderStyle.SINGLE,
+						size: 1,
+						color: "E5E7EB",
+					},
+				},
+			});
+
+			const doc = new Document({
+				styles: {
+					default: {
+						document: { run: { font: "Arial", size: 24 } },
+					},
+				},
+				sections: [{ properties: {}, children: [heading, intro, table] }],
+			});
+
+			const blob = await Packer.toBlob(doc);
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = fileName;
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		} catch (err) {
+			const esc = (s = "") =>
+				String(s)
+					.replaceAll("&", "&amp;")
+					.replaceAll("<", "&lt;")
+					.replaceAll(">", "&gt;");
+			const rowsHtml = (Array.isArray(model.cards) ? model.cards : [])
+				.filter((c) => c?.front?.trim() && c?.back?.trim())
+				.map((c) => `<tr><td>${esc(c.front)}</td><td>${esc(c.back)}</td></tr>`)
+				.join("");
+			const html = `
+        <html>
+          <head><meta charset="utf-8"><title>${esc(baseTitle)}</title></head>
+          <body style="font-family:Arial;">
+            <h1>${esc(baseTitle)}</h1>
+            <p><em>New word → Meaning</em></p>
+            <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;">
+              <thead><tr><th>Word</th><th>Meaning</th></tr></thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </body>
+        </html>`.trim();
+			const blob = new Blob([html], { type: "application/msword" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = (fileName || "cards.docx").replace(/\.docx$/i, ".doc");
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		}
+	};
+
+	// Optional one-card export
+	const downloadOneCardDocx = async (i) => {
+		const c = model.cards?.[i];
+		if (!c?.front?.trim() || !c?.back?.trim()) return;
+		const original = Array.isArray(model.cards) ? [...model.cards] : [];
+		saveNotes({ ...model, cards: [c] });
+		await downloadCardsDocx();
+		saveNotes({ ...model, cards: original });
+	};
+
+	/* -------------------------------------------------------------
+     DOWNLOAD #2: FULL PAGE SNAPSHOT — NoteComposer style
+     - "Activity 7: Learn Three Words"
+     - Activity tip
+     - Resources as header + bullet hyperlinks
+     - Saved response + bullets
+     - Word Cards table
+  -------------------------------------------------------------- */
+	const activityNumber = 7;
+	const downloadPageDocx = async () => {
+		const baseTitle = content?.title || "Learn Three Words";
+		const title = `Activity ${activityNumber}: ${baseTitle}`;
+		const subtitle =
+			content?.subtitle ||
+			"Learn to say a few words in an Indigenous language. Share them with your team and use them often.";
+
+		const headingHex = accent; // align heading color with page accent
+
+		// page resources
+		const resources = [
+			{ label: "FirstVoices", href: "https://www.firstvoices.com/" },
+			{
+				label: "Inuktut glossary (Inuktut Tusaalanga)",
+				href: "https://tusaalanga.ca/glossary",
+			},
+			{
+				label: "Michif Language Revitalization Circle (resources)",
+				href: "https://speakmichif.ca/learn/resources",
+			},
+			{
+				label: "Métis languages resources (Louis Riel Institute)",
+				href: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
+			},
+		];
+
+		const bullets = (model.bullets || []).filter(Boolean);
+		const cards = (model.cards || []).filter(
+			(c) => c?.front?.trim() || c?.back?.trim()
+		);
+
+		const fileName = `${baseTitle
+			.toLowerCase()
+			.replace(/\s+/g, "-")}-page.docx`;
+
+		try {
+			const {
+				Document,
+				Packer,
+				Paragraph,
+				TextRun,
+				AlignmentType,
+				Table,
+				TableRow,
+				TableCell,
+				WidthType,
+				BorderStyle,
+				ExternalHyperlink,
+			} = await import("docx");
+
+			// Styled helpers (match NoteComposer)
+			const Title = (t) =>
+				new Paragraph({
+					alignment: AlignmentType.LEFT,
+					spacing: { before: 0, after: 300 },
+					children: [
+						new TextRun({
+							text: t,
+							bold: true,
+							size: 48,
+							font: "Arial",
+							color: headingHex,
+						}),
+					],
+				});
+
+			const SubtitleP = (t) =>
+				new Paragraph({
+					spacing: { before: 0, after: 240 },
+					children: [
+						new TextRun({ text: t, italics: true, size: 28, font: "Arial" }),
+					],
+				});
+
+			const H2 = (t) =>
+				new Paragraph({
+					spacing: { before: 280, after: 160 },
+					children: [
+						new TextRun({
+							text: t,
+							bold: true,
+							size: 32,
+							font: "Arial",
+							color: headingHex,
+						}),
+					],
+				});
+
+			const Body = (t) =>
+				new Paragraph({
+					spacing: { before: 0, after: 120, line: 360 },
+					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
+				});
+
+			const BulletP = (t) =>
+				new Paragraph({
+					spacing: { before: 0, after: 60 },
+					bullet: { level: 0 },
+					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
+				});
+
+			const BulletLink = (label, url) =>
+				new Paragraph({
+					spacing: { before: 0, after: 60 },
+					bullet: { level: 0 },
+					children: [
+						url
+							? new ExternalHyperlink({
+									link: url,
+									children: [
+										new TextRun({
+											text: label || url,
+											font: "Arial",
+											size: 24,
+											underline: {},
+											color: "0563C1",
+										}),
+									],
+							  })
+							: new TextRun({ text: label || "-", font: "Arial", size: 24 }),
+					],
+				});
+
+			const children = [];
+
+			// Title / Subtitle
+			children.push(Title(title));
+			if (subtitle) children.push(SubtitleP(subtitle));
+
+			// Activity tip (matches on-page copy)
+			children.push(H2("Activity tip"));
+			children.push(
+				Body("Learn to say a few words in an Indigenous language.")
+			);
+			children.push(Body("Share them with your team and use them often."));
+
+			// Resources — header + bullet hyperlinks
+			if (resources.length) {
+				children.push(H2("Resources"));
+				resources.forEach((r) => children.push(BulletLink(r.label, r.href)));
+			}
+
+			// Saved response
+			if (model.text?.trim()) {
+				children.push(H2("Saved response"));
+				model.text
+					.split(/\n{2,}/)
+					.map((p) => p.trim())
+					.filter(Boolean)
+					.forEach((p) => children.push(Body(p)));
+			}
+
+			// Saved bullets
+			if (bullets.length) {
+				children.push(H2("Bullet points"));
+				bullets.forEach((b) => children.push(BulletP(b)));
+			}
+
+			// Cards table
+			if (cards.length) {
+				children.push(H2("Word cards"));
+
+				const headerRow = new TableRow({
+					children: [
+						new TableCell({ children: [Body("Word")] }),
+						new TableCell({ children: [Body("Meaning")] }),
+					],
+					tableHeader: true,
+				});
+
+				const bodyRows = cards.map((c) => {
+					const f = (c?.front || "").trim();
+					const b = (c?.back || "").trim();
+					return new TableRow({
+						children: [
+							new TableCell({ children: [Body(f || "")] }),
+							new TableCell({ children: [Body(b || "")] }),
+						],
+					});
+				});
+
+				const table = new Table({
+					width: { size: 100, type: WidthType.PERCENTAGE },
+					rows: [headerRow, ...bodyRows],
+					borders: {
+						top: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+						bottom: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+						left: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+						right: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+						insideHorizontal: {
+							style: BorderStyle.SINGLE,
+							size: 1,
+							color: "E5E7EB",
+						},
+						insideVertical: {
+							style: BorderStyle.SINGLE,
+							size: 1,
+							color: "E5E7EB",
+						},
+					},
+				});
+
+				children.push(table);
+			}
+
+			const doc = new Document({
+				styles: {
+					default: {
+						document: {
+							run: { font: "Arial", size: 24 },
+							paragraph: { spacing: { line: 360 } },
+						},
+					},
+				},
+				sections: [{ properties: {}, children }],
+			});
+
+			const { Packer } = await import("docx");
+			const blob = await Packer.toBlob(doc);
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = fileName;
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		} catch {
+			// HTML fallback (bullet hyperlinks + same section order)
+			const esc = (s = "") =>
+				String(s)
+					.replaceAll("&", "&amp;")
+					.replaceAll("<", "&lt;")
+					.replaceAll(">", "&gt;");
+			const tip = [
+				"Learn to say a few words in an Indigenous language.",
+				"Share them with your team and use them often.",
+			];
+
+			const resHtml = resources
+				.map(
+					(r) =>
+						`<li><a href="${
+							r.href
+						}" style="text-decoration:underline; color:#0563C1;">${esc(
+							r.label
+						)}</a></li>`
+				)
+				.join("");
+
+			const bulletsHtml = (model.bullets || [])
+				.filter(Boolean)
+				.map((b) => `<li>${esc(b)}</li>`)
+				.join("");
+
+			const cardsHtml = (model.cards || [])
+				.filter((c) => c?.front?.trim() || c?.back?.trim())
+				.map(
+					(c) =>
+						`<tr><td>${esc(c?.front || "")}</td><td>${esc(
+							c?.back || ""
+						)}</td></tr>`
+				)
+				.join("");
+
+			const html = `
+        <html>
+          <head><meta charset="utf-8"><title>${esc(title)}</title></head>
+          <body style="font-family:Arial; line-height:1.5;">
+            <h1 style="font-size:24pt; color:${esc(
+							accent
+						)}; margin:0 0 15pt;">${esc(title)}</h1>
+            ${
+							subtitle
+								? `<p style="font-size:14pt; font-style:italic; margin:0 0 12pt;">${esc(
+										subtitle
+								  )}</p>`
+								: ""
+						}
+            <h2 style="font-size:16pt; color:${esc(
+							accent
+						)}; margin:24pt 0 12pt;">Activity tip</h2>
+            ${tip
+							.map(
+								(t) =>
+									`<p style="font-size:12pt; margin:0 0 9pt;">${esc(t)}</p>`
+							)
+							.join("")}
+            <h2 style="font-size:16pt; color:${esc(
+							accent
+						)}; margin:24pt 0 12pt;">Resources</h2>
+            <ul style="margin:0 0 12pt 18pt; font-size:12pt;">${resHtml}</ul>
+            ${
+							model.text?.trim()
+								? `<h2 style="font-size:16pt; color:${esc(
+										accent
+								  )}; margin:24pt 0 12pt;">Saved response</h2>
+                   <p style="font-size:12pt; margin:0 0 9pt;">${esc(
+											model.text
+										).replace(/\n/g, "<br/>")}</p>`
+								: ""
+						}
+            ${
+							bulletsHtml
+								? `<h2 style="font-size:16pt; color:${esc(
+										accent
+								  )}; margin:24pt 0 12pt;">Bullet points</h2><ul style="margin:0 0 12pt 18pt; font-size:12pt;">${bulletsHtml}</ul>`
+								: ""
+						}
+            ${
+							cardsHtml
+								? `<h2 style="font-size:16pt; color:${esc(
+										accent
+								  )}; margin:24pt 0 12pt;">Word cards</h2>
+                   <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;">
+                     <thead><tr><th>Word</th><th>Meaning</th></tr></thead>
+                     <tbody>${cardsHtml}</tbody>
+                   </table>`
+								: ""
+						}
+          </body>
+        </html>`.trim();
+
+			const blob = new Blob([html], { type: "application/msword" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = (fileName || "page.docx").replace(/\.docx$/i, ".doc");
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		}
+	};
+
+	/* ----- FLASHCARD EDITOR STATE ----- */
 	const [newFront, setNewFront] = useState("");
 	const [newBack, setNewBack] = useState("");
 
@@ -76,8 +621,6 @@ export default function Activity07({
 		}
 	};
 
-	const activityNumber = 7;
-
 	// celebration when reaching 3+ valid cards
 	const validCount = (model.cards || []).filter(
 		(c) => c?.front?.trim() && c?.back?.trim()
@@ -85,7 +628,6 @@ export default function Activity07({
 
 	const [celebrate, setCelebrate] = useState(false);
 	const prevValidRef = useRef(validCount);
-	// allow celebration each time user goes from <3 to >=3
 	useEffect(() => {
 		const prev = prevValidRef.current;
 		if (prev < 3 && validCount >= 3) setCelebrate(true);
@@ -192,8 +734,9 @@ export default function Activity07({
 					</p>
 
 					<div className="flex items-center justify-center gap-3">
+						{/* Title now matches NoteComposer format */}
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							Learn Three Words
+							Activity {activityNumber}: Learn Three Words
 						</h1>
 						<Feather
 							className="w-7 h-7"
@@ -287,12 +830,12 @@ export default function Activity07({
 					</div>
 				</motion.section>
 
-				{/* Instructions panel — larger font + more opaque background for contrast */}
+				{/* Instructions panel */}
 				<div
 					className="mx-auto max-w-3xl rounded-2xl border p-5 md:p-6 text-center shadow-sm"
 					style={{
-						borderColor: withAlpha(accent, "4D"), // ~30%
-						backgroundColor: withAlpha(accent, "26"), // ~15% strong contrast
+						borderColor: withAlpha(accent, "4D"),
+						backgroundColor: withAlpha(accent, "26"),
 					}}
 				>
 					<p className="text-base md:text-lg text-slate-900">
@@ -379,14 +922,25 @@ export default function Activity07({
 												style={{ outlineColor: accent }}
 												placeholder="Back"
 											/>
-											<button
-												type="button"
-												onClick={() => removeCard(i)}
-												className="sm:ml-2 text-xs px-2 py-1 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
-												title="Remove"
-											>
-												Remove
-											</button>
+
+											<div className="flex items-center gap-2 sm:ml-2">
+												<button
+													type="button"
+													onClick={() => downloadOneCardDocx(i)}
+													className="text-xs px-2 py-1 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+													title="Download this card (.docx)"
+												>
+													Download
+												</button>
+												<button
+													type="button"
+													onClick={() => removeCard(i)}
+													className="text-xs px-2 py-1 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+													title="Remove"
+												>
+													Remove
+												</button>
+											</div>
 										</li>
 									))}
 								</ul>
@@ -403,6 +957,37 @@ export default function Activity07({
 						<Flashcards cards={model.cards || []} accent={accent} />
 					</div>
 				</section>
+
+				{/* ------- Bottom action bar ------- */}
+				<div
+					className="mt-6 pt-4 border-t flex flex-col sm:flex-row items-center gap-3 sm:gap-2 sm:justify-end"
+					style={{ borderColor: "rgba(203,213,225,0.8)" }}
+				>
+					<button
+						type="button"
+						onClick={onToggleComplete}
+						aria-pressed={!!completed}
+						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+							completed
+								? "border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+								: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
+						}`}
+						title={completed ? "Marked Complete" : "Mark Complete"}
+					>
+						{completed ? "Marked Complete" : "Mark Complete"}
+					</button>
+
+					<button
+						type="button"
+						onClick={downloadPageDocx}
+						className="px-4 py-2 rounded-lg text-white"
+						style={{ backgroundColor: accent }}
+						title="Export page (title, tip, resources, saved response, bullets, and cards) as .docx"
+					>
+						Download (.docx)
+					</button>
+				</div>
+				{/* ------------------------------- */}
 			</div>
 		</motion.div>
 	);
@@ -522,7 +1107,7 @@ function Flashcards({ cards = [], accent = "#0D9488" }) {
 	);
 }
 
-/* ---- Celebration overlay (confetti dots + quick toast) ---- */
+/* ---- Celebration overlay ---- */
 function Celebration({ onClose, accent = "#0D9488" }) {
 	useEffect(() => {
 		const onEsc = (e) => e.key === "Escape" && onClose?.();
@@ -594,7 +1179,7 @@ function ConfettiDot({ accent = "#0D9488" }) {
 	);
 }
 
-/* Accent-aware, dashed/translucent tip (shared with other redesigned pages) */
+/* Accent-aware, dashed/translucent tip */
 function TipCard({ accent = "#0D9488", children }) {
 	return (
 		<section

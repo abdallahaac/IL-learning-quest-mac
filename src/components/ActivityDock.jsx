@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, {
+	useMemo,
+	useState,
+	useRef,
+	useLayoutEffect,
+	useEffect,
+} from "react";
 
 /**
  * Inline Activities pill for the HEADER.
@@ -23,21 +29,46 @@ export default function ActivityDock({
 	const completedCount = steps.filter((s) => s.completed).length;
 	const pct = Math.round((completedCount / steps.length) * 100);
 
-	// compute right-rail left so it never overlaps centered content
+	// compute right-rail left/top so it never overlaps centered content
 	const [panelLeft, setPanelLeft] = useState(0);
 	const [panelTop, setPanelTop] = useState(0);
 
-	useEffect(() => {
-		if (!open) return;
+	// Measure before paint to avoid initial left->right slide
+	const measurePosition = () => {
 		const vw = window.innerWidth;
 		const btnRect = btnRef.current?.getBoundingClientRect();
 		const leftStart = Math.max(
 			8,
 			(vw - contentMaxWidth) / 2 + contentMaxWidth + 24
 		);
-		setPanelLeft(Math.min(leftStart, Math.max(8, vw - 320 - 8)));
-		setPanelTop((btnRect?.bottom ?? 80) + 8);
+		const computedLeft = Math.min(leftStart, Math.max(8, vw - 320 - 8));
+		const computedTop = (btnRect?.bottom ?? 80) + 8;
+		setPanelLeft(computedLeft);
+		setPanelTop(computedTop);
+	};
+
+	useLayoutEffect(() => {
+		if (!open) return;
+		measurePosition();
+		// Also re-measure on font load/layout shifts (optional but safe)
+		// You can trigger measurePosition after a requestAnimationFrame if needed:
+		// requestAnimationFrame(measurePosition);
 	}, [open, contentMaxWidth]);
+
+	// Keep aligned on resize/scroll while open
+	useEffect(() => {
+		if (!open) return;
+		const onResize = () => measurePosition();
+		const onScroll = () => measurePosition();
+		window.addEventListener("resize", onResize);
+		window.addEventListener("scroll", onScroll, { passive: true });
+		return () => {
+			window.removeEventListener("resize", onResize);
+			window.removeEventListener("scroll", onScroll);
+		};
+	}, [open]);
+
+	const positioned = panelLeft !== 0 || panelTop !== 0;
 
 	return (
 		<>
@@ -50,7 +81,7 @@ export default function ActivityDock({
 				className="
           inline-flex items-center gap-3 rounded-full
           bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur
-          border border-slate-200 shadow-md px-3 py-2
+          border border-slate-200 shadow-sm px-3 py-2
           hover:shadow-lg transition
           focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400
         "
@@ -88,11 +119,13 @@ export default function ActivityDock({
 					open
 						? "opacity-100 translate-y-0 scale-100"
 						: "opacity-0 translate-y-1 scale-[0.99] pointer-events-none"
-				} transition-all duration-200 ease-out`}
+				} duration-200 ease-out`} // ← no transition-all
 				style={{
 					left: panelLeft,
 					top: panelTop,
 					maxHeight: "calc(100vh - 32px)",
+					transitionProperty: "opacity, transform", // ← only animate opacity/transform
+					visibility: positioned ? "visible" : "hidden", // hide until measured
 				}}
 			>
 				<div className="rounded-2xl border border-slate-200 bg-white/95 supports-[backdrop-filter]:bg-white/75 backdrop-blur shadow-xl p-3 origin-top w-[min(92vw,960px)] max-w-[300px] overflow-auto">
@@ -154,7 +187,10 @@ export default function ActivityDock({
 			</div>
 
 			<style>{`
-        @keyframes fadeInUp { from { opacity:0; transform: translateY(4px);} to { opacity:1; transform: translateY(0);} }
+        @keyframes fadeInUp { 
+          from { opacity: 0; transform: translateY(4px); } 
+          to { opacity: 1; transform: translateY(0); } 
+        }
       `}</style>
 		</>
 	);

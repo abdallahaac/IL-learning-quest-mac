@@ -65,6 +65,22 @@ export default function Activity05({
 
 	const activityNumber = 5;
 
+	// Exportable resources as bullet hyperlinks (no table)
+	const pageLinks = [
+		{
+			label: "National Film Board — Indigenous cinema",
+			url: "https://www.nfb.ca/indigenous-cinema/?&film_lang=en&sort=year:desc,title&year_min=1939&year_max=2022",
+		},
+		{
+			label: "CBC Gem — Indigenous stories",
+			url: "https://gem.cbc.ca/section/indigenous-stories",
+		},
+	];
+
+	// Tip to include at top of export (split into sentences)
+	const tipText =
+		"Watch an Indigenous film/TV show or listen to an Indigenous-focused podcast. What did you learn?";
+
 	return (
 		<motion.div
 			className="relative bg-transparent min-h-[80svh]"
@@ -156,6 +172,7 @@ export default function Activity05({
 									National Film Board — Indigenous cinema
 								</div>
 							</div>
+							{/* Footer uses the accent color */}
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
@@ -187,6 +204,7 @@ export default function Activity05({
 									CBC Gem — Indigenous stories
 								</div>
 							</div>
+							{/* Footer uses the accent color */}
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
@@ -205,10 +223,21 @@ export default function Activity05({
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent={accent} // ← uses your hex-aware NoteComposer
-					// textColor="white"           // ← optional override for button text
+					accent={accent} // hex-aware NoteComposer
 					downloadFileName={`Activity-${content?.id || "05"}-Reflection.docx`}
-					docTitle={content?.title || "Reflection"}
+					/* Exported title becomes: "Activity 5: Film, TV, or Podcast" */
+					docTitle={content?.title || "Film, TV, or Podcast"}
+					docSubtitle={content?.subtitle}
+					/* Make activity number part of exported title */
+					activityNumber={activityNumber}
+					/* Include on-page tip in exported document */
+					docIntro={tipText}
+					/* Export resources as header + bullet list of hyperlink labels (no table) */
+					includeLinks={true}
+					linksHeading="Resources"
+					pageLinks={pageLinks}
+					/* Use accent for exported headings too */
+					headingColor={accent}
 				/>
 
 				{/* Complete toggle (kept consistent with other activities) */}

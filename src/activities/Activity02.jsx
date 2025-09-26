@@ -65,7 +65,7 @@ export default function Activity02({
 	const linkFooterBase =
 		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
 
-	// NoteComposer palette
+	// NoteComposer palette (for on-page UI only)
 	const notePalette = {
 		text: "text-emerald-700",
 		ring: "focus-visible:ring-emerald-700",
@@ -76,9 +76,25 @@ export default function Activity02({
 
 	const activityNumber = 2;
 
+	// Resources for export (bulleted hyperlinks in DOCX)
+	const pageLinks = [
+		{
+			label: "Métis traditional uses for plants (PDF)",
+			url: "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf",
+		},
+		{
+			label: "Traditional plant foods of Indigenous Peoples in Canada (book)",
+			url: "https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content",
+		},
+	];
+
+	// Tip text for export (will be split into sentences)
+	const tipText =
+		"Explore traditional plant knowledge and medicinal uses. Note teachings, sources, and how they connect to your context.";
+
 	return (
 		<motion.div
-			className="relative bg-transparent min-h-[100svh]" // CHANGED (from 80svh)
+			className="relative bg-transparent min-h-[100svh]"
 			variants={pageFade}
 			initial="hidden"
 			animate="show"
@@ -86,12 +102,12 @@ export default function Activity02({
 			{/* Full-window gradient so it reaches the footer area */}
 			<motion.div
 				aria-hidden
-				className="fixed inset-0 -z-10 pointer-events-none" // CHANGED (from absolute)
+				className="fixed inset-0 -z-10 pointer-events-none"
 				style={{
 					backgroundImage: `
             linear-gradient(
               to bottom,
-              ${withAlpha(EMERALD_50, "B3")} 0%,   /* ~70% emerald-50 tint */
+              ${withAlpha(EMERALD_50, "B3")} 0%,
               rgba(255,255,255,0.0) 45%,
               rgba(248,250,252,0) 100%
             )
@@ -209,19 +225,27 @@ export default function Activity02({
 				{/* Notes */}
 				<NoteComposer
 					value={localNotes}
-					onChange={(v) => {
-						setLocalNotes(v);
-						onNotes?.(v);
-					}}
-					storageKey={`notes-${content?.id || "02"}`}
+					onChange={saveNotes}
+					storageKey={`notes-${content?.id || "03"}`}
 					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					palette={notePalette}
-					downloadFileName={`Activity-${content?.id || "02"}-Reflection.docx`}
-					docTitle={content?.title || "Reflection"}
+					accent="#047857"
+					downloadFileName={`Activity-${content?.id || "03"}-Reflection.docx`}
+					/* Exported title becomes: "Activity 2: Indigenous Medicinal Plants" */
+					docTitle={content?.title || "Indigenous Medicinal Plants"}
+					/* Add activity number so it's prepended to the title in the export */
+					activityNumber={activityNumber}
+					/* Include the tip text at the top of the export, split into sentences */
+					docIntro={tipText}
+					/* Export resources as a header + bullet list of hyperlink labels */
+					includeLinks={true}
+					linksHeading="Resources"
+					pageLinks={pageLinks}
+					/* Emerald headings in the exported DOCX/HTML */
+					headingColor={EMERALD_700}
 				/>
 
 				{/* Complete toggle */}

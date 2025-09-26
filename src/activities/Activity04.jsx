@@ -65,6 +65,22 @@ export default function Activity04({
 
 	const activityNumber = 4;
 
+	// Resources to export as bullet hyperlinks (no table)
+	const pageLinks = [
+		{
+			label: "Global map of Indigenous Peoples (PDF)",
+			url: "https://newshour-classroom-tc.digi-producers.pbs.org/uploads/app/uploads/2014/11/A-global-map-of-indigenous-peoples.pdf",
+		},
+		{
+			label: "Mapped: The world’s Indigenous Peoples",
+			url: "https://www.visualcapitalist.com/cp/mapped-the-worlds-indigenous-peoples/",
+		},
+	];
+
+	// Tip text included at top of export (split into sentences automatically)
+	const tipText =
+		"Discover facts about an Indigenous population outside Canada. What stood out to you?";
+
 	return (
 		<motion.div
 			className="relative bg-transparent min-h-[80svh]"
@@ -156,7 +172,8 @@ export default function Activity04({
 									Global map of Indigenous Peoples (PDF)
 								</div>
 							</div>
-							<div className={`${linkFooterBase} text-slate-800`}>
+							{/* Make footer text the same color as accent */}
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
@@ -187,7 +204,8 @@ export default function Activity04({
 									Mapped: The world’s Indigenous Peoples
 								</div>
 							</div>
-							<div className={`${linkFooterBase} text-slate-800`}>
+							{/* Make footer text the same color as accent */}
+							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
@@ -205,9 +223,21 @@ export default function Activity04({
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent="#4F46E5" // indigo-600 for rings/buttons (feel free to use {accent})
+					accent={accent} // use same accent
 					downloadFileName={`Activity-${content?.id || "04"}-Reflection.docx`}
-					docTitle={content?.title || "Reflection"}
+					/* Exported title becomes: "Activity 4: Indigenous Peoples Outside Canada" */
+					docTitle={content?.title || "Indigenous Peoples Outside Canada"}
+					docSubtitle={content?.subtitle}
+					/* Make the activity number part of the exported title */
+					activityNumber={activityNumber}
+					/* Include the on-page tip in the exported document */
+					docIntro={tipText}
+					/* Export resources as a header + bullet list of hyperlink labels (no table) */
+					includeLinks={true}
+					linksHeading="Resources"
+					pageLinks={pageLinks}
+					/* Indigo headings in the exported DOCX/HTML */
+					headingColor={accent}
 				/>
 
 				{/* Complete toggle (same as others) */}
