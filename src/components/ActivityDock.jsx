@@ -6,34 +6,136 @@ import React, {
 	useEffect,
 } from "react";
 
+/* --- central accent map for all 10 activities --- */
+const ACTIVITY_ACCENTS = {
+	1: "#2563EB", // Activity 01 — blue
+	2: "#047857", // Activity 02 — emerald
+	3: "#B45309", // Activity 03 — amber
+	4: "#4338CA", // Activity 04 — indigo
+	5: "#BE123C", // Activity 05 — rose
+	6: "#0891B2", // Activity 06 — cyan
+	7: "#0D9488", // Activity 07 — teal
+	8: "#E11D48", // Activity 08 — rose
+	9: "#934D6C", // Activity 09 — plum
+	10: "#DB5A42", // Activity 10 — persimmon
+};
+
+/* --- small color helpers --- */
+const normalizeHex = (h) => {
+	if (!h) return null;
+	let s = String(h).trim();
+	if (s[0] !== "#") s = `#${s}`;
+	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
+};
+const withAlpha = (hex, aa /* "14" */) => `${hex}${aa}`;
+const hexToRgb = (hex) => {
+	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
+	if (!m) return { r: 0, g: 0, b: 0 };
+	return {
+		r: parseInt(m[1], 16),
+		g: parseInt(m[2], 16),
+		b: parseInt(m[3], 16),
+	};
+};
+const relLum = ({ r, g, b }) => {
+	const f = (c) => {
+		c /= 255;
+		return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+	};
+	const [R, G, B] = [f(r), f(g), f(b)];
+	return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+};
+const isLight = (hex) => relLum(hexToRgb(hex)) > 0.5;
+
+/** Pick the accent for a given step. Priority:
+ *  1) step.accent (if provided)
+ *  2) ACTIVITY_ACCENTS by activityId (if provided) or index+1
+ *  3) fallback defaultAccent
+ */
+const resolveAccent = (step, idx, defaultAccent) => {
+	const fromProp = normalizeHex(step?.accent);
+	if (fromProp) return fromProp;
+	const activityId =
+		typeof step?.activityId === "number" ? step.activityId : idx + 1;
+	return (
+		normalizeHex(ACTIVITY_ACCENTS[activityId]) ||
+		normalizeHex(defaultAccent) ||
+		"#67AAF9"
+	);
+};
+
+/* style presets for states (normal / hover / active) */
+function stateStyles(accent, mode /* "base" | "seen" | "done" | "active" */) {
+	// Base visible tint even when not started
+	const bgBase = withAlpha(accent, "0D"); // ~5%
+	const brBase = withAlpha(accent, "26"); // ~15%
+
+	const bgSeen = withAlpha(accent, "14"); // ~8%
+	const brSeen = withAlpha(accent, "33"); // ~20%
+
+	const bgDone = withAlpha(accent, "1A"); // ~10%
+	const brDone = withAlpha(accent, "40"); // ~25%
+
+	const bgActive = withAlpha(accent, "20"); // ~12.5% (visually stronger)
+	const brActive = withAlpha(accent, "40"); // ~25%
+
+	const text = "#0F172A"; // dark text for contrast on light tints
+
+	const table = {
+		base: { bg: bgBase, br: brBase, text },
+		seen: { bg: bgSeen, br: brSeen, text },
+		done: { bg: bgDone, br: brDone, text },
+		active: { bg: bgActive, br: brActive, text },
+	};
+	return table[mode] || table.base;
+}
+
 /**
- * Inline Activities pill for the HEADER.
- * - Renders the pill inline (no fixed/portal).
- * - Opens a right-rail sheet that DOES NOT cover the centered content.
+ * Accent-aware Activities pill + right-rail.
+ * - Accent tint is visible from the start.
+ * - Darker on hover, darkest on press (active) per UI standards.
+ * - One-time pulse when an item first becomes visited.
+ * - Completed = check icon; visited = dot; not started = number.
+ * - Strong focus ring; SR text announces status.
  */
 export default function ActivityDock({
 	steps = [],
 	currentPageIndex = 0,
 	onJump,
-	contentMaxWidth = 1200, // keep panel outside centered content
+	contentMaxWidth = 1200,
+	defaultAccent = "#67AAF9",
 }) {
 	const [open, setOpen] = useState(false);
 	const btnRef = useRef(null);
 
 	if (!steps.length) return null;
 
-	const activeIdx = useMemo(
-		() => steps.findIndex((s) => s.index === currentPageIndex),
-		[steps, currentPageIndex]
+	// enrich steps with computed accent
+	const enrichedSteps = useMemo(
+		() =>
+			steps.map((s, i) => ({
+				...s,
+				_accent: resolveAccent(s, i, defaultAccent),
+			})),
+		[steps, defaultAccent]
 	);
-	const completedCount = steps.filter((s) => s.completed).length;
-	const pct = Math.round((completedCount / steps.length) * 100);
 
-	// compute right-rail left/top so it never overlaps centered content
+	const activeIdx = useMemo(
+		() => enrichedSteps.findIndex((s) => s.index === currentPageIndex),
+		[enrichedSteps, currentPageIndex]
+	);
+	const completedCount = enrichedSteps.filter((s) => s.completed).length;
+	const pct = Math.round((completedCount / enrichedSteps.length) * 100);
+
+	const activeAccent =
+		normalizeHex(enrichedSteps[activeIdx]?._accent) ||
+		normalizeHex(defaultAccent) ||
+		"#67AAF9";
+
+	// position the panel so it doesn't cover centered content
 	const [panelLeft, setPanelLeft] = useState(0);
 	const [panelTop, setPanelTop] = useState(0);
 
-	// Measure before paint to avoid initial left->right slide
 	const measurePosition = () => {
 		const vw = window.innerWidth;
 		const btnRect = btnRef.current?.getBoundingClientRect();
@@ -50,12 +152,8 @@ export default function ActivityDock({
 	useLayoutEffect(() => {
 		if (!open) return;
 		measurePosition();
-		// Also re-measure on font load/layout shifts (optional but safe)
-		// You can trigger measurePosition after a requestAnimationFrame if needed:
-		// requestAnimationFrame(measurePosition);
 	}, [open, contentMaxWidth]);
 
-	// Keep aligned on resize/scroll while open
 	useEffect(() => {
 		if (!open) return;
 		const onResize = () => measurePosition();
@@ -70,9 +168,27 @@ export default function ActivityDock({
 
 	const positioned = panelLeft !== 0 || panelTop !== 0;
 
+	/* --- one-time "visited" pulse management --- */
+	const prevVisitedRef = useRef(enrichedSteps.map((s) => !!s.visited));
+	const [flashSet, setFlashSet] = useState(new Set());
+	useEffect(() => {
+		const prev = prevVisitedRef.current;
+		const now = enrichedSteps.map((s) => !!s.visited);
+		const newlyVisited = new Set();
+		now.forEach((v, i) => {
+			if (v && !prev[i]) newlyVisited.add(i);
+		});
+		if (newlyVisited.size) {
+			setFlashSet(newlyVisited);
+			const t = setTimeout(() => setFlashSet(new Set()), 900);
+			return () => clearTimeout(t);
+		}
+		prevVisitedRef.current = now;
+	}, [enrichedSteps]);
+
 	return (
 		<>
-			{/* INLINE pill (lives inside header block) */}
+			{/* INLINE pill (header) */}
 			<button
 				ref={btnRef}
 				type="button"
@@ -83,20 +199,29 @@ export default function ActivityDock({
           bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur
           border border-slate-200 shadow-sm px-3 py-2
           hover:shadow-lg transition
-          focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400
+          focus:outline-none
         "
+				style={{
+					boxShadow: open ? `0 0 0 2px ${activeAccent}` : "none",
+				}}
+				onFocus={(e) =>
+					(e.currentTarget.style.boxShadow = `0 0 0 2px ${activeAccent}`)
+				}
+				onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
 				title={`${pct}% complete`}
 			>
 				<span
 					aria-hidden="true"
 					className="relative grid place-items-center w-9 h-9 rounded-full"
 					style={{
-						background: `conic-gradient(#38bdf8 ${pct * 3.6}deg, #e2e8f0 0)`,
+						background: `conic-gradient(${activeAccent} ${
+							pct * 3.6
+						}deg, #e2e8f0 0)`,
 					}}
 				>
 					<span className="absolute inset-[3px] rounded-full bg-white shadow-inner" />
 					<span className="relative text-xs font-semibold text-slate-700">
-						{completedCount}/{steps.length}
+						{completedCount}/{enrichedSteps.length}
 					</span>
 				</span>
 				<span className="text-sm font-medium text-slate-800">Activities</span>
@@ -112,38 +237,92 @@ export default function ActivityDock({
 				</svg>
 			</button>
 
-			{/* Right-rail panel (positioned with inline styles) */}
+			{/* Right-rail panel */}
 			<div
 				aria-hidden={!open}
 				className={`fixed z-[80] ${
 					open
 						? "opacity-100 translate-y-0 scale-100"
 						: "opacity-0 translate-y-1 scale-[0.99] pointer-events-none"
-				} duration-200 ease-out`} // ← no transition-all
+				} duration-200 ease-out`}
 				style={{
 					left: panelLeft,
 					top: panelTop,
 					maxHeight: "calc(100vh - 32px)",
-					transitionProperty: "opacity, transform", // ← only animate opacity/transform
-					visibility: positioned ? "visible" : "hidden", // hide until measured
+					transitionProperty: "opacity, transform",
+					visibility: positioned ? "visible" : "hidden",
 				}}
 			>
-				<div className="rounded-2xl border border-slate-200 bg-white/95 supports-[backdrop-filter]:bg-white/75 backdrop-blur shadow-xl p-3 origin-top w-[min(92vw,960px)] max-w-[300px] overflow-auto">
+				<div className="rounded-2xl mt-3 border border-slate-200 bg-white/95 supports-[backdrop-filter]:bg-white backdrop-blur shadow-xl p-3 origin-top w-[min(92vw,960px)] max-w-[300px] overflow-auto">
 					<nav aria-label="Activities">
 						<div className="grid gap-2 sm:grid-cols-1">
-							{steps.map((s, i) => {
+							{enrichedSteps.map((s, i) => {
 								const isActive = s.index === currentPageIndex;
 								const done = !!s.completed;
 								const seen = !!s.visited;
-								const base =
-									"inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400";
-								const state = isActive
-									? "bg-sky-50 border-sky-300 text-sky-800"
+								const accent = s._accent;
+
+								// base mode decides normal/hover/active shades
+								const mode = isActive
+									? "active"
 									: done
-									? "bg-emerald-50 border-emerald-300 text-emerald-800"
+									? "done"
 									: seen
-									? "bg-indigo-50 border-indigo-300 text-indigo-800"
-									: "bg-gray-50 border-gray-300 text-gray-700";
+									? "seen"
+									: "base";
+								const normal = stateStyles(accent, mode);
+
+								// darker on hover, darkest on active (press)
+								const hover = stateStyles(
+									accent,
+									isActive ? "active" : done ? "active" : "seen"
+								);
+								const pressed = {
+									bg: withAlpha(accent, "26"), // ~15% — darkest
+									br: withAlpha(accent, "4D"), // ~30%
+									text: normal.text,
+								};
+
+								const baseCls =
+									"relative inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition w-full justify-start select-none";
+								const pulse = flashSet.has(i) && !done;
+
+								// Iconography: check = completed, dot = visited, number = not yet visited
+								const statusIcon = done ? (
+									<svg
+										className="w-3.5 h-3.5"
+										viewBox="0 0 20 20"
+										fill="currentColor"
+										aria-hidden="true"
+									>
+										<path d="M16.704 5.29a1 1 0 00-1.408-1.42l-6.3 6.23-2.29-2.27a1 1 0 10-1.42 1.41l3 2.98a1 1 0 001.407-.003l7.01-6.93z" />
+									</svg>
+								) : seen ? (
+									<span
+										aria-hidden="true"
+										className="inline-block w-2 h-2 rounded-full"
+										style={{ backgroundColor: withAlpha(accent, "FF") }}
+									/>
+								) : (
+									<span className="text-[11px] font-semibold text-slate-600">
+										{i + 1}
+									</span>
+								);
+
+								const ariaStatus = done
+									? " (completed)"
+									: seen
+									? " (visited)"
+									: " (not started)";
+
+								// inline interactive shading (so it works without Tailwind variants):
+								const styleRef = useRef(null);
+								const setStyle = (s) => {
+									if (!styleRef.current) return;
+									styleRef.current.backgroundColor = s.bg;
+									styleRef.current.border = `1px solid ${s.br}`;
+									styleRef.current.color = s.text;
+								};
 
 								return (
 									<button
@@ -153,31 +332,57 @@ export default function ActivityDock({
 											onJump?.(s.index);
 											setOpen(false);
 										}}
-										className={`${base} ${state} w-full justify-start`}
-										aria-current={isActive ? "step" : undefined}
-										title={s.label}
+										className={`${baseCls} ${pulse ? "visited-pulse" : ""}`}
 										style={{
-											animation: open
-												? `fadeInUp .22s ease both ${i * 20}ms`
-												: "none",
+											backgroundColor: normal.bg,
+											border: `1px solid ${normal.br}`,
+											color: normal.text,
+											transition:
+												"background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .06s ease",
+											boxShadow: "0 0 0 0 transparent",
 										}}
+										ref={(el) => {
+											// keep a live style handle
+											if (el) styleRef.current = el.style;
+										}}
+										onMouseEnter={() => setStyle(hover)}
+										onMouseLeave={() => setStyle(normal)}
+										onMouseDown={(e) => {
+											setStyle(pressed);
+											e.currentTarget.style.transform =
+												"translateY(0.5px) scale(0.995)";
+										}}
+										onMouseUp={(e) => {
+											setStyle(hover);
+											e.currentTarget.style.transform =
+												"translateY(0) scale(1)";
+										}}
+										onFocus={(e) => {
+											e.currentTarget.style.boxShadow = `0 0 0 2px ${accent}`;
+										}}
+										onBlur={(e) => {
+											e.currentTarget.style.boxShadow = `0 0 0 0 transparent`;
+										}}
+										aria-current={isActive ? "step" : undefined}
+										title={`${s.label}${ariaStatus}`}
 									>
+										{/* badge */}
 										<span
-											className={`grid place-items-center w-6 h-6 rounded-full text-xs font-semibold border bg-white
-                        ${
-													isActive
-														? "border-sky-300 text-sky-700"
-														: done
-														? "border-emerald-300 text-emerald-700"
-														: seen
-														? "border-indigo-300 text-indigo-700"
-														: "border-gray-300 text-gray-600"
-												}`}
+											className="grid place-items-center w-6 h-6 rounded-full text-xs font-semibold bg-white"
+											style={{
+												border: `1px solid ${withAlpha(accent, "33")}`,
+												color: isLight(accent) ? "#0B1220" : "#0B1220",
+											}}
 											aria-hidden="true"
 										>
-											{i + 1}
+											{statusIcon}
 										</span>
-										<span className="whitespace-nowrap">{s.label}</span>
+
+										{/* label */}
+										<span className="whitespace-nowrap">
+											{s.label}
+											<span className="sr-only">{ariaStatus}</span>
+										</span>
 									</button>
 								);
 							})}
@@ -187,9 +392,20 @@ export default function ActivityDock({
 			</div>
 
 			<style>{`
-        @keyframes fadeInUp { 
-          from { opacity: 0; transform: translateY(4px); } 
-          to { opacity: 1; transform: translateY(0); } 
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseOnce {
+          0%   { box-shadow: 0 0 0 0 rgba(0,0,0,0); transform: translateY(0); }
+          40%  { box-shadow: 0 0 0 8px rgba(0,0,0,0.06); transform: translateY(-1px); }
+          100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); transform: translateY(0); }
+        }
+        .visited-pulse {
+          animation: pulseOnce 0.9s ease-out both;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .visited-pulse { animation: none; }
         }
       `}</style>
 		</>
