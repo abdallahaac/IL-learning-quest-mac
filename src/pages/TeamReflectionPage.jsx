@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CommitmentsCard from "../components/CommitmentsCard";
+import DownloadAllActivitiesButton from "../components/DownloadAllActivitiesButton.jsx";
+import DownloadCommitmentsButton from "../components/DownloadCommitmentsButton.jsx";
 
 export default function TeamReflectionPage({ content, notes, onNotes }) {
 	// ---- THEME (set once for the suite) ---------------------------------------
@@ -400,22 +402,22 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 				</section>
 
 				{/* --- NEW: Download button at bottom (no functionality yet) --- */}
+
 				<section className="pt-2">
 					<div className="flex items-center justify-center">
-						<button
-							type="button"
-							className={`inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-semibold shadow-sm border ${ringAccent}`}
-							style={{
-								backgroundColor: `${ACCENT}14`, // ~8% tint
-								color: ACCENT,
-								borderColor: `${ACCENT}33`,
-							}}
-							aria-label="Download complete activity worksheet"
-							title="Download complete activity worksheet"
-						>
-							<Download className="w-4 h-4" />
-							<span>Download Complete Activity Worksheet</span>
-						</button>
+						<div className="flex flex-wrap gap-3">
+							{/* Activities (titles/subtitles/resources) */}
+							<DownloadAllActivitiesButton accent="#0000" />
+
+							{/* Commitments-only */}
+							<DownloadCommitmentsButton
+								accent="#000"
+								commitments={model.commitments}
+								reflectionText={text} // ← add this
+								title="Team Commitments"
+								docName="Team-Commitments.docx"
+							/>
+						</div>
 					</div>
 				</section>
 			</div>

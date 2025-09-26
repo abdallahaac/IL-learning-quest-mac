@@ -1,0 +1,159 @@
+{
+	"activities": [
+		{
+			"id": "01",
+			"title": "Explore an Indigenous Artist",
+			"subtitle": "Explore works by an Indigenous artist that speak to you. How do you relate to this artist? How do they inspire you?",
+			"resources": [
+				{
+					"label": "Important Indigenous Artists in Canada",
+					"url": "https://www.thecanadianencyclopedia.ca/en/article/important-indigenous-artists"
+				},
+				{
+					"label": "Influential Indigenous Musicians in Canada",
+					"url": "https://www.thecanadianencyclopedia.ca/en/article/influential-indigenous-musicians"
+				}
+			]
+		},
+		{
+			"id": "02",
+			"title": "Indigenous Medicinal Plants",
+			"subtitle": "Explore traditional plant knowledge and medicinal uses. Note teachings, sources, and how they connect to your context.",
+			"resources": [
+				{
+					"label": "Métis traditional uses for plants (PDF)",
+					"url": "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf"
+				},
+				{
+					"label": "Traditional plant foods of Indigenous Peoples in Canada (book)",
+					"url": "https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content"
+				}
+			]
+		},
+		{
+			"id": "03",
+			"title": "Make a Traditional Recipe",
+			"subtitle": "Cook a traditional Indigenous recipe. Note its origins and significance.",
+			"resources": [
+				{
+					"label": "Indigenous Recipes (CBC Life)",
+					"url": "https://www.cbc.ca/life/food/11-recipes-that-celebrate-indigenous-cuisine-and-culture-1.6942730"
+				}
+			]
+		},
+		{
+			"id": "04",
+			"title": "Indigenous Peoples Outside Canada",
+			"subtitle": "Discover facts about an Indigenous population outside Canada. What stood out to you?",
+			"resources": [
+				{
+					"label": "Global map of Indigenous Peoples (PDF)",
+					"url": "https://newshour-classroom-tc.digi-producers.pbs.org/uploads/app/uploads/2014/11/A-global-map-of-indigenous-peoples.pdf"
+				},
+				{
+					"label": "Mapped: The world’s Indigenous Peoples",
+					"url": "https://www.visualcapitalist.com/cp/mapped-the-worlds-indigenous-peoples/"
+				}
+			]
+		},
+		{
+			"id": "05",
+			"title": "Film, TV, or Podcast",
+			"subtitle": "Watch an Indigenous film/TV show or listen to an Indigenous-focused podcast. What did you learn?",
+			"resources": [
+				{
+					"label": "NFB — Indigenous cinema",
+					"url": "https://www.nfb.ca/indigenous-cinema/?&film_lang=en&sort=year:desc,title&year_min=1939&year_max=2022"
+				},
+				{
+					"label": "CBC Gem — Indigenous stories",
+					"url": "https://gem.cbc.ca/section/indigenous-stories"
+				}
+			]
+		},
+		{
+			"id": "06",
+			"title": "Read a Book",
+			"subtitle": "Read a book by an Indigenous author and reflect on themes, voices, and teachings.",
+			"resources": [
+				{
+					"label": "21 Indigenous Reads to Reconcile",
+					"url": "https://www.amazon.ca/lm/RNQN2T4GWR78D/ref=cm_sw_su_lm_jmU2AiUi6K3te"
+				}
+			]
+		},
+		{
+			"id": "07",
+			"title": "Learn Three Words",
+			"subtitle": "Learn to say a few words in an Indigenous language. Share them with your team and use them often.",
+			"resources": [
+				{
+					"label": "FirstVoices Language Archive",
+					"url": "https://www.firstvoices.com/explore/FV/sections"
+				},
+				{
+					"label": "FirstVoices Keyboards",
+					"url": "https://keyboards.firstvoices.com/"
+				},
+				{
+					"label": "Indigenous Languages (Gov of Canada)",
+					"url": "https://www.rcaanc-cirnac.gc.ca/eng/1524504869966/1557507020242"
+				}
+			]
+		},
+		{
+			"id": "08",
+			"title": "2SLGBTQQIA+ / Two-Spirit & Indigiqueer Communities",
+			"subtitle": "Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous 2SLGBTQQIA+ communities and their histories.",
+			"resources": [
+				{
+					"label": "Indigenous knowledge & Two-Spirit leadership (Native Governance Center)",
+					"url": "https://nativegov.org/resources/indigenous-knowledge-and-two-spirit-leadership/"
+				},
+				{
+					"label": "Two-Spirit Library (W2SA)",
+					"url": "https://w2sa.ca/two-spirit-library"
+				},
+				{
+					"label": "Two Spirits, One Voice (Egale)",
+					"url": "https://egale.ca/awareness/two-spirits-one-voice/"
+				}
+			]
+		},
+		{
+			"id": "09",
+			"title": "Indigenous-Focused News Story",
+			"subtitle": "Choose a current story from an Indigenous-led outlet. Summarize the piece and reflect on framing, voices quoted, and possible biases.",
+			"resources": [
+				{ "label": "APTN", "url": "https://www.aptntv.ca/" },
+				{
+					"label": "The Turtle Island News",
+					"url": "https://theturtleislandnews.com/"
+				},
+				{ "label": "Ku'ku'kwes News", "url": "https://kukukwes.com/" },
+				{ "label": "IndigiNews", "url": "https://indiginews.com/" },
+				{ "label": "Ha-Shilth-Sa", "url": "https://hashilthsa.com/" },
+				{ "label": "Windspeaker", "url": "https://windspeaker.com/" }
+			]
+		},
+		{
+			"id": "10",
+			"title": "Indigenous-Owned Business",
+			"subtitle": "Explore a First Nations, Inuit or Métis-owned business (in person or online). What products/services spoke to you and why?",
+			"resources": [
+				{
+					"label": "Shop First Nations",
+					"url": "https://shopfirstnations.com/"
+				},
+				{
+					"label": "17 Canadian Indigenous-Owned Businesses (2025)",
+					"url": "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/"
+				},
+				{
+					"label": "Indigenous Business Directory (ISC)",
+					"url": "https://www.sac-isc.gc.ca/rea-ibd"
+				}
+			]
+		}
+	]
+}
