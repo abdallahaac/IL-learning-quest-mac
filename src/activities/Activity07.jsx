@@ -949,7 +949,7 @@ export default function Activity07({
 
 				{/* ------- Bottom action bar ------- */}
 				<div
-					className="mt-6 pt-4 border-t flex flex-col sm:flex-row items-center gap-3 sm:gap-2 sm:justify-end"
+					className="mt-6 pt-4  flex flex-col sm:flex-row items-center gap-3 sm:gap-2 sm:justify-end"
 					style={{ borderColor: "rgba(203,213,225,0.8)" }}
 				>
 					<button
