@@ -1,6 +1,47 @@
 import React from "react";
 import ActivityDock from "./ActivityDock.jsx";
 
+/* utils */
+const normalizeHex = (h) => {
+	if (!h) return null;
+	let s = String(h).trim();
+	if (s[0] !== "#") s = `#${s}`;
+	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
+};
+const hexToRgb = (hex) => {
+	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
+	if (!m) return { r: 0, g: 0, b: 0 };
+	return {
+		r: parseInt(m[1], 16),
+		g: parseInt(m[2], 16),
+		b: parseInt(m[3], 16),
+	};
+};
+const relLum = ({ r, g, b }) => {
+	const f = (c) => {
+		c /= 255;
+		return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+	};
+	const [R, G, B] = [f(r), f(g), f(b)];
+	return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+};
+const contrastRatio = (hexA, hexB) => {
+	const LA = relLum(hexToRgb(hexA));
+	const LB = relLum(hexToRgb(hexB));
+	const [L1, L2] = LA >= LB ? [LA, LB] : [LB, LA];
+	return (L1 + 0.05) / (L2 + 0.05);
+};
+const shadeHex = (hex, amt) => {
+	const { r, g, b } = hexToRgb(hex);
+	const t = amt < 0 ? 0 : 255;
+	const p = Math.abs(amt);
+	const nr = Math.round((t - r) * p + r);
+	const ng = Math.round((t - g) * p + g);
+	const nb = Math.round((t - b) * p + b);
+	const to2 = (n) => n.toString(16).padStart(2, "0");
+	return `#${to2(nr)}${to2(ng)}${to2(nb)}`;
+};
+
 export default function Footer({
 	pageIndex = 0,
 	totalPages = 1,
@@ -9,26 +50,25 @@ export default function Footer({
 	nextLabel = "Next",
 	activitySteps = [],
 	onJumpToPage,
-	containerRef, // NEW: ref from AppShell
+	containerRef,
+	accent = "#67AAF9", // ← accent passed from AppShell
 }) {
 	const isFirst = pageIndex === 0;
 	const isLast = pageIndex === totalPages - 1;
 
+	const accentHex = normalizeHex(accent) || "#67AAF9";
+	const hover = shadeHex(accentHex, -0.08);
+	const active = shadeHex(accentHex, -0.16);
+	const textOnAccent =
+		contrastRatio(accentHex, "#FFFFFF") >= 4.5 ? "#FFFFFF" : "#0B1220";
+
 	return (
 		<footer
-			ref={containerRef} // NEW: measure me
+			ref={containerRef}
 			className="fixed bottom-0 left-0 w-full z-50 bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border-t border-gray-200 shadow-sm"
 			role="contentinfo"
 		>
 			<div className="relative max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between">
-				<ActivityDock
-					steps={activitySteps}
-					currentPageIndex={pageIndex}
-					onJump={onJumpToPage}
-					initialPosition={{ x: 24, y: 24 }}
-					storageKey="my_dock_pos_v1"
-					snapToEdge
-				/>
 				<span className="text-sm text-gray-600">
 					Page {pageIndex + 1} / {totalPages}
 				</span>
@@ -42,17 +82,35 @@ export default function Footer({
 					>
 						Back
 					</button>
-					{!isFirst && (
-						<button
-							type="button"
-							className="px-5 py-2 rounded-lg bg-sky-500 text-white hover:bg-sky-600"
-							onClick={onNext}
-							aria-label={isLast ? "Finish" : nextLabel}
-							title={isLast ? "Finish" : nextLabel}
-						>
-							{isLast ? "Finish" : nextLabel}
-						</button>
-					)}
+
+					<button
+						type="button"
+						className="px-5 py-2 rounded-lg font-medium shadow-sm focus:outline-none transition"
+						style={{
+							backgroundColor: accentHex,
+							color: textOnAccent,
+							border: "1px solid transparent",
+						}}
+						onMouseEnter={(e) =>
+							(e.currentTarget.style.backgroundColor = hover)
+						}
+						onMouseLeave={(e) =>
+							(e.currentTarget.style.backgroundColor = accentHex)
+						}
+						onMouseDown={(e) =>
+							(e.currentTarget.style.backgroundColor = active)
+						}
+						onMouseUp={(e) => (e.currentTarget.style.backgroundColor = hover)}
+						onFocus={(e) =>
+							(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
+						}
+						onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
+						onClick={onNext}
+						aria-label={isLast ? "Finish" : nextLabel}
+						title={isLast ? "Finish" : nextLabel}
+					>
+						{isLast ? "Finish" : nextLabel}
+					</button>
 				</div>
 			</div>
 		</footer>

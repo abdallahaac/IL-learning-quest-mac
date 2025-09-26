@@ -20,9 +20,32 @@ import PatternMorph from "./components/PatternMorph.jsx";
 import useResizeObserver from "./hooks/useResizeObserver.jsx";
 
 /* ========================================================================
+   Accent map to keep Header/Footer/Dock aligned with activities
+   ======================================================================== */
+const ACTIVITY_ACCENTS = {
+	1: "#2563EB",
+	2: "#047857",
+	3: "#B45309",
+	4: "#4338CA",
+	5: "#BE123C",
+	6: "#0891B2",
+	7: "#0D9488",
+	8: "#E11D48",
+	9: "#934D6C",
+	10: "#DB5A42",
+};
+const normalizeHex = (h) => {
+	if (!h) return null;
+	let s = String(h).trim();
+	if (s[0] !== "#") s = `#${s}`;
+	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
+};
+const accentForActivityIndex = (idx /* 0-based */) =>
+	normalizeHex(ACTIVITY_ACCENTS[idx + 1]) || "#67AAF9";
+
+/* ========================================================================
    Persistence helpers (SCORM + localStorage)
    ======================================================================== */
-
 const STATE_VERSION = 3;
 const BUILD_ID = "toc-progress-2025-09-19-02";
 const LS_KEY = "quest_state_v1";
@@ -89,12 +112,6 @@ export default function AppShell() {
 			saved.version === STATE_VERSION &&
 			saved.buildId === BUILD_ID;
 
-		console.log(
-			"[AppShell] Hydrate:",
-			{ hasScorm: !!scormSaved, hasLS: !!lsSaved },
-			{ forceFresh, usingSaved, saved }
-		);
-
 		if (!usingSaved) saved = null;
 
 		const initialIndex = Math.min(saved?.pageIndex ?? 0, totalPages - 1);
@@ -120,10 +137,6 @@ export default function AppShell() {
 			if (idx === s.pageIndex && s.visited.has(idx)) return s;
 			const nextVisited = new Set(s.visited);
 			nextVisited.add(idx);
-			console.log("[AppShell] Route change →", {
-				idx,
-				nextVisited: [...nextVisited],
-			});
 			return { ...s, pageIndex: idx, visited: nextVisited };
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -278,21 +291,6 @@ export default function AppShell() {
 	}
 	const curvedProgress = acc / slots.length;
 
-	console.log("[AppShell] Progress inputs:", {
-		idxIntro,
-		idxPrep,
-		idxTeam,
-		idxConclusion,
-		idxResources,
-		visited: [...state.visited],
-		activityVisitedCount,
-		activityTotal,
-		activityFrac,
-		prepPlusActivities,
-		slots,
-		curvedProgress,
-	});
-
 	const siteTitle = "Learning Quest on Indigenous Cultures";
 	const pageTitle =
 		currentPage.type === "cover" ? "" : currentPage.content.title;
@@ -303,6 +301,30 @@ export default function AppShell() {
 
 	const sawIntro = visitedHas(idxIntro);
 	const dynamicPrefill = sawIntro ? 0 : 0.06;
+
+	// measure the fixed header height
+	const [headerRef, headerSize] = useResizeObserver();
+	const headerHeight = headerSize.height || 0;
+
+	// build ActivityDock steps (mark visited/completed, and attach accent)
+	const activitySteps = activityPages.map(({ p, idx }, i) => ({
+		key: p.content.id,
+		label: `Activity ${i + 1}`,
+		index: idx,
+		completed: state.visited.has(idx), // reflect 'visited' instead of 'completed' if desired
+		visited: state.visited.has(idx),
+		accent: accentForActivityIndex(i),
+	}));
+
+	// measure the fixed footer height
+	const [footerRef, footerSize] = useResizeObserver();
+	const footerHeight = footerSize.height || 0;
+
+	// Accent for current page (used by Header/Footer buttons)
+	const accentForThisPage =
+		currentPage.type === "activity"
+			? accentForActivityIndex(currentPage.activityIndex || 0)
+			: "#67AAF9";
 
 	/* --------------------------------------------------------------------
      Page switch
@@ -382,28 +404,14 @@ export default function AppShell() {
 		default:
 			pageContent = <SectionPage content={currentPage.content} />;
 	}
-	// measure the fixed header height
-	const [headerRef, headerSize] = useResizeObserver();
-	const headerHeight = headerSize.height || 0;
-	const activitySteps = activityPages.map(({ p, idx }, i) => ({
-		key: p.content.id,
-		label: `Activity ${i + 1}`,
-		index: idx,
-		completed: state.visited.has(idx), // reflect 'visited' instead of 'completed'
-		visited: state.visited.has(idx),
-	}));
 
-	// measure the fixed footer height  // NEW
-	const [footerRef, footerSize] = useResizeObserver();
-	const footerHeight = footerSize.height || 0;
 	// ---- LAYOUT with sticky header ----
-
 	return (
 		<div
 			className={` app-shell relative h-screen flex flex-col ${themeClass}`}
 			style={{
 				"--header-h": `${headerHeight}px`,
-				"--footer-h": `${footerHeight}px`, // NEW
+				"--footer-h": `${footerHeight}px`,
 			}}
 		>
 			<PatternMorph pageIndex={state.pageIndex} sequence={BG_SEQUENCE} />
@@ -417,17 +425,15 @@ export default function AppShell() {
 				activitySteps={activitySteps}
 				currentPageIndex={state.pageIndex}
 				onJumpToPage={(idx) => gotoPage(idx)}
+				accent={accentForThisPage} // ← accent here
 			/>
 
 			{/* Scroll container (add top padding equal to header height) */}
 			<div className="flex-1 relative min-h-0">
 				<div
-					className="
-            flex h-full flex-col overflow-y-auto min-h-0
-          "
+					className="flex h-full flex-col overflow-y-auto min-h-0"
 					style={{
 						paddingTop: "var(--header-h)",
-						// Prevent layout shift from scrollbar width differences
 						scrollbarGutter: "stable",
 					}}
 				>
@@ -444,10 +450,14 @@ export default function AppShell() {
 				</div>
 			</div>
 
-			{/* Fixed footer unchanged */}
+			{/* Fixed footer */}
 			<div
-				aria-hidden={isCover && coverIntroActive}
-				className={isCover && coverIntroActive ? chromeHidden : chromeShown}
+				aria-hidden={currentPage.type === "cover" && coverIntroActive}
+				className={
+					currentPage.type === "cover" && coverIntroActive
+						? "transition-opacity duration-500 ease-out will-change-[opacity] opacity-0 pointer-events-none"
+						: "transition-opacity duration-500 ease-out opacity-100"
+				}
 			>
 				<Footer
 					pageIndex={state.pageIndex}
@@ -455,6 +465,9 @@ export default function AppShell() {
 					onPrev={prev}
 					onNext={next}
 					nextLabel={getNextLabel()}
+					activitySteps={activitySteps}
+					onJumpToPage={(idx) => gotoPage(idx)}
+					accent={accentForThisPage} // ← accent here
 				/>
 			</div>
 		</div>

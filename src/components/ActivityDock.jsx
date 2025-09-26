@@ -64,53 +64,27 @@ const resolveAccent = (step, idx, defaultAccent) => {
 	);
 };
 
-/* style presets for states (normal / hover / active) */
-function stateStyles(accent, mode /* "base" | "seen" | "done" | "active" */) {
-	// Base visible tint even when not started
-	const bgBase = withAlpha(accent, "0D"); // ~5%
-	const brBase = withAlpha(accent, "26"); // ~15%
-
-	const bgSeen = withAlpha(accent, "14"); // ~8%
-	const brSeen = withAlpha(accent, "33"); // ~20%
-
-	const bgDone = withAlpha(accent, "1A"); // ~10%
-	const brDone = withAlpha(accent, "40"); // ~25%
-
-	const bgActive = withAlpha(accent, "20"); // ~12.5% (visually stronger)
-	const brActive = withAlpha(accent, "40"); // ~25%
-
-	const text = "#0F172A"; // dark text for contrast on light tints
-
-	const table = {
-		base: { bg: bgBase, br: brBase, text },
-		seen: { bg: bgSeen, br: brSeen, text },
-		done: { bg: bgDone, br: brDone, text },
-		active: { bg: bgActive, br: brActive, text },
-	};
-	return table[mode] || table.base;
-}
-
 /**
  * Accent-aware Activities pill + right-rail.
- * - Accent tint is visible from the start.
- * - Darker on hover, darkest on press (active) per UI standards.
- * - One-time pulse when an item first becomes visited.
- * - Completed = check icon; visited = dot; not started = number.
- * - Strong focus ring; SR text announces status.
+ * - Every item is colored from the start (tinted with its accent).
+ * - First time an item becomes `visited`, it gently pulses once.
+ * - Completed items show a check icon; visited-but-not-complete show a dot.
+ * - Icon ensures state isn't conveyed by color alone.
+ * - Active (clicked) items render darker (stronger) tint for clear feedback.
  */
 export default function ActivityDock({
 	steps = [],
 	currentPageIndex = 0,
 	onJump,
 	contentMaxWidth = 1200,
-	defaultAccent = "#67AAF9",
+	defaultAccent = "#67AAF9", // suite blue fallback
 }) {
 	const [open, setOpen] = useState(false);
 	const btnRef = useRef(null);
 
 	if (!steps.length) return null;
 
-	// enrich steps with computed accent
+	// enrich steps with computed accent so we use it consistently everywhere
 	const enrichedSteps = useMemo(
 		() =>
 			steps.map((s, i) => ({
@@ -127,12 +101,13 @@ export default function ActivityDock({
 	const completedCount = enrichedSteps.filter((s) => s.completed).length;
 	const pct = Math.round((completedCount / enrichedSteps.length) * 100);
 
+	// Use the current page's accent for the header pill ring + progress arc
 	const activeAccent =
 		normalizeHex(enrichedSteps[activeIdx]?._accent) ||
 		normalizeHex(defaultAccent) ||
 		"#67AAF9";
 
-	// position the panel so it doesn't cover centered content
+	// compute right-rail left/top so it never overlaps centered content
 	const [panelLeft, setPanelLeft] = useState(0);
 	const [panelTop, setPanelTop] = useState(0);
 
@@ -188,7 +163,7 @@ export default function ActivityDock({
 
 	return (
 		<>
-			{/* INLINE pill (header) */}
+			{/* INLINE pill (lives inside header block) */}
 			<button
 				ref={btnRef}
 				type="button"
@@ -202,6 +177,7 @@ export default function ActivityDock({
           focus:outline-none
         "
 				style={{
+					// Use current activity accent for focus ring
 					boxShadow: open ? `0 0 0 2px ${activeAccent}` : "none",
 				}}
 				onFocus={(e) =>
@@ -237,7 +213,7 @@ export default function ActivityDock({
 				</svg>
 			</button>
 
-			{/* Right-rail panel */}
+			{/* Right-rail panel (positioned with inline styles) */}
 			<div
 				aria-hidden={!open}
 				className={`fixed z-[80] ${
@@ -253,39 +229,60 @@ export default function ActivityDock({
 					visibility: positioned ? "visible" : "hidden",
 				}}
 			>
-				<div className="rounded-2xl mt-3 border border-slate-200 bg-white/95 supports-[backdrop-filter]:bg-white backdrop-blur shadow-xl p-3 origin-top w-[min(92vw,960px)] max-w-[300px] overflow-auto">
+				<div className="rounded-2xl border border-slate-200 bg-white/95 supports-[backdrop-filter]:bg-white/75 backdrop-blur shadow-xl p-3 origin-top w-[min(92vw,960px)] max-w-[300px] overflow-auto">
 					<nav aria-label="Activities">
 						<div className="grid gap-2 sm:grid-cols-1">
 							{enrichedSteps.map((s, i) => {
 								const isActive = s.index === currentPageIndex;
 								const done = !!s.completed;
 								const seen = !!s.visited;
+
 								const accent = s._accent;
 
-								// base mode decides normal/hover/active shades
-								const mode = isActive
-									? "active"
+								// Accessible tints derived from the step's accent
+								// Always use an accent tint even when not visited so color is apparent up-front.
+								const bgBase = withAlpha(accent, "0D"); // ~5%
+								const borderBase = withAlpha(accent, "26"); // ~15%
+								const bgActive = withAlpha(accent, "26"); // darker when active
+								const borderActive = withAlpha(accent, "40"); // stronger border
+
+								// Completed gets a slightly stronger tint than seen
+								const bgDone = withAlpha(accent, "1A"); // ~10%
+								const borderDone = withAlpha(accent, "33");
+
+								// Text remains dark for readability; accent is conveyed with tint + icon
+								const textColor = "#0F172A";
+
+								const base =
+									"relative inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition w-full justify-start";
+								const stateCls = isActive ? "shadow-sm" : "hover:shadow-sm";
+
+								// choose bg/border by state (active darkest → done → seen → base)
+								const pillStyle = isActive
+									? {
+											backgroundColor: bgActive,
+											border: `1px solid ${borderActive}`,
+											color: textColor,
+									  }
 									: done
-									? "done"
+									? {
+											backgroundColor: bgDone,
+											border: `1px solid ${borderDone}`,
+											color: textColor,
+									  }
 									: seen
-									? "seen"
-									: "base";
-								const normal = stateStyles(accent, mode);
+									? {
+											backgroundColor: withAlpha(accent, "14"),
+											border: `1px solid ${withAlpha(accent, "33")}`,
+											color: textColor,
+									  }
+									: {
+											backgroundColor: bgBase,
+											border: `1px solid ${borderBase}`,
+											color: textColor,
+									  };
 
-								// darker on hover, darkest on active (press)
-								const hover = stateStyles(
-									accent,
-									isActive ? "active" : done ? "active" : "seen"
-								);
-								const pressed = {
-									bg: withAlpha(accent, "26"), // ~15% — darkest
-									br: withAlpha(accent, "4D"), // ~30%
-									text: normal.text,
-								};
-
-								const baseCls =
-									"relative inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition w-full justify-start select-none";
-								const pulse = flashSet.has(i) && !done;
+								const pulse = flashSet.has(i) && !done; // one-time pulse when first seen
 
 								// Iconography: check = completed, dot = visited, number = not yet visited
 								const statusIcon = done ? (
@@ -315,15 +312,6 @@ export default function ActivityDock({
 									? " (visited)"
 									: " (not started)";
 
-								// inline interactive shading (so it works without Tailwind variants):
-								const styleRef = useRef(null);
-								const setStyle = (s) => {
-									if (!styleRef.current) return;
-									styleRef.current.backgroundColor = s.bg;
-									styleRef.current.border = `1px solid ${s.br}`;
-									styleRef.current.color = s.text;
-								};
-
 								return (
 									<button
 										key={s.key ?? i}
@@ -332,37 +320,20 @@ export default function ActivityDock({
 											onJump?.(s.index);
 											setOpen(false);
 										}}
-										className={`${baseCls} ${pulse ? "visited-pulse" : ""}`}
+										className={`${base} ${stateCls} focus:outline-none ${
+											pulse ? "visited-pulse" : ""
+										}`}
 										style={{
-											backgroundColor: normal.bg,
-											border: `1px solid ${normal.br}`,
-											color: normal.text,
-											transition:
-												"background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .06s ease",
-											boxShadow: "0 0 0 0 transparent",
+											...pillStyle,
+											paddingLeft: 12,
+											boxShadow: `0 0 0 0 transparent`,
 										}}
-										ref={(el) => {
-											// keep a live style handle
-											if (el) styleRef.current = el.style;
-										}}
-										onMouseEnter={() => setStyle(hover)}
-										onMouseLeave={() => setStyle(normal)}
-										onMouseDown={(e) => {
-											setStyle(pressed);
-											e.currentTarget.style.transform =
-												"translateY(0.5px) scale(0.995)";
-										}}
-										onMouseUp={(e) => {
-											setStyle(hover);
-											e.currentTarget.style.transform =
-												"translateY(0) scale(1)";
-										}}
-										onFocus={(e) => {
-											e.currentTarget.style.boxShadow = `0 0 0 2px ${accent}`;
-										}}
-										onBlur={(e) => {
-											e.currentTarget.style.boxShadow = `0 0 0 0 transparent`;
-										}}
+										onFocus={(e) =>
+											(e.currentTarget.style.boxShadow = `0 0 0 2px ${accent}`)
+										}
+										onBlur={(e) =>
+											(e.currentTarget.style.boxShadow = `0 0 0 0 transparent`)
+										}
 										aria-current={isActive ? "step" : undefined}
 										title={`${s.label}${ariaStatus}`}
 									>
@@ -392,9 +363,9 @@ export default function ActivityDock({
 			</div>
 
 			<style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(4px); }
-          to   { opacity: 1; transform: translateY(0); }
+        @keyframes fadeInUp { 
+          from { opacity: 0; transform: translateY(4px); } 
+          to { opacity: 1; transform: translateY(0); } 
         }
         @keyframes pulseOnce {
           0%   { box-shadow: 0 0 0 0 rgba(0,0,0,0); transform: translateY(0); }
@@ -403,9 +374,6 @@ export default function ActivityDock({
         }
         .visited-pulse {
           animation: pulseOnce 0.9s ease-out both;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .visited-pulse { animation: none; }
         }
       `}</style>
 		</>
