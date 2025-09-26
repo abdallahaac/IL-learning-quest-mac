@@ -1,5 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Users, ClipboardList, CheckCircle2, Sparkles } from "lucide-react";
+import {
+	Users,
+	ClipboardList,
+	CheckCircle2,
+	Sparkles,
+	Download,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import CommitmentsCard from "../components/CommitmentsCard";
 
@@ -122,7 +128,6 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 	}, [completed, totalSteps, didCelebrate]);
 
 	// ---- ATTENTION HINT (glow) ------------------------------------------------
-	// Gentle glow on the FIRST unchecked button to suggest it’s clickable (stops after interaction or 8s)
 	const [showHint, setShowHint] = useState(() => !model.checks?.some(Boolean));
 	useEffect(() => {
 		const t = setTimeout(() => setShowHint(false), 8000);
@@ -140,13 +145,11 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		],
 		scale: [1, 1.05, 1],
 	};
-
-	// Quick prompts aligned to your content
 	const quickPrompts = [
-		"One thing that surprised us…",
-		"A perspective we hadn’t considered…",
-		"Where we might follow up…",
-		"How this connects to our work…",
+		"One thing that surprised me…",
+		"A perspective I hadn’t considered…",
+		"Where I might follow up…",
+		"How this connects to my work…",
 	];
 
 	const wordCount = (text || "").trim() ? text.trim().split(/\s+/).length : 0;
@@ -393,6 +396,26 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 							onAdd={addCommitment}
 							onRemove={removeCommitment}
 						/>
+					</div>
+				</section>
+
+				{/* --- NEW: Download button at bottom (no functionality yet) --- */}
+				<section className="pt-2">
+					<div className="flex items-center justify-center">
+						<button
+							type="button"
+							className={`inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-lg text-sm font-semibold shadow-sm border ${ringAccent}`}
+							style={{
+								backgroundColor: `${ACCENT}14`, // ~8% tint
+								color: ACCENT,
+								borderColor: `${ACCENT}33`,
+							}}
+							aria-label="Download complete activity worksheet"
+							title="Download complete activity worksheet"
+						>
+							<Download className="w-4 h-4" />
+							<span>Download Complete Activity Worksheet</span>
+						</button>
 					</div>
 				</section>
 			</div>
