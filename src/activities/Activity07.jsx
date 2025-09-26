@@ -280,9 +280,7 @@ export default function Activity07({
 			(c) => c?.front?.trim() || c?.back?.trim()
 		);
 
-		const fileName = `${baseTitle
-			.toLowerCase()
-			.replace(/\s+/g, "-")}-page.docx`;
+		const fileName = "activity-a7-reflection.docx";
 
 		try {
 			const {
@@ -466,7 +464,6 @@ export default function Activity07({
 				sections: [{ properties: {}, children }],
 			});
 
-			const { Packer } = await import("docx");
 			const blob = await Packer.toBlob(doc);
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
@@ -924,14 +921,6 @@ export default function Activity07({
 											/>
 
 											<div className="flex items-center gap-2 sm:ml-2">
-												<button
-													type="button"
-													onClick={() => downloadOneCardDocx(i)}
-													className="text-xs px-2 py-1 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
-													title="Download this card (.docx)"
-												>
-													Download
-												</button>
 												<button
 													type="button"
 													onClick={() => removeCard(i)}
