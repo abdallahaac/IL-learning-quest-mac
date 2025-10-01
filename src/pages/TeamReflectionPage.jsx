@@ -11,6 +11,9 @@ import CommitmentsCard from "../components/CommitmentsCard";
 import DownloadAllActivitiesButton from "../components/DownloadAllActivitiesButton.jsx";
 import DownloadCommitmentsButton from "../components/DownloadCommitmentsButton.jsx";
 
+/* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
+const withAlpha = (hex, aa) => `${hex}${aa}`;
+
 export default function TeamReflectionPage({ content, notes, onNotes }) {
 	// ---- THEME (set once for the suite) ---------------------------------------
 	const ACCENT = "#67AAF9";
@@ -117,7 +120,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		return () => clearTimeout(t);
 	}, [text, checks, model.commitments]);
 
-	// Little celebratory pulse when 100% reached (not on first render if already complete)
+	// Little celebratory pulse when 100% reached
 	const [didCelebrate, setDidCelebrate] = useState(
 		completed === totalSteps && totalSteps > 0
 	);
@@ -142,7 +145,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 	const glowKeyframes = {
 		boxShadow: [
 			`0 0 0 0 ${ACCENT}00`,
-			`0 0 0 6px ${ACCENT}14`, // ~8% alpha
+			`0 0 0 6px ${ACCENT}14`,
 			`0 0 0 0 ${ACCENT}00`,
 		],
 		scale: [1, 1.05, 1],
@@ -159,15 +162,28 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 	// ---- RENDER ---------------------------------------------------------------
 	return (
 		<div className="relative bg-transparent min-h-[80svh]">
-			<div className={wrap}>
-				{/* Header (homologous) */}
+			{/* Accent gradient overlay (now above the global canvas) */}
+			<motion.div
+				aria-hidden
+				className="absolute inset-0 z-0 pointer-events-none"
+				style={{
+					backgroundImage: `linear-gradient(
+          to bottom,
+          ${withAlpha(ACCENT, "33")} 0%,
+          ${withAlpha(ACCENT, "1F")} 35%,
+          rgba(255,255,255,0) 65%,
+          rgba(248,250,252,1) 100%
+        )`,
+				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 0.3 }} // slightly stronger so it reads
+				transition={{ duration: 0.6 }}
+			/>
+
+			{/* Content wrapper sits above the gradient */}
+			<div className={`relative z-10 ${wrap}`}>
+				{/* Header */}
 				<header className="text-center space-y-2">
-					<p
-						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
-						style={{ color: ACCENT }}
-					>
-						Team Exercise
-					</p>
 					<div className="flex items-center justify-center gap-3">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
 							{modelContent?.title || "Team Reflection"}
@@ -250,7 +266,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 												next[i] = !next[i];
 												return next;
 											});
-											setShowHint(false); // stop hint after first interaction
+											setShowHint(false);
 										}}
 										className={`shrink-0 inline-flex items-center justify-center rounded-full border w-9 h-9 ${ringAccent}`}
 										style={{
@@ -401,19 +417,15 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 					</div>
 				</section>
 
-				{/* --- NEW: Download button at bottom (no functionality yet) --- */}
-
+				{/* Downloads */}
 				<section className="pt-2">
 					<div className="flex items-center justify-center">
 						<div className="flex flex-wrap gap-3">
-							{/* Activities (titles/subtitles/resources) */}
 							<DownloadAllActivitiesButton accent="#0000" />
-
-							{/* Commitments-only */}
 							<DownloadCommitmentsButton
 								accent="#000"
 								commitments={model.commitments}
-								reflectionText={text} // ← add this
+								reflectionText={text}
 								title="Team Commitments"
 								docName="Team-Commitments.docx"
 							/>
