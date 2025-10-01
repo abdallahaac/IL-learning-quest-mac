@@ -299,13 +299,19 @@ export default function AppShell() {
 	}));
 
 	// Colors
+	// Colors
 	const pageType = currentPage.type;
+
 	let accentForThisPage =
 		pageType === "activity"
 			? accentForActivityIndex(currentPage.activityIndex || 0)
-			: "#67AAF9";
+			: "#67AAF9"; // default
+
 	if (pageType === "intro") accentForThisPage = "#4380D6";
 	else if (pageType === "preparation") accentForThisPage = "#7443D6";
+	else if (pageType === "conclusion")
+		accentForThisPage = "#D66843"; // match TOC Conclusion
+	else if (pageType === "resources") accentForThisPage = "#10B981"; // match Resources accent
 
 	const tailwindHeaderBtnClass =
 		"inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 bg-sky-600 text-sm md:text-base font-medium text-white rounded-full shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors";
@@ -406,7 +412,7 @@ export default function AppShell() {
 												<PreparationPage
 													content={currentPage.content}
 													onStartActivities={() =>
-													gotoPage(
+														gotoPage(
 															idxFirstActivity >= 0
 																? idxFirstActivity
 																: state.pageIndex + 1
