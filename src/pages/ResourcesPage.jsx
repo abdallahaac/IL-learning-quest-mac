@@ -1,16 +1,352 @@
 // src/pages/ResourcesPage.jsx
-import React from "react";
+import React, {
+	useEffect,
+	useMemo,
+	useState,
+	useCallback,
+	useRef,
+} from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faPrint,
 	faFileArrowDown,
+	faArrowUpRightFromSquare,
 	faLink,
+	faStar as faStarSolid,
+	faCircleCheck,
+	faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
-import { categorizeResources, iconForGroup } from "../utils/resources.js";
+import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 
-export default function ResourcesPage({ content }) {
-	const groups = categorizeResources(content.items);
+/* #RRGGBB + "AA" → #RRGGBBAA */
+const withAlpha = (hex, aa) => `${hex}${aa}`;
 
+const PAGE_TITLE = "Resources";
+
+/**
+ * Data
+ * - `type` kept only as metadata (not rendered)
+ * - `tags` kept only as metadata (not rendered)
+ */
+const SECTIONS = [
+	{
+		title: "Best media by Indigenous voices",
+		summary:
+			"Best media by Indigenous voices: “mural” created by Parks Canada team members.",
+		type: "Media",
+		links: [
+			{
+				label: "Best media by Indigenous voices (mural, Parks Canada)",
+				url: "https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f",
+			},
+		],
+		tags: ["Parks Canada"],
+	},
+	{
+		title: "The Reconciliation Path",
+		summary:
+			"The Reconciliation Path: interactive job aid from the Canada School of Public Service.",
+		type: "Job aid",
+		links: [
+			{
+				label: "The Reconciliation Path (CSPS job aid)",
+				url: "https://catalogue.csps-efpc.gc.ca/product?catalog=IRA1-J16&cm_locale=en",
+			},
+		],
+		tags: ["CSPS"],
+	},
+	{
+		title: "Indigenous Awareness, Cultural Safety and Capacity Building",
+		summary:
+			"Indigenous Awareness, Cultural Safety and Capacity Building: GCpedia page created by Environment and Climate Change Canada.",
+		type: "Government resource",
+		links: [
+			{
+				label:
+					"Indigenous Awareness, Cultural Safety and Capacity Building (GCpedia – ECCC)",
+				url: "https://www.sac-isc.gc.ca/rea-ibd",
+			},
+		],
+		tags: ["ECCC"],
+	},
+	{
+		title: "Conservation Through Reconciliation Partnership",
+		summary:
+			"Conservation Through Reconciliation Partnership resources: Indigenous-led conservation reading list; Virtual Campfire Series webinars; Indigenous protected and conserved areas knowledge basket.",
+		type: "Conservation",
+		links: [
+			{
+				label: "Indigenous-led conservation reading list",
+				url: "https://bit.ly/IndLedConsRL",
+			},
+			{
+				label: "Virtual Campfire Series webinars",
+				url: "https://conservation-reconciliation.ca/virtual-campfire",
+			},
+			{
+				label:
+					"Indigenous protected and conserved areas knowledge basket (IPCA)",
+				url: "https://ipcaknowledgebasket.ca/",
+			},
+		],
+		tags: ["IPCA"],
+	},
+	{
+		title: "Striking Balance: Tsá Tué Biosphere Reserve",
+		summary:
+			"Striking Balance: Tsá Tué Biosphere Reserve: film on Indigenous conservation.",
+		type: "Documentary",
+		links: [
+			{
+				label: "Striking Balance: Tsá Tué Biosphere Reserve (film)",
+				url: "https://www.tvo.org/video/documentaries/tsa-tue-biosphere-reserve",
+			},
+		],
+		tags: ["TVO"],
+	},
+	{
+		title: "Fundamentals of OCAP®",
+		summary:
+			"Fundamentals of OCAP® (ownership, control, access and possession): First Nations Information Governance Centre training.",
+		type: "Training",
+		links: [
+			{
+				label: "Fundamentals of OCAP® (FNIGC training)",
+				url: "https://fnigc.ca/ocap-training/take-the-course/",
+			},
+		],
+		tags: ["FNIGC"],
+	},
+	{
+		title: "Inuit societal values",
+		summary: "Inuit societal values: Government of Nunavut resource.",
+		type: "Values",
+		links: [
+			{
+				label: "Inuit societal values (Government of Nunavut)",
+				url: "https://www.gov.nu.ca/en/culture-language-heritage-and-art/inuit-societal-values",
+			},
+		],
+		tags: ["Nunavut"],
+	},
+	{
+		title: "Métis governance practices",
+		summary:
+			"Métis governance practices: BCcampus Open Publishing resource, part of Indigenous Digital Literacies.",
+		type: "Governance",
+		links: [
+			{
+				label: "Métis governance practices (BCcampus Open Publishing)",
+				url: "https://opentextbc.ca/indigenousdigitalliteracies/chapter/metis-governance/",
+			},
+		],
+		tags: ["BCcampus"],
+	},
+	{
+		title: "Public education",
+		summary:
+			"Public education: resources on legal subjects such as rights, treaties and land claims.",
+		type: "Law",
+		links: [
+			{
+				label: "Public education (First Peoples Law)",
+				url: "https://www.firstpeopleslaw.com/public-education",
+			},
+		],
+		tags: ["First Peoples Law"],
+	},
+	{
+		title: "4 Seasons of Indigenous Learning",
+		summary:
+			"4 Seasons of Indigenous Learning: training offered by Outdoor Learning School and Store.",
+		type: "Training",
+		links: [
+			{
+				label:
+					"4 Seasons of Indigenous Learning (Outdoor Learning School & Store)",
+				url: "https://outdoorlearning.com/4-seasons/",
+			},
+		],
+		tags: ["Outdoor Learning"],
+	},
+];
+
+export default function ResourcesPage() {
+	const reduceMotion = useReducedMotion();
+
+	// Theme / tokens
+	const accent = "#10B981"; // emerald-500
+	const brandDark = "#064E3B";
+	const iconSize = 18;
+
+	// Persisted states
+	const [favorites, setFavorites] = useState(() => {
+		try {
+			return new Set(JSON.parse(localStorage.getItem("resources_fav") || "[]"));
+		} catch {
+			return new Set();
+		}
+	});
+	const [readMap, setReadMap] = useState(() => {
+		try {
+			return new Map(
+				Object.entries(
+					JSON.parse(localStorage.getItem("resources_read") || "{}")
+				)
+			);
+		} catch {
+			return new Map();
+		}
+	});
+
+	// UI state
+	const [openCardKey, setOpenCardKey] = useState(null);
+	const [typeFilter, setTypeFilter] = useState("All");
+	const liveRegionRef = useRef(null);
+
+	// Persist
+	useEffect(() => {
+		localStorage.setItem(
+			"resources_fav",
+			JSON.stringify(Array.from(favorites))
+		);
+	}, [favorites]);
+
+	useEffect(() => {
+		localStorage.setItem(
+			"resources_read",
+			JSON.stringify(Object.fromEntries(readMap.entries()))
+		);
+	}, [readMap]);
+
+	// Helpers
+	const isFavorite = useCallback((url) => favorites.has(url), [favorites]);
+
+	const announce = (msg) => {
+		if (!liveRegionRef.current) return;
+		liveRegionRef.current.textContent = "";
+		setTimeout(() => (liveRegionRef.current.textContent = msg), 30);
+	};
+
+	const toggleFavorite = useCallback((url, label) => {
+		setFavorites((prev) => {
+			const next = new Set(prev);
+			if (next.has(url)) {
+				next.delete(url);
+				announce(`${label || "Link"} removed from favorites.`);
+			} else {
+				next.add(url);
+				announce(`${label || "Link"} added to favorites.`);
+			}
+			return next;
+		});
+	}, []);
+
+	const markRead = useCallback((url, label) => {
+		setReadMap((prev) => {
+			if (prev.has(url)) return prev;
+			const next = new Map(prev);
+			next.set(url, Date.now());
+			announce(`${label || "Link"} marked as read.`);
+			return next;
+		});
+	}, []);
+
+	const isRead = useCallback((url) => readMap.has(url), [readMap]);
+
+	// Page-level entrance animations only (no list/card animations on filter change)
+	const pageFade = {
+		hidden: { opacity: 0 },
+		show: { opacity: 1, transition: { duration: 0.35 } },
+	};
+	const titleFade = {
+		hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
+		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+	};
+
+	// Filter: only All + Favourites (no counts)
+	const filterSegments = useMemo(
+		() => [
+			{ key: "All", label: "All" },
+			{ key: "Favourites", label: "Favourites", icon: faStarSolid },
+		],
+		[]
+	);
+
+	// Filtered data
+	const filteredSections = useMemo(() => {
+		return typeFilter === "Favourites"
+			? SECTIONS.filter((s) =>
+					(s.links || []).some((l) => favorites.has(l.url))
+			  )
+			: SECTIONS;
+	}, [typeFilter, favorites]);
+
+	// Title click: mark read
+	const onPrimaryClick = (url, label) => markRead(url, label);
+
+	// Favorite button
+	const FavoriteButton = ({ url, label, size = 18 }) => {
+		const fav = isFavorite(url);
+		return (
+			<button
+				type="button"
+				onClick={() => toggleFavorite(url, label)}
+				aria-pressed={fav}
+				title={fav ? "Remove from favorites" : "Add to favorites"}
+				className="inline-flex items-center justify-center rounded-md border transition px-2 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+				style={{
+					borderColor: withAlpha(accent, "33"),
+					color: fav ? brandDark : "#334155",
+					backgroundColor: fav ? withAlpha(accent, "14") : "white",
+				}}
+			>
+				<FontAwesomeIcon
+					icon={fav ? faStarSolid : faStarRegular}
+					style={{ width: size, height: size }}
+					aria-hidden="true"
+				/>
+				<span className="sr-only">{fav ? "Unfavorite" : "Favorite"}</span>
+			</button>
+		);
+	};
+
+	const ReadBadge = ({ url }) => {
+		if (!isRead(url)) return null;
+		return (
+			<span
+				className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs"
+				style={{
+					backgroundColor: withAlpha("#059669", "10"),
+					borderColor: withAlpha("#059669", "40"),
+					color: "#065F46",
+				}}
+			>
+				<FontAwesomeIcon icon={faCircleCheck} aria-hidden="true" />
+				Read
+			</span>
+		);
+	};
+
+	// Tip card (concise)
+	const TipCard = ({ children }) => (
+		<section
+			className="mx-auto max-w-3xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			role="note"
+			aria-label="Usage tip"
+			style={{
+				borderColor: withAlpha(accent, "33"),
+				backgroundColor: withAlpha(accent, "14"),
+			}}
+		>
+			<p className="text-base sm:text-lg text-center text-slate-900">
+				{children}
+			</p>
+		</section>
+	);
+
+	// Export (respects current filter; no tags in export)
 	const escapeHTML = (s) =>
 		String(s)
 			.replaceAll("&", "&amp;")
@@ -22,25 +358,63 @@ export default function ResourcesPage({ content }) {
 	const composeHTML = () => {
 		const style = `
       <style>
-        body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color:#111827; line-height:1.5; }
-        h1 { font-size:1.5rem; margin:0 0 .5rem; }
-        h2 { font-size:1.125rem; margin:1rem 0 .25rem; }
-        .tag { display:inline-block; padding:2px 8px; border-radius:999px; background:#ECFDF5; color:#065F46; margin:2px 6px 2px 0; font-size:12px; border:1px solid #A7F3D0; }
-        .card { border:1px solid #E5E7EB; border-radius:12px; padding:12px; margin:.5rem 0; }
+        :root{
+          --emerald-50:#ECFDF5; --emerald-200:#A7F3D0; --emerald-600:#065F46;
+          --text:#111827; --muted:#374151;
+        }
+        @page { margin: 18mm; }
+        * { box-sizing: border-box; }
+        body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; color: var(--text); line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        h1 { font-size: 1.8rem; margin: 0 0 .8rem; }
+        h2 { font-size: 1.125rem; margin: 1rem 0 .25rem; color: var(--muted); }
+        p { margin: .25rem 0 .5rem; }
+        a { color: var(--emerald-600); text-decoration: underline; text-underline-offset: 2px; }
+        a:hover, a:focus { text-decoration-thickness: 2px; outline: none; }
+        .section { page-break-inside: avoid; margin-bottom: .75rem; }
+        .list { margin: .35rem 0 0; padding-left: 1rem; }
+        .list li { margin: .25rem 0; }
       </style>
     `;
-		const sections = Object.entries(groups)
-			.map(([title, items]) => {
-				const tags = items
-					.map((t) => `<span class="tag">${escapeHTML(t)}</span>`)
-					.join("");
-				return `<h2>${escapeHTML(title)}</h2><div>${tags}</div>`;
+
+		const sections = filteredSections
+			.map(({ title, summary, links }) => {
+				const [primary, ...rest] = links || [];
+				const restMarkup = rest?.length
+					? `<ul class="list">${rest
+							.map(
+								(l) =>
+									`<li><a href="${escapeHTML(
+										l.url
+									)}" target="_blank" rel="noreferrer noopener">${escapeHTML(
+										l.label
+									)}</a></li>`
+							)
+							.join("")}</ul>`
+					: "";
+
+				return `
+          <div class="section">
+            <h2><a href="${escapeHTML(
+							primary?.url || "#"
+						)}" target="_blank" rel="noreferrer noopener">${escapeHTML(
+					title
+				)}</a></h2>
+            ${summary ? `<p>${escapeHTML(summary)}</p>` : ""}
+            ${restMarkup}
+          </div>
+        `;
 			})
 			.join("");
-		// no doctype
-		return `<html lang="en"><head><meta charset="utf-8">${style}</head><body><h1>${escapeHTML(
-			content.title
-		)}</h1>${sections}</body></html>`;
+
+		return `
+      <html lang="en">
+        <head><meta charset="utf-8">${style}</head>
+        <body>
+          <h1>${escapeHTML(PAGE_TITLE)}</h1>
+          ${sections}
+        </body>
+      </html>
+    `;
 	};
 
 	const exportWord = () => {
@@ -56,86 +430,354 @@ export default function ResourcesPage({ content }) {
 
 	const exportPdf = () => {
 		const html = composeHTML();
-		const w = window.open("", "_blank", "noopener,noreferrer");
-		if (!w) return;
-		w.document.open();
-		w.document.write(html);
-		w.document.close();
-		setTimeout(() => w.print(), 250);
+		const iframe = document.createElement("iframe");
+		Object.assign(iframe.style, {
+			position: "fixed",
+			right: "0",
+			bottom: "0",
+			width: "0",
+			height: "0",
+			border: "0",
+		});
+		document.body.appendChild(iframe);
+		const doc = iframe.contentDocument || iframe.contentWindow?.document;
+		if (!doc) return;
+		doc.open();
+		doc.write(html);
+		doc.close();
+		const printNow = () => {
+			try {
+				iframe.contentWindow?.focus();
+				iframe.contentWindow?.print();
+			} finally {
+				setTimeout(() => document.body.removeChild(iframe), 800);
+			}
+		};
+		if (doc.readyState === "complete") setTimeout(printNow, 120);
+		else iframe.onload = () => setTimeout(printNow, 120);
 	};
 
 	return (
-		// full-width wrapper so the overlay is not clipped
-		<div className="relative flex-1 bg-transparent py-10 sm:py-12">
-			{/* sky overlay: same recipe as other pages, spanning full width */}
+		<motion.div
+			className="relative bg-transparent min-h-[80svh]"
+			variants={pageFade}
+			initial="hidden"
+			animate="show"
+		>
+			{/* Live region for screen reader announcements */}
 			<div
-				aria-hidden
-				className="absolute inset-0 z-0 pointer-events-none
-                   bg-gradient-to-b from-sky-50/85 via-white/75 to-slate-50/85"
+				ref={liveRegionRef}
+				className="sr-only"
+				aria-live="polite"
+				aria-atomic="true"
 			/>
 
-			{/* content container (width-limited) */}
-			<div className="relative z-10 max-w-5xl mx-auto px-4 space-y-8">
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-					<h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-						{content.title}
-					</h2>
-					<div className="flex gap-2">
-						<button
-							type="button"
-							onClick={exportPdf}
-							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-300 bg-white text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-300"
-							title="Open print dialog to save as PDF"
-						>
-							<FontAwesomeIcon icon={faPrint} /> PDF
-						</button>
-						<button
-							type="button"
-							onClick={exportWord}
-							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-teal-300 bg-white text-teal-700 hover:bg-teal-50 focus:outline-none focus:ring-2 focus:ring-teal-300"
-							title="Download a Word document"
-						>
-							<FontAwesomeIcon icon={faFileArrowDown} /> Word
-						</button>
+			{/* soft emerald gradient overlay */}
+			<motion.div
+				aria-hidden
+				className="absolute inset-0 z-0 pointer-events-none"
+				style={{
+					backgroundImage: `linear-gradient(
+            to bottom,
+            ${withAlpha("#10B981", "1F")} 0%,
+            rgba(255,255,255,0) 40%,
+            rgba(248,250,252,0) 100%
+          )`,
+				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 0.25 }}
+				transition={{ duration: 0.6 }}
+			/>
+
+			<div className="relative z-10 max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+				{/* Header */}
+				<motion.header
+					className="text-center space-y-4"
+					variants={titleFade}
+					initial="hidden"
+					animate="show"
+				>
+					<div className="flex items-center justify-center gap-3">
+						{/* Reduced weight: semibold */}
+						<h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
+							{PAGE_TITLE}
+						</h1>
+						<FontAwesomeIcon
+							icon={faLink}
+							className="shrink-0"
+							style={{ color: accent, width: iconSize, height: iconSize }}
+							aria-hidden="true"
+							title="Resources"
+						/>
 					</div>
-				</div>
 
-				<div className="grid md:grid-cols-2 gap-4 mt-2">
-					{Object.entries(groups).map(([title, items]) => (
-						<article
-							key={title}
-							className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-sm"
-						>
-							<div className="flex items-center gap-3">
-								<span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-									<FontAwesomeIcon icon={iconForGroup(title)} />
-								</span>
-								<h3 className="font-semibold text-gray-900">{title}</h3>
-							</div>
-
-							<div className="mt-3 flex flex-wrap gap-2">
-								{items.map((t, i) => (
-									<span
-										key={`${title}-${i}`}
-										className="inline-flex items-center gap-1.5 text-sm px-2.5 py-1 rounded-full
-                               bg-emerald-50 text-emerald-800 border border-emerald-200"
-									>
-										<FontAwesomeIcon icon={faLink} className="opacity-70" />
-										{t}
-									</span>
-								))}
-							</div>
-						</article>
-					))}
-				</div>
-
-				<div className="text-center text-gray-700">
-					<p>
+					{/* Concise tip */}
+					<TipCard>
+						{" "}
 						Explore a few resources each week. Save favourites and bring one
 						into your next team conversation.
-					</p>
-				</div>
+					</TipCard>
+
+					{/* Actions */}
+					<div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+						<motion.button
+							whileHover={{ scale: reduceMotion ? 1 : 1.03 }}
+							whileTap={{ scale: reduceMotion ? 1 : 0.97 }}
+							type="button"
+							onClick={exportPdf}
+							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white text-sm font-medium transition hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
+							style={{ borderColor: withAlpha(accent, "66"), color: brandDark }}
+							title="Open print dialog to save as PDF"
+						>
+							<FontAwesomeIcon
+								icon={faPrint}
+								className="shrink-0"
+								style={{ color: accent, width: iconSize, height: iconSize }}
+								aria-hidden="true"
+							/>
+							<span>Export PDF</span>
+						</motion.button>
+
+						<motion.button
+							whileHover={{ scale: reduceMotion ? 1 : 1.03 }}
+							whileTap={{ scale: reduceMotion ? 1 : 0.97 }}
+							type="button"
+							onClick={exportWord}
+							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white text-sm font-medium transition hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
+							style={{ borderColor: withAlpha(accent, "66"), color: brandDark }}
+							title="Download a Word document"
+						>
+							<FontAwesomeIcon
+								icon={faFileArrowDown}
+								className="shrink-0"
+								style={{ color: accent, width: iconSize, height: iconSize }}
+								aria-hidden="true"
+							/>
+							<span>Export Word</span>
+						</motion.button>
+					</div>
+
+					{/* Segmented Filter: All + Favourites (no counts) */}
+					<nav
+						className="mt-3 flex items-center justify-center"
+						aria-label="Resource filters"
+					>
+						<ul className="flex gap-2 overflow-x-auto px-1 py-1 scrollbar-thin">
+							{filterSegments.map(({ key, label, icon }) => {
+								const active = typeFilter === key;
+								return (
+									<li key={key} className="shrink-0">
+										<motion.button
+											whileHover={{ y: reduceMotion ? 0 : -1 }}
+											whileTap={{ scale: reduceMotion ? 1 : 0.98 }}
+											type="button"
+											onClick={() => setTypeFilter(key)}
+											className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+											style={{
+												borderColor: withAlpha(accent, active ? "66" : "33"),
+												backgroundColor: active
+													? withAlpha(accent, "14")
+													: "white",
+												color: active ? brandDark : "#0f172a",
+											}}
+											aria-pressed={active}
+											aria-label={label}
+											title={label}
+										>
+											{icon ? (
+												<FontAwesomeIcon
+													icon={icon}
+													className="opacity-80"
+													style={{ width: 14, height: 14 }}
+													aria-hidden="true"
+												/>
+											) : null}
+											<span>{label}</span>
+										</motion.button>
+									</li>
+								);
+							})}
+						</ul>
+					</nav>
+				</motion.header>
+
+				{/* Cards (no animation on filter change) */}
+				<section>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+						{filteredSections.map(({ title, summary, links }) => {
+							const [primary, ...rest] = links || [];
+							const primaryUrl = primary?.url || null;
+							const cardKey = title;
+							const open = openCardKey === cardKey;
+
+							return (
+								<article
+									key={cardKey}
+									className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm transition hover:shadow-md"
+								>
+									{/* Header */}
+									<div className="flex items-start gap-3">
+										<span
+											className="inline-grid h-10 w-10 place-items-center rounded-xl"
+											style={{
+												backgroundColor: withAlpha(accent, "14"),
+												color: accent,
+											}}
+											aria-hidden="true"
+										>
+											<FontAwesomeIcon
+												icon={faLink}
+												className="shrink-0"
+												style={{ width: iconSize, height: iconSize }}
+											/>
+										</span>
+
+										<div className="flex-1 min-w-0">
+											{/* Title: always underlined */}
+											{primaryUrl ? (
+												<a
+													href={primaryUrl}
+													target="_blank"
+													rel="noreferrer noopener"
+													onClick={() => onPrimaryClick(primaryUrl, title)}
+													className="text-lg font-semibold text-slate-900 underline underline-offset-2 decoration-emerald-600 hover:decoration-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-sm"
+													title={primary.label || primaryUrl}
+												>
+													{title}
+												</a>
+											) : (
+												<h3 className="text-lg font-semibold text-slate-900 underline underline-offset-2 decoration-emerald-600">
+													{title}
+												</h3>
+											)}
+
+											{/* Summary + read */}
+											<div className="mt-1 flex flex-wrap items-center gap-2">
+												{summary ? (
+													<p className="text-sm text-slate-600">{summary}</p>
+												) : null}
+												{primaryUrl ? <ReadBadge url={primaryUrl} /> : null}
+											</div>
+										</div>
+
+										{/* Favorite (primary) */}
+										{primaryUrl ? (
+											<FavoriteButton
+												url={primaryUrl}
+												label={title}
+												size={16}
+											/>
+										) : null}
+									</div>
+
+									{/* More links – expand in card */}
+									{rest?.length > 0 ? (
+										<div className="mt-4">
+											<button
+												type="button"
+												onClick={() =>
+													setOpenCardKey((k) =>
+														k === cardKey ? null : cardKey
+													)
+												}
+												className="flex items-center justify-between w-full cursor-pointer select-none rounded-md px-3 py-2 border bg-white hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+												style={{ borderColor: withAlpha(accent, "33") }}
+												aria-expanded={open}
+												aria-controls={`expanel-${cardKey}`}
+											>
+												<span className="text-sm font-medium text-slate-900">
+													More links ({rest.length})
+												</span>
+												<FontAwesomeIcon
+													icon={faChevronDown}
+													className={`text-slate-500 text-xs transition-transform ${
+														open ? "rotate-180" : ""
+													}`}
+													aria-hidden="true"
+												/>
+											</button>
+
+											<AnimatePresence initial={false}>
+												{open && (
+													<motion.div
+														id={`expanel-${cardKey}`}
+														initial="collapsed"
+														animate="open"
+														exit="collapsed"
+														variants={{
+															open: { height: "auto", opacity: 1 },
+															collapsed: { height: 0, opacity: 0 },
+														}}
+														transition={{
+															duration: 0.24,
+															ease: [0.22, 1, 0.36, 1],
+														}}
+														className="overflow-hidden"
+													>
+														<div className="pt-2">
+															<ul className="space-y-2">
+																{rest.map((l, idx) => {
+																	const url = l.url;
+																	return (
+																		<li
+																			key={`${title}-more-${idx}`}
+																			className="flex items-start justify-between gap-2"
+																		>
+																			<a
+																				href={url}
+																				target="_blank"
+																				rel="noreferrer noopener"
+																				onClick={() => markRead(url, l.label)}
+																				className="group flex-1 min-w-0 items-start gap-2 rounded-lg border px-3 py-2 bg-white hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition cursor-pointer"
+																				style={{
+																					borderColor: withAlpha(accent, "33"),
+																				}}
+																				title={url}
+																				aria-label={`Open link: ${l.label}`}
+																			>
+																				<FontAwesomeIcon
+																					icon={faArrowUpRightFromSquare}
+																					className="mt-0.5 shrink-0"
+																					style={{
+																						color: accent,
+																						width: iconSize,
+																						height: iconSize,
+																					}}
+																					aria-hidden="true"
+																				/>
+																				<div className="min-w-0">
+																					<div className="font-medium text-slate-900 group-hover:underline truncate">
+																						{l.label}
+																					</div>
+																					<div className="text-xs break-all text-emerald-800/90 underline decoration-transparent group-hover:decoration-inherit">
+																						{url}
+																					</div>
+																				</div>
+																			</a>
+																			<div className="flex items-center gap-2">
+																				<ReadBadge url={url} />
+																				<FavoriteButton
+																					url={url}
+																					label={l.label}
+																					size={16}
+																				/>
+																			</div>
+																		</li>
+																	);
+																})}
+															</ul>
+														</div>
+													</motion.div>
+												)}
+											</AnimatePresence>
+										</div>
+									) : null}
+								</article>
+							);
+						})}
+					</div>
+				</section>
 			</div>
-		</div>
+		</motion.div>
 	);
 }

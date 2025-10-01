@@ -229,7 +229,7 @@ export default function ActivityDock({
 					visibility: positioned ? "visible" : "hidden",
 				}}
 			>
-				<div className="rounded-2xl border border-slate-200 bg-white/95 supports-[backdrop-filter]:bg-white/75 backdrop-blur shadow-xl p-3 origin-top w-[min(92vw,960px)] max-w-[300px] overflow-auto">
+				<div className="rounded-2xl border border-slate-200 bg-white shadow-xl p-3 origin-top w-[min(92vw,960px)] max-w-[300px] overflow-auto">
 					<nav aria-label="Activities">
 						<div className="grid gap-2 sm:grid-cols-1">
 							{enrichedSteps.map((s, i) => {

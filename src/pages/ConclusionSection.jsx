@@ -1,12 +1,24 @@
-import React from "react";
+// src/pages/ConclusionPage.jsx
+import React, { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Sparkles, CheckCircle2, HeartHandshake } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+	faLink,
+	faCircleCheck,
+	faFileArrowDown,
+	faArrowRight,
+	faHandshakeAngle,
+} from "@fortawesome/free-solid-svg-icons";
 
-export default function ConclusionSection({
+/* #RRGGBB + "AA" → #RRGGBBAA */
+const withAlpha = (hex, aa) => `${hex}${aa}`;
+
+const PAGE_TITLE = "Conclusion";
+
+export default function ConclusionPage({
 	content = {},
-	accent = "#8B5CF6", // NEW: change accent here (e.g., "#22C55E" for emerald)
+	accent = "#10B981", // emerald-500 (kept from the rest of the site)
 }) {
-	// --- CONTENT (keeps your exact wording, just structured) --------------------
 	const defaultContent = {
 		title: "Conclusion",
 		paragraphs: [
@@ -18,202 +30,169 @@ export default function ConclusionSection({
 		],
 	};
 
-	const { title, paragraphs = [] } = {
-		...defaultContent,
-		...content,
-	};
+	const { title, paragraphs = [] } = { ...defaultContent, ...content };
 
 	// Slice into highlights (first 3), closing (4th), and coda (5th)
-	const highlights = [paragraphs[0], paragraphs[1], paragraphs[2]].filter(
-		Boolean
+	const highlights = useMemo(
+		() => [paragraphs[0], paragraphs[1], paragraphs[2]].filter(Boolean),
+		[paragraphs]
 	);
 	const closing = paragraphs[3];
 	const coda = paragraphs[4];
 
 	const reduceMotion = useReducedMotion();
 
-	// --- Animations -------------------------------------------------------------
-	const STAGGER = 0.16;
-	const DELAY_CHILDREN = 0.12;
-	const DELAY_AFTER_HIGHLIGHTS = reduceMotion
-		? 0
-		: DELAY_CHILDREN + STAGGER * (highlights.length + 0.5);
-
+	// Animations (match site subtlety)
 	const pageFade = {
 		hidden: { opacity: 0 },
-		show: { opacity: 1, transition: { duration: 0.35, ease: "easeOut" } },
+		show: { opacity: 1, transition: { duration: 0.35 } },
 	};
 	const titleFade = {
 		hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
-		show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
-	};
-	const gridStagger = {
-		hidden: {},
-		show: {
-			transition: {
-				delayChildren: reduceMotion ? 0 : DELAY_CHILDREN,
-				staggerChildren: reduceMotion ? 0 : STAGGER,
-			},
-		},
-	};
-	const cardPop = {
-		hidden: {
-			opacity: 0,
-			y: reduceMotion ? 0 : 10,
-			scale: reduceMotion ? 1 : 0.98,
-		},
-		show: {
-			opacity: 1,
-			y: 0,
-			scale: 1,
-			transition: { duration: 0.35, ease: "easeOut" },
-		},
-	};
-	const tailReveal = {
-		hidden: { opacity: 0, y: reduceMotion ? 0 : 10 },
-		show: {
-			opacity: 1,
-			y: 0,
-			transition: {
-				duration: 0.4,
-				ease: "easeOut",
-				delay: reduceMotion ? 0 : DELAY_AFTER_HIGHLIGHTS,
-			},
-		},
+		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 	};
 
-	// --- Styles ----------------------------------------------------------------
-	const wrap = "relative max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6";
-	const card = "rounded-2xl border border-gray-200 bg-white shadow-sm";
-	const ringAccent = `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${accent}] focus-visible:ring-offset-2`;
+	// Shared styles/tokens (mirrors Resources)
+	const brandDark = "#064E3B";
+	const iconSize = 18;
+
+	const TipCard = ({ children }) => (
+		<section
+			className="mx-auto max-w-3xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			role="note"
+			aria-label="Usage tip"
+			style={{
+				borderColor: withAlpha(accent, "33"),
+				backgroundColor: withAlpha(accent, "14"),
+			}}
+		>
+			<p className="text-base sm:text-lg text-center text-slate-900">
+				{children}
+			</p>
+		</section>
+	);
 
 	return (
 		<motion.div
-			className="relative bg-transparent min-h-[60svh]"
+			className="relative bg-transparent min-h-[70svh]"
 			variants={pageFade}
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft accent ribbon */}
-			<div
-				aria-hidden="true"
-				className="pointer-events-none absolute inset-x-0 top-0 h-48 -z-10"
+			{/* Keep the site’s soft emerald gradient overlay */}
+			<motion.div
+				aria-hidden
+				className="absolute inset-0 z-0 pointer-events-none"
 				style={{
-					background: `linear-gradient(180deg, ${accent}14, transparent 70%)`, // ~8% tint fade
+					backgroundImage: `linear-gradient(
+            to bottom,
+            ${withAlpha("#10B981", "1F")} 0%,
+            rgba(255,255,255,0) 40%,
+            rgba(248,250,252,0) 100%
+          )`,
 				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 0.25 }}
+				transition={{ duration: 0.6 }}
 			/>
-			<div className={wrap}>
-				{/* Header */}
+
+			<div className="relative z-10 max-w-6xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+				{/* Header (homogenous with Resources: semibold title, link icon) */}
 				<motion.header
-					className="text-center space-y-2"
+					className="text-center space-y-4"
 					variants={titleFade}
 					initial="hidden"
 					animate="show"
 				>
-					<span
-						className="inline-block rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase"
-						style={{
-							color: accent,
-							backgroundColor: `${accent}1A`, // ~10% tint
-							border: `1px solid ${accent}33`, // ~20% tint
-						}}
-					>
-						Wrap-Up
-					</span>
 					<div className="flex items-center justify-center gap-3">
-						<h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							{title}
-						</h2>
+						<h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
+							{PAGE_TITLE}
+						</h1>
+						<FontAwesomeIcon
+							icon={faLink}
+							className="shrink-0"
+							style={{ color: accent, width: iconSize, height: iconSize }}
+							aria-hidden="true"
+							title="Conclusion"
+						/>
 					</div>
-					<p className="text-slate-700 text-lg sm:text-xl max-w-2xl mx-auto">
-						A quick wrap-up and a couple of gentle next steps.
-					</p>
+
+					<TipCard>Browse, reflect, then continue with next steps.</TipCard>
 				</motion.header>
 
-				{/* Highlights */}
-				<motion.section
-					className="grid grid-cols-1 md:grid-cols-3 gap-4"
-					variants={gridStagger}
-					initial="hidden"
-					animate="show"
-				>
+				{/* Three highlight cards (match card style from Resources) */}
+				<section className="grid grid-cols-1 md:grid-cols-3 gap-4">
 					{highlights.map((h, i) => (
-						<motion.article
+						<article
 							key={i}
-							className={`${card} p-4`}
-							variants={cardPop}
+							className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm"
 						>
 							<div className="flex items-start gap-3">
 								<span
-									className="mt-0.5 inline-flex h-8 w-8 items-center justify-center "
+									className="inline-grid h-10 w-10 place-items-center rounded-xl"
 									style={{
+										backgroundColor: withAlpha(accent, "14"),
 										color: accent,
-										borderColor: `${accent}33`,
 									}}
 									aria-hidden="true"
 								>
-									<CheckCircle2 className="h-4 w-4" />
+									<FontAwesomeIcon
+										icon={faCircleCheck}
+										className="shrink-0"
+										style={{ width: iconSize, height: iconSize }}
+									/>
 								</span>
 								<p className="text-[15px] leading-6 text-slate-800">{h}</p>
 							</div>
-						</motion.article>
+						</article>
 					))}
-				</motion.section>
+				</section>
 
 				{/* Closing paragraph */}
-				{closing && (
-					<motion.p
-						className="text-center text-slate-700 leading-relaxed max-w-3xl mx-auto"
-						variants={tailReveal}
-						initial="hidden"
-						animate="show"
-					>
+				{closing ? (
+					<p className="text-center text-slate-700 leading-relaxed max-w-3xl mx-auto">
 						{closing}
-					</motion.p>
-				)}
+					</p>
+				) : null}
 
-				{/* Callout coda */}
-				{coda && (
-					<motion.div
-						className="mt-2"
-						variants={tailReveal}
-						initial="hidden"
-						animate="show"
+				{/* Callout coda (soft gradient + icon, like Resources pill/badge language) */}
+				{coda ? (
+					<div
+						className="mx-auto max-w-3xl rounded-xl p-4 sm:p-5 text-center"
+						style={{
+							background: `linear-gradient(135deg, ${withAlpha(
+								accent,
+								"12"
+							)} 0%, ${withAlpha(accent, "08")} 100%)`,
+							border: `1px solid ${withAlpha(accent, "2e")}`,
+						}}
 					>
 						<div
-							className="mx-auto max-w-3xl rounded-xl p-4 sm:p-5 text-center"
+							className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full"
 							style={{
-								background: `linear-gradient(135deg, ${accent}12 0%, ${accent}08 100%)`,
-								border: `1px solid ${accent}2e`,
+								backgroundColor: withAlpha(accent, "1A"),
+								border: `1px solid ${withAlpha(accent, "33")}`,
+								color: accent,
 							}}
 						>
-							<div
-								className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full"
-								style={{
-									backgroundColor: `${accent}1A`,
-									border: `1px solid ${accent}33`,
-									color: accent,
-								}}
-							>
-								<HeartHandshake className="w-4 h-4" />
-							</div>
-							<p className="text-[15px] leading-6 text-slate-800">{coda}</p>
+							<FontAwesomeIcon
+								icon={faHandshakeAngle}
+								style={{ width: 16, height: 16 }}
+							/>
 						</div>
-					</motion.div>
-				)}
+						<p className="text-[15px] leading-6 text-slate-800">{coda}</p>
+					</div>
+				) : null}
 
-				{/* Next steps chips */}
-				<motion.section
-					className={`${card} p-4 sm:p-5`}
-					variants={tailReveal}
-					initial="hidden"
-					animate="show"
-				>
+				{/* Next steps (clearly connect to Resources page) */}
+				<section className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm">
 					<div className="text-center mb-3">
 						<span className="inline-block text-sm font-semibold text-slate-900">
 							Next steps
 						</span>
 					</div>
+
+					{/* Action chips (homogenous styling) */}
 					<div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:flex-wrap">
 						{[
 							"Share one takeaway with your team this week.",
@@ -221,18 +200,51 @@ export default function ConclusionSection({
 						].map((n, i) => (
 							<span
 								key={i}
-								className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm ${ringAccent}`}
+								className="inline-flex items-center rounded-full px-3 py-1.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
 								style={{
-									color: accent,
-									backgroundColor: `${accent}0D`, // ~5% tint
-									border: `1px solid ${accent}33`,
+									color: brandDark,
+									backgroundColor: withAlpha(accent, "0D"),
+									border: `1px solid ${withAlpha(accent, "33")}`,
 								}}
 							>
 								{n}
 							</span>
 						))}
 					</div>
-				</motion.section>
+
+					{/* Bridge CTAs: clearly link to the Resources page (and optional overview) */}
+					<div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+						<a
+							href="/resources"
+							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white text-sm font-medium transition hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+							style={{ borderColor: withAlpha(accent, "66"), color: brandDark }}
+							title="Browse Resources"
+						>
+							<FontAwesomeIcon
+								icon={faLink}
+								className="shrink-0"
+								style={{ color: accent, width: iconSize, height: iconSize }}
+								aria-hidden="true"
+							/>
+							<span>Browse Resources</span>
+							<FontAwesomeIcon
+								icon={faArrowRight}
+								className="shrink-0 opacity-80"
+								style={{ width: 14, height: 14 }}
+								aria-hidden="true"
+							/>
+						</a>
+
+						<a
+							href="/"
+							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white text-sm font-medium transition hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+							style={{ borderColor: withAlpha(accent, "33"), color: "#0f172a" }}
+							title="Return to Overview"
+						>
+							<span>Return to Overview</span>
+						</a>
+					</div>
+				</section>
 			</div>
 		</motion.div>
 	);

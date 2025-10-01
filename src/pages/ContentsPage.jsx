@@ -361,7 +361,6 @@ export default function ContentsPage({
 											type="button"
 											onClick={() => onNavigate?.(it.index)}
 											className="outline-none pointer-events-auto rounded-full focus-visible:ring-4 focus-visible:ring-sky-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white/80"
-											aria-label={`${it.label}, Page ${it.index + 1}`}
 											style={{
 												position: "absolute",
 												left: pos.x + nodeX[i], // ← apply per-favicon X offset
@@ -459,9 +458,6 @@ export default function ContentsPage({
 														<span className="text-sm font-semibold text-slate-900 line-clamp-1">
 															{it.label}
 														</span>
-													</div>
-													<div className="text-xs text-slate-600 mt-1">
-														Page {it.index + 1}
 													</div>
 												</div>
 											</div>
