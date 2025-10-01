@@ -93,7 +93,7 @@ export default function ContentsPage({
 				hue: 0, // red
 			},
 			{
-				label: "Team Reflections",
+				label: "Team Reflection",
 				index: tocTargets.teamIndex,
 				icon: faUsers,
 				hue: 212, // match #67AAF9
