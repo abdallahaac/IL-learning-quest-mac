@@ -1,3 +1,4 @@
+// src/AppShell.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
@@ -63,6 +64,9 @@ function saveToLS(payload) {
 		localStorage.setItem(LS_KEY, JSON.stringify(payload));
 	} catch {}
 }
+
+// Keep header height hard-coded to match Header.jsx (prevents wobble)
+const HEADER_FIXED_H = 88;
 
 export default function AppShell() {
 	const { getSuspendData, setSuspendData, scorm } = useScorm();
@@ -292,125 +296,71 @@ export default function AppShell() {
 	const curvedProgress = acc / slots.length;
 
 	const siteTitle = "Learning Quest on Indigenous Cultures";
-	const pageTitle =
-		currentPage.type === "cover" ? "" : currentPage.content.title;
 
-	const chromeHidden =
-		"transition-opacity duration-500 ease-out will-change-[opacity] opacity-0 pointer-events-none";
-	const chromeShown = "transition-opacity duration-500 ease-out opacity-100";
+	// We still use the header ref (for focus rings/scroll anchors if needed),
+	// but we do NOT rely on its measured height anymore.
+	const [headerRef] = useResizeObserver();
 
-	const sawIntro = visitedHas(idxIntro);
-	const dynamicPrefill = sawIntro ? 0 : 0.06;
-
-	// measure the fixed header height
-	const [headerRef, headerSize] = useResizeObserver();
-	const headerHeight = headerSize.height || 0;
+	// measure the fixed footer height (kept dynamic)
+	const [footerRef, footerSize] = useResizeObserver();
+	const footerHeight = footerSize.height || 0;
 
 	// build ActivityDock steps (mark visited/completed, and attach accent)
 	const activitySteps = activityPages.map(({ p, idx }, i) => ({
 		key: p.content.id,
 		label: `Activity ${i + 1}`,
 		index: idx,
-		completed: state.visited.has(idx), // reflect 'visited' instead of 'completed' if desired
+		completed: state.visited.has(idx),
 		visited: state.visited.has(idx),
 		accent: accentForActivityIndex(i),
 	}));
 
-	// measure the fixed footer height
-	const [footerRef, footerSize] = useResizeObserver();
-	const footerHeight = footerSize.height || 0;
+	/* --------------------------------------------------------------------
+     Page-specific overrides (final)
+     - Header "Home/TOC" button: sky-600 pill on Cover & Contents
+     - Footer "Next" button: same sky-600 color on Cover & Contents (rounded-lg)
+     - Intro footer color: #4380D6
+     - Preparation footer color: #7443D6
+     -------------------------------------------------------------------- */
+	const pageType = currentPage.type;
 
-	// Accent for current page (used by Header/Footer buttons)
-	const accentForThisPage =
-		currentPage.type === "activity"
+	// Base accent for non-override pages
+	let accentForThisPage =
+		pageType === "activity"
 			? accentForActivityIndex(currentPage.activityIndex || 0)
 			: "#67AAF9";
 
-	/* --------------------------------------------------------------------
-     Page switch
-     -------------------------------------------------------------------- */
-	let pageContent = null;
-	switch (currentPage.type) {
-		case "cover":
-			pageContent = (
-				<CoverPage
-					content={currentPage.content}
-					onStart={() => gotoPage(1)}
-					onIntroActiveChange={setCoverIntroActive}
-				/>
-			);
-			break;
-		case "contents":
-			pageContent = (
-				<ContentsPage
-					activityCount={activityTotal}
-					onNavigate={gotoPage}
-					progress={curvedProgress}
-					prefillStart={dynamicPrefill}
-					// ICON offsets (favicon positions)
-					nodeXOffsetOverrides={[-70, -70, -70, -80, -180]}
-					nodeYOffsetOverrides={[-100, 80, -105, 95, -130]}
-					// CARD offsets (card positions)
-					cardPosOverrides={[
-						{ x: -30, y: -190 },
-						{ x: -10, y: -0 },
-						{ x: -0, y: -190 },
-						{ x: 0, y: 10 },
-						{ x: -80, y: -210 },
-					]}
-				/>
-			);
-			break;
-		case "intro":
-			pageContent = <IntroPage content={currentPage.content} />;
-			break;
-		case "preparation":
-			pageContent = (
-				<PreparationPage
-					content={currentPage.content}
-					onStartActivities={() => gotoPage(4)}
-				/>
-			);
-			break;
-		case "conclusion":
-			pageContent = (
-				<SectionPage type="conclusion" content={currentPage.content} />
-			);
-			break;
-		case "resources":
-			pageContent = <ResourcesPage content={currentPage.content} />;
-			break;
-		case "activity":
-			pageContent = (
-				<ActivityPage
-					content={currentPage.content}
-					notes={state.notes[currentPage.content.id]}
-					completed={!!state.completed[currentPage.content.id]}
-					onNotes={(v) => setNote(currentPage.content.id, v)}
-					onToggleComplete={() => toggleComplete(currentPage.content.id)}
-					activityIndex={currentPage.activityIndex}
-				/>
-			);
-			break;
-		case "team":
-			pageContent = (
-				<TeamReflectionPage
-					content={currentPage.content}
-					notes={state.notes["reflect"]}
-					onNotes={(v) => setNote("reflect", v)}
-				/>
-			);
-			break;
-		default:
-			pageContent = <SectionPage content={currentPage.content} />;
+	if (pageType === "intro") {
+		accentForThisPage = "#4380D6";
+	} else if (pageType === "preparation") {
+		accentForThisPage = "#7443D6";
 	}
+
+	// Header: exact Tailwind class (uses same base sizing as Header.jsx)
+	const tailwindHeaderBtnClass =
+		"inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 bg-sky-600 text-sm md:text-base font-medium text-white rounded-full shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors";
+	const headerPrimaryBtnClassOverride =
+		pageType === "cover" || pageType === "contents"
+			? tailwindHeaderBtnClass
+			: null;
+
+	// Footer: same Tailwind color but rounded-lg, consistent with Back button
+	const tailwindFooterNextBtnClass =
+		"px-5 py-2 bg-sky-600 text-white font-medium rounded-lg shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors";
+	const footerNextBtnClassOverride =
+		pageType === "cover" || pageType === "contents"
+			? tailwindFooterNextBtnClass
+			: null;
+
+	// Footer label (again here for render scope)
+	const getNextLabelRender = () => getNextLabel();
 
 	// ---- LAYOUT with sticky header ----
 	return (
 		<div
 			className={` app-shell relative h-screen flex flex-col ${themeClass}`}
 			style={{
-				"--header-h": `${headerHeight}px`,
+				"--header-h": `${HEADER_FIXED_H}px`, // fixed header height
 				"--footer-h": `${footerHeight}px`,
 			}}
 		>
@@ -425,7 +375,8 @@ export default function AppShell() {
 				activitySteps={activitySteps}
 				currentPageIndex={state.pageIndex}
 				onJumpToPage={(idx) => gotoPage(idx)}
-				accent={accentForThisPage} // ← accent here
+				accent={accentForThisPage}
+				primaryBtnClassOverride={headerPrimaryBtnClassOverride}
 			/>
 
 			{/* Scroll container (add top padding equal to header height) */}
@@ -440,7 +391,99 @@ export default function AppShell() {
 					<main className="flex-1 relative min-h-0">
 						<div style={{ zIndex: 10 }}>
 							<TransitionView screenKey={`page-${state.pageIndex}`}>
-								{pageContent}
+								{(() => {
+									switch (currentPage.type) {
+										case "cover":
+											return (
+												<CoverPage
+													content={currentPage.content}
+													onStart={() => gotoPage(1)}
+													onIntroActiveChange={setCoverIntroActive}
+												/>
+											);
+										case "contents":
+											return (
+												<ContentsPage
+													activityCount={activityTotal}
+													onNavigate={gotoPage}
+													progress={curvedProgress}
+													prefillStart={0.06}
+													// ICON offsets (favicon positions)
+													nodeXOffsetOverrides={[-70, -70, -70, -80, -180]}
+													nodeYOffsetOverrides={[-100, 80, -105, 95, -130]}
+													// CARD offsets (card positions)
+													cardPosOverrides={[
+														{ x: -30, y: -190 },
+														{ x: -10, y: -0 },
+														{ x: -0, y: -190 },
+														{ x: 0, y: 10 },
+														{ x: -80, y: -210 },
+													]}
+												/>
+											);
+										case "intro":
+											return <IntroPage content={currentPage.content} />;
+										case "preparation":
+											return (
+												<PreparationPage
+													content={currentPage.content}
+													onStartActivities={() => gotoPage(4)}
+												/>
+											);
+										case "conclusion":
+											return (
+												<SectionPage
+													type="conclusion"
+													content={currentPage.content}
+												/>
+											);
+										case "resources":
+											return <ResourcesPage content={currentPage.content} />;
+										case "activity":
+											return (
+												<ActivityPage
+													content={currentPage.content}
+													notes={state.notes[currentPage.content.id]}
+													completed={!!state.completed[currentPage.content.id]}
+													onNotes={(v) =>
+														setState((s) => ({
+															...s,
+															notes: {
+																...s.notes,
+																[currentPage.content.id]: v,
+															},
+														}))
+													}
+													onToggleComplete={() =>
+														setState((s) => ({
+															...s,
+															completed: {
+																...s.completed,
+																[currentPage.content.id]:
+																	!s.completed[currentPage.content.id],
+															},
+														}))
+													}
+													activityIndex={currentPage.activityIndex}
+												/>
+											);
+										case "team":
+											return (
+												<TeamReflectionPage
+													content={currentPage.content}
+													notes={state.notes["reflect"]}
+													onNotes={(v) =>
+														setState((s) => ({
+															...s,
+															notes: { ...s.notes, reflect: v },
+														}))
+													}
+												/>
+											);
+										default:
+											return <SectionPage content={currentPage.content} />;
+									}
+								})()}
 							</TransitionView>
 						</div>
 
@@ -464,10 +507,12 @@ export default function AppShell() {
 					totalPages={totalPages}
 					onPrev={prev}
 					onNext={next}
-					nextLabel={getNextLabel()}
+					nextLabel={getNextLabelRender()}
 					activitySteps={activitySteps}
 					onJumpToPage={(idx) => gotoPage(idx)}
-					accent={accentForThisPage} // ← accent here
+					accent={accentForThisPage}
+					nextBtnClassOverride={footerNextBtnClassOverride}
+					containerRef={footerRef}
 				/>
 			</div>
 		</div>

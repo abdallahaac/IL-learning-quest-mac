@@ -51,16 +51,20 @@ export default function Footer({
 	activitySteps = [],
 	onJumpToPage,
 	containerRef,
-	accent = "#67AAF9", // ← accent passed from AppShell
+	accent = "#67AAF9", // default accent
+	accentOverride = null, // kept for compatibility
+	nextBtnClassOverride = null, // optional Tailwind override for Next
 }) {
 	const isFirst = pageIndex === 0;
 	const isLast = pageIndex === totalPages - 1;
 
-	const accentHex = normalizeHex(accent) || "#67AAF9";
-	const hover = shadeHex(accentHex, -0.08);
-	const active = shadeHex(accentHex, -0.16);
-	const textOnAccent =
-		contrastRatio(accentHex, "#FFFFFF") >= 4.5 ? "#FFFFFF" : "#0B1220";
+	const baseAccent =
+		normalizeHex(accentOverride) || normalizeHex(accent) || "#67AAF9";
+	const hover = shadeHex(baseAccent, -0.08);
+	const active = shadeHex(baseAccent, -0.16);
+
+	// Always white text inside footer buttons per request
+	const textOnAccent = "#FFFFFF";
 
 	return (
 		<footer
@@ -69,10 +73,13 @@ export default function Footer({
 			role="contentinfo"
 		>
 			<div className="relative max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between">
+				{/* (Keeping this non-button text as-is for contrast) */}
 				<span className="text-sm text-gray-600">
 					Page {pageIndex + 1} / {totalPages}
 				</span>
+
 				<div className="flex-1" />
+
 				<div className="flex gap-2">
 					<button
 						type="button"
@@ -83,28 +90,39 @@ export default function Footer({
 						Back
 					</button>
 
+					{/* Next — respects override on Cover/TOC; otherwise uses accent with white text */}
 					<button
 						type="button"
-						className="px-5 py-2 rounded-lg font-medium shadow-sm focus:outline-none transition"
-						style={{
-							backgroundColor: accentHex,
-							color: textOnAccent,
-							border: "1px solid transparent",
+						className={
+							nextBtnClassOverride
+								? nextBtnClassOverride
+								: "px-5 py-2 rounded-lg font-medium shadow-sm focus:outline-none transition text-white"
+						}
+						style={
+							nextBtnClassOverride
+								? undefined
+								: {
+										backgroundColor: baseAccent,
+										color: "#FFFFFF",
+										border: "1px solid transparent",
+								  }
+						}
+						onMouseEnter={(e) => {
+							if (!nextBtnClassOverride)
+								e.currentTarget.style.backgroundColor = hover;
 						}}
-						onMouseEnter={(e) =>
-							(e.currentTarget.style.backgroundColor = hover)
-						}
-						onMouseLeave={(e) =>
-							(e.currentTarget.style.backgroundColor = accentHex)
-						}
-						onMouseDown={(e) =>
-							(e.currentTarget.style.backgroundColor = active)
-						}
-						onMouseUp={(e) => (e.currentTarget.style.backgroundColor = hover)}
-						onFocus={(e) =>
-							(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
-						}
-						onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
+						onMouseLeave={(e) => {
+							if (!nextBtnClassOverride)
+								e.currentTarget.style.backgroundColor = baseAccent;
+						}}
+						onMouseDown={(e) => {
+							if (!nextBtnClassOverride)
+								e.currentTarget.style.backgroundColor = active;
+						}}
+						onMouseUp={(e) => {
+							if (!nextBtnClassOverride)
+								e.currentTarget.style.backgroundColor = hover;
+						}}
 						onClick={onNext}
 						aria-label={isLast ? "Finish" : nextLabel}
 						title={isLast ? "Finish" : nextLabel}
