@@ -196,8 +196,10 @@ export default function ActivityDock({
 					}}
 				>
 					<span className="absolute inset-[3px] rounded-full bg-white shadow-inner" />
-					<span className="relative text-xs font-semibold text-slate-700">
-						{completedCount}/{enrichedSteps.length}
+					<span className="relative text-xs font-semibold">
+						<span style={{ color: "#0F172A" }}>{completedCount}</span>
+						<span style={{ color: activeAccent }}>/</span>
+						<span style={{ color: activeAccent }}>{enrichedSteps.length}</span>
 					</span>
 				</span>
 				<span className="text-sm font-medium text-slate-800">Activities</span>
