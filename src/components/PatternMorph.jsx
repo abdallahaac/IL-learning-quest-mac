@@ -10,7 +10,7 @@ import React, { useEffect, useMemo, useRef } from "react";
  */
 export default function PatternMorph({
 	pageIndex = 0,
-	sequence = ["dots", "plus", "grid", "plus", "dots"],
+	sequence = ["dots", "plus", "grid", "plus"],
 	bg = "#ffff",
 	ink = "rgba(0,0,0,0.10)",
 	duration = 800,

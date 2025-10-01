@@ -228,7 +228,7 @@ export default function AppShell() {
 		return nextPage?.content?.title || "Next";
 	};
 
-	const BG_SEQUENCE = ["dots", "plus", "grid", "plus", "dots"];
+	const BG_SEQUENCE = ["dots", "plus", "grid", "plus"];
 
 	/* --------------------------------------------------------------------
      Progress & TOC targets

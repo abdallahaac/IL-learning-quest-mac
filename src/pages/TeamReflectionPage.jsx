@@ -15,13 +15,13 @@ import DownloadCommitmentsButton from "../components/DownloadCommitmentsButton.j
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
 export default function TeamReflectionPage({ content, notes, onNotes }) {
-	// ---- THEME (set once for the suite) ---------------------------------------
+	// THEME
 	const ACCENT = "#67AAF9";
 	const wrap = "max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6";
 	const card = "rounded-2xl border border-gray-200 bg-white shadow-sm";
 	const ringAccent = `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${ACCENT}] focus-visible:ring-offset-2`;
 
-	// ---- DEFAULT CONTENT (uses your provided text) ----------------------------
+	// DEFAULT CONTENT
 	const defaultContent = {
 		title: "Team Reflection",
 		reflectionPrompt:
@@ -75,7 +75,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 				: defaultContent.steps,
 	};
 
-	// ---- MODEL ----------------------------------------------------------------
+	// MODEL
 	const model = useMemo(() => {
 		if (typeof notes === "string")
 			return { text: notes, commitments: [], checks: [] };
@@ -107,7 +107,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		onNotes({ ...model, text, checks, commitments: next });
 	};
 
-	// ---- UI state helpers -----------------------------------------------------
+	// UI helpers
 	const totalSteps = modelContent?.steps?.length ?? 0;
 	const completed = checks.filter(Boolean).length;
 	const pct = totalSteps ? Math.round((completed / totalSteps) * 100) : 0;
@@ -120,7 +120,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		return () => clearTimeout(t);
 	}, [text, checks, model.commitments]);
 
-	// Little celebratory pulse when 100% reached
+	// Celebrate at 100%
 	const [didCelebrate, setDidCelebrate] = useState(
 		completed === totalSteps && totalSteps > 0
 	);
@@ -132,7 +132,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		}
 	}, [completed, totalSteps, didCelebrate]);
 
-	// ---- ATTENTION HINT (glow) ------------------------------------------------
+	// Hint glow
 	const [showHint, setShowHint] = useState(() => !model.checks?.some(Boolean));
 	useEffect(() => {
 		const t = setTimeout(() => setShowHint(false), 8000);
@@ -159,31 +159,31 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 
 	const wordCount = (text || "").trim() ? text.trim().split(/\s+/).length : 0;
 
-	// ---- RENDER ---------------------------------------------------------------
+	// RENDER
 	return (
 		<div className="relative bg-transparent min-h-[80svh]">
-			{/* Accent gradient overlay (now above the global canvas) */}
+			{/* Accent gradient overlay (above global canvas) */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 z-0 pointer-events-none"
 				style={{
 					backgroundImage: `linear-gradient(
-          to bottom,
-          ${withAlpha(ACCENT, "33")} 0%,
-          ${withAlpha(ACCENT, "1F")} 35%,
-          rgba(255,255,255,0) 65%,
-          rgba(248,250,252,1) 100%
-        )`,
+            to bottom,
+            ${withAlpha(ACCENT, "33")} 0%,
+            ${withAlpha(ACCENT, "1F")} 35%,
+            rgba(255,255,255,0) 65%,
+            rgba(248,250,252,1) 100%
+          )`,
 				}}
 				initial={{ opacity: 0 }}
-				animate={{ opacity: 0.3 }} // slightly stronger so it reads
+				animate={{ opacity: 0.3 }}
 				transition={{ duration: 0.6 }}
 			/>
 
 			{/* Content wrapper sits above the gradient */}
 			<div className={`relative z-10 ${wrap}`}>
 				{/* Header */}
-				<header className="text-center space-y-2">
+				<header className="text-center space-y-4">
 					<div className="flex items-center justify-center gap-3">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
 							{modelContent?.title || "Team Reflection"}
@@ -194,9 +194,13 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 							style={{ color: ACCENT }}
 						/>
 					</div>
-					<p className="text-slate-700 text-lg sm:text-xl max-w-2xl mx-auto">
-						A short, structured check-in for the team.
-					</p>
+
+					{/* NEW: Tip card subtitle */}
+					<TipCard accent={ACCENT}>
+						To make the most of your team discussions during the learning quest,
+						follow these steps to create a safe, respectful, and reflective
+						learning environment:
+					</TipCard>
 				</header>
 
 				{/* Steps + progress */}
@@ -217,7 +221,6 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 							<h2 className="text-lg font-semibold text-slate-900">Steps</h2>
 						</div>
 
-						{/* Saved blip */}
 						<AnimatePresence>
 							{saved && (
 								<motion.div
@@ -251,7 +254,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 						</div>
 					</div>
 
-					{/* Steps list with check toggles */}
+					{/* Steps list */}
 					<ol className="space-y-4">
 						{modelContent?.steps?.map((s, i) => {
 							const isChecked = !!checks[i];
@@ -333,7 +336,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 						})}
 					</ol>
 
-					{/* Little pulse when all complete */}
+					{/* Done pulse */}
 					<AnimatePresence>
 						{totalSteps > 0 && completed === totalSteps && (
 							<motion.div
@@ -359,7 +362,6 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 
 				{/* Notes + Commitments */}
 				<section className="grid md:grid-cols-2 gap-6">
-					{/* Reflection */}
 					<div className={`${card} p-4 sm:p-5`}>
 						<div className="flex items-center justify-between">
 							<label
@@ -373,7 +375,6 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 							</span>
 						</div>
 
-						{/* quick prompts */}
 						<div className="mt-2 flex flex-wrap gap-2">
 							{quickPrompts.map((p) => (
 								<button
@@ -407,7 +408,6 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 						</p>
 					</div>
 
-					{/* Commitments */}
 					<div className={`${card} p-4 sm:p-5`}>
 						<CommitmentsCard
 							commitments={model.commitments}
@@ -434,5 +434,24 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 				</section>
 			</div>
 		</div>
+	);
+}
+
+/* Reusable tip card (matches other sections) */
+function TipCard({ accent = "#67AAF9", children }) {
+	return (
+		<section
+			className="mx-auto max-w-2xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			role="note"
+			aria-label="Tip"
+			style={{
+				borderColor: withAlpha(accent, "33"),
+				backgroundColor: withAlpha(accent, "14"),
+			}}
+		>
+			<p className="text-base sm:text-lg text-center text-slate-900">
+				{children}
+			</p>
+		</section>
 	);
 }
