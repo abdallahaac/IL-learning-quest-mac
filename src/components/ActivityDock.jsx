@@ -8,16 +8,16 @@ import React, {
 
 /* --- central accent map for all 10 activities --- */
 const ACTIVITY_ACCENTS = {
-	1: "#2563EB", // Activity 01 — blue
-	2: "#047857", // Activity 02 — emerald
-	3: "#B45309", // Activity 03 — amber
-	4: "#4338CA", // Activity 04 — indigo
-	5: "#BE123C", // Activity 05 — rose
-	6: "#0891B2", // Activity 06 — cyan
-	7: "#0D9488", // Activity 07 — teal
-	8: "#E11D48", // Activity 08 — rose
-	9: "#934D6C", // Activity 09 — plum
-	10: "#DB5A42", // Activity 10 — persimmon
+	1: "#2563EB",
+	2: "#047857",
+	3: "#B45309",
+	4: "#4338CA",
+	5: "#BE123C",
+	6: "#0891B2",
+	7: "#0D9488",
+	8: "#E11D48",
+	9: "#934D6C",
+	10: "#DB5A42",
 };
 
 /* --- small color helpers --- */
@@ -27,7 +27,8 @@ const normalizeHex = (h) => {
 	if (s[0] !== "#") s = `#${s}`;
 	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
 };
-const withAlpha = (hex, aa /* "14" */) => `${hex}${aa}`;
+const withAlpha = (hex, aa /* like "14" */) => `${hex}${aa}`;
+
 const hexToRgb = (hex) => {
 	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
 	if (!m) return { r: 0, g: 0, b: 0 };
@@ -37,6 +38,9 @@ const hexToRgb = (hex) => {
 		b: parseInt(m[3], 16),
 	};
 };
+const rgbToHex = ({ r, g, b }) =>
+	`#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+
 const relLum = ({ r, g, b }) => {
 	const f = (c) => {
 		c /= 255;
@@ -45,13 +49,45 @@ const relLum = ({ r, g, b }) => {
 	const [R, G, B] = [f(r), f(g), f(b)];
 	return 0.2126 * R + 0.7152 * G + 0.0722 * B;
 };
+const contrastRatio = (hex1, hex2) => {
+	const L1 = relLum(hexToRgb(hex1));
+	const L2 = relLum(hexToRgb(hex2));
+	const [hi, lo] = L1 > L2 ? [L1, L2] : [L2, L1];
+	return (hi + 0.05) / (lo + 0.05);
+};
+
+/** Blend an opaque accent over white by alpha (0..1) → hex */
+const blendOverWhite = (hex, a) => {
+	const { r, g, b } = hexToRgb(hex);
+	const R = Math.round(255 * (1 - a) + r * a);
+	const G = Math.round(255 * (1 - a) + g * a);
+	const B = Math.round(255 * (1 - a) + b * a);
+	return rgbToHex({ r: R, g: G, b: B });
+};
+
+/** Find the smallest alpha (within range) that yields >= target contrast vs text */
+const findAlphaForContrast = ({
+	accent,
+	text = "#0F172A",
+	target = 4.5,
+	min = 0.08,
+	max = 0.28,
+	step = 0.01,
+}) => {
+	let a = min;
+	let best = blendOverWhite(accent, a);
+	while (a <= max) {
+		const bg = blendOverWhite(accent, a);
+		if (contrastRatio(bg, text) >= target) return { alpha: a, bg };
+		best = bg;
+		a += step;
+	}
+	return { alpha: max, bg: best };
+};
+
 const isLight = (hex) => relLum(hexToRgb(hex)) > 0.5;
 
-/** Pick the accent for a given step. Priority:
- *  1) step.accent (if provided)
- *  2) ACTIVITY_ACCENTS by activityId (if provided) or index+1
- *  3) fallback defaultAccent
- */
+/** choose accent */
 const resolveAccent = (step, idx, defaultAccent) => {
 	const fromProp = normalizeHex(step?.accent);
 	if (fromProp) return fromProp;
@@ -65,26 +101,21 @@ const resolveAccent = (step, idx, defaultAccent) => {
 };
 
 /**
- * Accent-aware Activities pill + right-rail.
- * - Every item is colored from the start (tinted with its accent).
- * - First time an item becomes `visited`, it gently pulses once.
- * - Completed items show a check icon; visited-but-not-complete show a dot.
- * - Icon ensures state isn't conveyed by color alone.
- * - Active (clicked) items render darker (stronger) tint for clear feedback.
+ * Accent-aware Activities pill + right-rail with accessible tints.
  */
 export default function ActivityDock({
 	steps = [],
 	currentPageIndex = 0,
 	onJump,
 	contentMaxWidth = 1200,
-	defaultAccent = "#67AAF9", // suite blue fallback
+	defaultAccent = "#67AAF9",
 }) {
 	const [open, setOpen] = useState(false);
 	const btnRef = useRef(null);
 
 	if (!steps.length) return null;
 
-	// enrich steps with computed accent so we use it consistently everywhere
+	// enrich steps with computed accent
 	const enrichedSteps = useMemo(
 		() =>
 			steps.map((s, i) => ({
@@ -101,13 +132,13 @@ export default function ActivityDock({
 	const completedCount = enrichedSteps.filter((s) => s.completed).length;
 	const pct = Math.round((completedCount / enrichedSteps.length) * 100);
 
-	// Use the current page's accent for the header pill ring + progress arc
+	// current activity accent
 	const activeAccent =
 		normalizeHex(enrichedSteps[activeIdx]?._accent) ||
 		normalizeHex(defaultAccent) ||
 		"#67AAF9";
 
-	// compute right-rail left/top so it never overlaps centered content
+	// layout
 	const [panelLeft, setPanelLeft] = useState(0);
 	const [panelTop, setPanelTop] = useState(0);
 
@@ -143,7 +174,7 @@ export default function ActivityDock({
 
 	const positioned = panelLeft !== 0 || panelTop !== 0;
 
-	/* --- one-time "visited" pulse management --- */
+	/* one-time pulse when newly visited */
 	const prevVisitedRef = useRef(enrichedSteps.map((s) => !!s.visited));
 	const [flashSet, setFlashSet] = useState(new Set());
 	useEffect(() => {
@@ -161,9 +192,11 @@ export default function ActivityDock({
 		prevVisitedRef.current = now;
 	}, [enrichedSteps]);
 
+	const textColor = "#0F172A"; // dark slate for readability
+
 	return (
 		<>
-			{/* INLINE pill (lives inside header block) */}
+			{/* header pill */}
 			<button
 				ref={btnRef}
 				type="button"
@@ -176,10 +209,7 @@ export default function ActivityDock({
           hover:shadow-lg transition
           focus:outline-none
         "
-				style={{
-					// Use current activity accent for focus ring
-					boxShadow: open ? `0 0 0 2px ${activeAccent}` : "none",
-				}}
+				style={{ boxShadow: open ? `0 0 0 2px ${activeAccent}` : "none" }}
 				onFocus={(e) =>
 					(e.currentTarget.style.boxShadow = `0 0 0 2px ${activeAccent}`)
 				}
@@ -215,7 +245,7 @@ export default function ActivityDock({
 				</svg>
 			</button>
 
-			{/* Right-rail panel (positioned with inline styles) */}
+			{/* right rail */}
 			<div
 				aria-hidden={!open}
 				className={`fixed z-[80] ${
@@ -238,55 +268,67 @@ export default function ActivityDock({
 								const isActive = s.index === currentPageIndex;
 								const done = !!s.completed;
 								const seen = !!s.visited;
-
 								const accent = s._accent;
 
-								// Accessible tints derived from the step's accent
-								// Always use an accent tint even when not visited so color is apparent up-front.
-								const bgBase = withAlpha(accent, "0D"); // ~5%
-								const borderBase = withAlpha(accent, "26"); // ~15%
-								const bgActive = withAlpha(accent, "26"); // darker when active
-								const borderActive = withAlpha(accent, "40"); // stronger border
+								// compute a base alpha that meets 4.5:1 (small text) vs dark text
+								const { alpha: baseAlpha, bg: baseBg } = findAlphaForContrast({
+									accent,
+									text: textColor,
+									target: 4.5,
+									min: 0.1, // start at 10% tint
+									max: 0.28, // cap at ~28% tint
+									step: 0.01,
+								});
 
-								// Completed gets a slightly stronger tint than seen
-								const bgDone = withAlpha(accent, "1A"); // ~10%
-								const borderDone = withAlpha(accent, "33");
+								const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+								const seenAlpha = clamp(baseAlpha + 0.02, 0.1, 0.3);
+								const doneAlpha = clamp(baseAlpha + 0.04, 0.12, 0.32);
+								const activeAlpha = clamp(baseAlpha + 0.06, 0.14, 0.34);
 
-								// Text remains dark for readability; accent is conveyed with tint + icon
-								const textColor = "#0F172A";
+								const bgSeen = blendOverWhite(accent, seenAlpha);
+								const bgDone = blendOverWhite(accent, doneAlpha);
+								const bgActive = blendOverWhite(accent, activeAlpha);
+
+								const borderFromBg = (bg) => {
+									// nudge border a bit stronger than bg for definition
+									const ratio = 0.12;
+									const { r, g, b } = hexToRgb(bg);
+									const R = Math.round(r * (1 - ratio));
+									const G = Math.round(g * (1 - ratio));
+									const B = Math.round(b * (1 - ratio));
+									return rgbToHex({ r: R, g: G, b: B });
+								};
 
 								const base =
 									"relative inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition w-full justify-start";
 								const stateCls = isActive ? "shadow-sm" : "hover:shadow-sm";
 
-								// choose bg/border by state (active darkest → done → seen → base)
 								const pillStyle = isActive
 									? {
 											backgroundColor: bgActive,
-											border: `1px solid ${borderActive}`,
+											border: `1px solid ${borderFromBg(bgActive)}`,
 											color: textColor,
 									  }
 									: done
 									? {
 											backgroundColor: bgDone,
-											border: `1px solid ${borderDone}`,
+											border: `1px solid ${borderFromBg(bgDone)}`,
 											color: textColor,
 									  }
 									: seen
 									? {
-											backgroundColor: withAlpha(accent, "14"),
-											border: `1px solid ${withAlpha(accent, "33")}`,
+											backgroundColor: bgSeen,
+											border: `1px solid ${borderFromBg(bgSeen)}`,
 											color: textColor,
 									  }
 									: {
-											backgroundColor: bgBase,
-											border: `1px solid ${borderBase}`,
+											backgroundColor: baseBg,
+											border: `1px solid ${borderFromBg(baseBg)}`,
 											color: textColor,
 									  };
 
-								const pulse = flashSet.has(i) && !done; // one-time pulse when first seen
+								const pulse = flashSet.has(i) && !done;
 
-								// Iconography: check = completed, dot = visited, number = not yet visited
 								const statusIcon = done ? (
 									<svg
 										className="w-3.5 h-3.5"
@@ -300,7 +342,7 @@ export default function ActivityDock({
 									<span
 										aria-hidden="true"
 										className="inline-block w-2 h-2 rounded-full"
-										style={{ backgroundColor: withAlpha(accent, "FF") }}
+										style={{ backgroundColor: accent }}
 									/>
 								) : (
 									<span className="text-[11px] font-semibold text-slate-600">
@@ -365,18 +407,12 @@ export default function ActivityDock({
 			</div>
 
 			<style>{`
-        @keyframes fadeInUp { 
-          from { opacity: 0; transform: translateY(4px); } 
-          to { opacity: 1; transform: translateY(0); } 
-        }
         @keyframes pulseOnce {
           0%   { box-shadow: 0 0 0 0 rgba(0,0,0,0); transform: translateY(0); }
           40%  { box-shadow: 0 0 0 8px rgba(0,0,0,0.06); transform: translateY(-1px); }
           100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); transform: translateY(0); }
         }
-        .visited-pulse {
-          animation: pulseOnce 0.9s ease-out both;
-        }
+        .visited-pulse { animation: pulseOnce 0.9s ease-out both; }
       `}</style>
 		</>
 	);
