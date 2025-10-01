@@ -9,6 +9,7 @@ import {
 	faComments,
 	faFlagCheckered,
 	faFolderOpen,
+	faCircleCheck, // ← NEW (visited badge)
 } from "@fortawesome/free-solid-svg-icons";
 
 const DEFAULT_CARD_OFFSETS = [
@@ -51,7 +52,7 @@ export default function ContentsPage({
 	progress = 0,
 	prefillStart = 0.06,
 
-	// ✅ REAL targets passed from AppShell (no more local guessing)
+	// ✅ REAL targets passed from AppShell
 	tocTargets = {
 		introIndex: 2,
 		preparationIndex: 3,
@@ -62,6 +63,9 @@ export default function ContentsPage({
 		resourcesIndex: -1,
 	},
 
+	// NEW: mark visited sections (array of page indices)
+	visitedIndices = [],
+
 	// Layout / positioning
 	cardPosOverrides,
 	cardWidth = 210,
@@ -71,7 +75,11 @@ export default function ContentsPage({
 	nodeXOffsetOverrides = [],
 	nodeYOffsetOverrides = [],
 }) {
-	// Build items strictly from the indices we got
+	const visitedSet = useMemo(
+		() => new Set(visitedIndices || []),
+		[visitedIndices]
+	);
+
 	const items = useMemo(() => {
 		const arr = [
 			{
@@ -90,13 +98,13 @@ export default function ContentsPage({
 				label: "Activities",
 				index: tocTargets.activitiesIndex,
 				icon: faListCheck,
-				hue: 0, // red
+				hue: 0,
 			},
 			{
 				label: "Team Reflection",
 				index: tocTargets.teamIndex,
 				icon: faUsers,
-				hue: 212, // match #67AAF9
+				hue: 212,
 			},
 		];
 		if (
@@ -124,8 +132,6 @@ export default function ContentsPage({
 				hue: 145,
 			}
 		);
-
-		// filter out any invalid indices
 		return arr.filter((it) => typeof it.index === "number" && it.index >= 0);
 	}, [tocTargets]);
 
@@ -134,7 +140,6 @@ export default function ContentsPage({
 	const NODE_R = 26;
 	const CARD_GAP_Y = 40;
 
-	// Normalize offsets to items length
 	const offsets = useMemo(() => {
 		const src = Array.isArray(cardPosOverrides)
 			? cardPosOverrides
@@ -164,7 +169,6 @@ export default function ContentsPage({
 		const svg = railRef.current;
 		const measure = measurePathRef.current;
 		if (!svg || !measure) return;
-
 		const place = () => {
 			const len = measure.getTotalLength?.() ?? 0;
 			setPathLen(len);
@@ -178,9 +182,7 @@ export default function ContentsPage({
 			});
 			setNodePos(pos);
 		};
-
 		place();
-
 		let ro;
 		if (typeof window !== "undefined" && "ResizeObserver" in window) {
 			ro = new ResizeObserver(place);
@@ -359,6 +361,7 @@ export default function ContentsPage({
 								const pos = nodePos[i] || { x: 0, y: 0, deg: 0, t: 0 };
 								const hue = it.hue ?? 210;
 								const nodeHex = hslToHex(hue, 64, 55);
+								const isVisited = visitedSet.has(it.index);
 
 								// lane sizing
 								const lanes = items.length;
@@ -390,7 +393,7 @@ export default function ContentsPage({
 										className="absolute"
 										style={{ left: 0, top: 0 }}
 									>
-										{/* ICON */}
+										{/* ICON (visited gets a subtle fill + badge) */}
 										<motion.button
 											id={`toc-node-${i}`}
 											type="button"
@@ -429,31 +432,55 @@ export default function ContentsPage({
 													onNavigate?.(it.index);
 												}
 											}}
+											aria-label={`${it.label}${isVisited ? " (visited)" : ""}`}
 										>
 											<motion.div
-												className="backdrop-blur-md flex items-center justify-center no-backdrop-glass border-2 rounded-full"
+												className="backdrop-blur-md flex items-center justify-center no-backdrop-glass border-2 rounded-full relative"
 												style={{
 													width: 52,
 													height: 52,
 													borderColor: "var(--node-color)",
-													background: `hsla(${hue}, 70%, 97%, 0.85)`,
-													boxShadow:
-														"0 8px 24px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
+													background: isVisited
+														? `hsla(${hue}, 70%, 92%, 0.95)`
+														: `hsla(${hue}, 70%, 97%, 0.85)`,
+													boxShadow: isVisited
+														? "0 10px 26px rgba(15,23,42,0.22), inset 0 1px 0 rgba(255,255,255,0.75)"
+														: "0 8px 24px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)",
+													filter: isVisited ? "grayscale(0.1)" : "none",
 												}}
 												whileHover={{
 													boxShadow:
-														"0 10px 28px rgba(15,23,42,0.22), inset 0 1px 0 rgba(255,255,255,0.75)",
+														"0 12px 30px rgba(15,23,42,0.24), inset 0 1px 0 rgba(255,255,255,0.8)",
 												}}
 											>
 												<FontAwesomeIcon
 													icon={it.icon}
-													className="text-lg text-[var(--node-color)]"
+													className="text-lg"
+													style={{
+														color: "var(--node-color)",
+														opacity: isVisited ? 0.9 : 1,
+													}}
 													aria-hidden
 												/>
+												{isVisited && (
+													<span
+														className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full grid place-items-center text-white"
+														style={{
+															backgroundColor: "#10B981",
+															boxShadow: "0 2px 6px rgba(16,185,129,0.45)",
+														}}
+														aria-hidden
+													>
+														<FontAwesomeIcon
+															icon={faCircleCheck}
+															className="text-[11px]"
+														/>
+													</span>
+												)}
 											</motion.div>
 										</motion.button>
 
-										{/* CARD (fit-content) */}
+										{/* CARD (visited: darker bg, muted text, 'Visited' chip) */}
 										<motion.button
 											id={`toc-card-${i}`}
 											type="button"
@@ -481,18 +508,45 @@ export default function ContentsPage({
 											}}
 										>
 											<div
-												className="rounded-2xl border bg-white/92 backdrop-blur transition-shadow no-backdrop-glass"
+												className="rounded-2xl border backdrop-blur transition-shadow no-backdrop-glass"
 												style={{
-													borderColor: "rgba(203,213,225,0.8)",
-													boxShadow: "0 10px 30px rgba(2,6,23,0.12)",
+													background: isVisited
+														? "rgba(241,245,249,0.95)"
+														: "rgba(255,255,255,0.92)",
+													borderColor: isVisited
+														? "rgba(148,163,184,0.6)"
+														: "rgba(203,213,225,0.8)",
+													boxShadow: isVisited
+														? "0 12px 36px rgba(2,6,23,0.16)"
+														: "0 10px 30px rgba(2,6,23,0.12)",
 												}}
 											>
 												<div className="px-4 py-3 hover:shadow-[0_14px_40px_rgba(2,6,23,0.16)]">
 													<div className="inline-flex items-center gap-2 whitespace-nowrap">
 														<span className="inline-block w-2.5 h-2.5 rounded-full bg-[var(--node-color)]" />
-														<span className="text-sm font-semibold text-slate-900">
+														<span
+															className={`text-sm font-semibold ${
+																isVisited ? "text-slate-700" : "text-slate-900"
+															}`}
+														>
 															{it.label}
 														</span>
+														{isVisited && (
+															<span
+																className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+																style={{
+																	backgroundColor: "rgba(16,185,129,0.12)",
+																	border: "1px solid rgba(16,185,129,0.25)",
+																}}
+																aria-hidden
+															>
+																<FontAwesomeIcon
+																	icon={faCircleCheck}
+																	className="text-[10px]"
+																/>
+																Visited
+															</span>
+														)}
 													</div>
 												</div>
 											</div>

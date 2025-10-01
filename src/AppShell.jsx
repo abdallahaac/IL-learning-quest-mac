@@ -220,7 +220,7 @@ export default function AppShell() {
 		const atLast = i >= totalPages - 1;
 		if (atLast) return "Finish";
 		const nextPage = pages[i + 1];
-		if (currentPage.type === "preparation") return "Begin Activities";
+		if (currentPage.type === "preparation") return "Start Activities";
 		if (nextPage?.type === "activity") {
 			const num = (nextPage.activityIndex ?? 0) + 1;
 			return `Activity ${num}`;
@@ -403,6 +403,7 @@ export default function AppShell() {
 														{ x: -20, y: -15 }, // Conclusion
 														{ x: -80, y: 0 }, // Resources
 													]}
+													visitedIndices={[...state.visited]} // ← pass the visited page indices here
 												/>
 											);
 										case "intro":
