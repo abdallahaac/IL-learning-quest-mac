@@ -1,4 +1,3 @@
-// src/AppShell.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
@@ -19,6 +18,7 @@ import TeamReflectionPage from "./pages/TeamReflectionPage.jsx";
 import ActivityPage from "./pages/ActivityPage.jsx";
 import PatternMorph from "./components/PatternMorph.jsx";
 import useResizeObserver from "./hooks/useResizeObserver.jsx";
+import ConclusionSection from "./pages/ConclusionSection.jsx";
 
 /* ========================================================================
    Accent map to keep Header/Footer/Dock aligned with activities
@@ -48,7 +48,7 @@ const accentForActivityIndex = (idx /* 0-based */) =>
    Persistence helpers (SCORM + localStorage)
    ======================================================================== */
 const STATE_VERSION = 3;
-const BUILD_ID = "toc-progress-2025-09-19-02";
+const BUILD_ID = "toc-progress-2025-10-01-02";
 const LS_KEY = "quest_state_v1";
 
 function loadFromLS() {
@@ -65,7 +65,7 @@ function saveToLS(payload) {
 	} catch {}
 }
 
-// Keep header height hard-coded to match Header.jsx (prevents wobble)
+// Keep header height hard-coded to match Header.jsx
 const HEADER_FIXED_H = 88;
 
 export default function AppShell() {
@@ -83,10 +83,6 @@ export default function AppShell() {
 				.filter(({ p }) => p.type === "activity"),
 		[pages]
 	);
-	const activityIds = useMemo(
-		() => activityPages.map(({ p }) => p.content.id),
-		[activityPages]
-	);
 	const activityPageIndices = useMemo(
 		() => activityPages.map(({ idx }) => idx),
 		[activityPages]
@@ -97,7 +93,7 @@ export default function AppShell() {
 	const [route, push] = useHashRoute();
 
 	/* --------------------------------------------------------------------
-     Hydrate state from SCORM/localStorage (with version/build checks)
+     Hydrate state
      -------------------------------------------------------------------- */
 	const [state, setState] = useState(() => {
 		const scormSaved = getSuspendData?.();
@@ -134,7 +130,7 @@ export default function AppShell() {
 		};
 	});
 
-	// Keep state in sync with hash route + mark visited
+	// Sync with hash route + mark visited
 	useEffect(() => {
 		const idx = Math.min(Math.max(route.pageIndex, 0), totalPages - 1);
 		setState((s) => {
@@ -146,7 +142,7 @@ export default function AppShell() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [route.pageIndex, totalPages]);
 
-	// Persist to SCORM (if available) and localStorage
+	// Persist
 	useEffect(() => {
 		const payload = {
 			pageIndex: state.pageIndex,
@@ -163,17 +159,10 @@ export default function AppShell() {
 
 	// Current page & theme
 	const currentPage = pages[state.pageIndex] ?? pages[0];
-	const isActivity = currentPage.type === "activity";
 	const themeClass =
 		currentPage.type === "activity"
 			? activityThemes[currentPage.activityIndex]
 			: pageThemes[currentPage.type] || "";
-
-	// Jump-to-activity menu
-	const jumpToActivity = (i) => {
-		const target = activityPageIndices[i];
-		if (typeof target === "number") gotoPage(target);
-	};
 
 	// Navigation helpers
 	const gotoPage = (idx) => {
@@ -185,7 +174,6 @@ export default function AppShell() {
 			return { ...s, pageIndex: clamped, visited: nextVisited };
 		});
 	};
-
 	const next = () => {
 		setState((s) => {
 			const atLast = s.pageIndex >= totalPages - 1;
@@ -206,7 +194,6 @@ export default function AppShell() {
 			return { ...s, pageIndex: nextIndex, visited: nextVisited };
 		});
 	};
-
 	const prev = () => {
 		setState((s) => {
 			const prevIndex = Math.max(0, s.pageIndex - 1);
@@ -220,20 +207,12 @@ export default function AppShell() {
 	const setNote = (id, value) => {
 		setState((s) => ({ ...s, notes: { ...s.notes, [id]: value } }));
 	};
-
 	const toggleComplete = (id) => {
 		setState((s) => ({
 			...s,
 			completed: { ...s.completed, [id]: !s.completed[id] },
 		}));
 	};
-
-	// Hide chrome during cover intro
-	const isCover = currentPage.type === "cover";
-	const [coverIntroActive, setCoverIntroActive] = useState(false);
-	useEffect(() => {
-		if (!isCover) setCoverIntroActive(false);
-	}, [isCover]);
 
 	// Footer CTA label
 	const getNextLabel = () => {
@@ -252,34 +231,41 @@ export default function AppShell() {
 	const BG_SEQUENCE = ["dots", "plus", "grid", "plus", "dots"];
 
 	/* --------------------------------------------------------------------
-     Sequential progress for the 5 TOC slots (drives the rail fill)
+     Progress & TOC targets
      -------------------------------------------------------------------- */
 	const idxByType = (t) => pages.findIndex((p) => p.type === t);
 	const idxIntro = idxByType("intro");
 	const idxPrep = idxByType("preparation");
 	const idxTeam = idxByType("team");
+	const idxReflection = idxByType("reflection"); // may be -1 if not present
 	const idxConclusion = idxByType("conclusion");
 	const idxResources = idxByType("resources");
 
+	// For Activities, jump to the first activity page (if any)
+	const idxFirstActivity = activityPageIndices[0] ?? -1;
+
+	// Visited helpers
 	const visitedHas = (i) => (i >= 0 ? state.visited.has(i) : false);
 
-	// Count how many activity page *indices* have been visited
+	// Activity progress (fraction of visited activity pages)
 	const activityVisitedCount = activityPageIndices.reduce(
 		(acc, idx) => acc + (state.visited.has(idx) ? 1 : 0),
 		0
 	);
-
-	// Fraction of activities visited
 	const activityFrac =
 		activityPages.length > 0 ? activityVisitedCount / activityPages.length : 0;
 
-	// Only contribute activities once the Preparation page has been visited
-	const prepPlusActivities = visitedHas(idxPrep) ? activityFrac : 0;
+	// Activities contribute after Preparation visited (gate)
+	const activitiesSlot = visitedHas(idxPrep) ? activityFrac : 0;
 
+	// Slots order: Intro, Preparation, Activities, Team, (optional) Reflection, Conclusion, Resources
+	const reflectionPresent = idxReflection >= 0;
 	const slots = [
 		visitedHas(idxIntro) ? 1 : 0,
-		prepPlusActivities,
+		visitedHas(idxPrep) ? 1 : 0,
+		activitiesSlot,
 		visitedHas(idxTeam) ? 1 : 0,
+		...(reflectionPresent ? [visitedHas(idxReflection) ? 1 : 0] : []),
 		visitedHas(idxConclusion) ? 1 : 0,
 		visitedHas(idxResources) ? 1 : 0,
 	];
@@ -297,15 +283,12 @@ export default function AppShell() {
 
 	const siteTitle = "Learning Quest on Indigenous Cultures";
 
-	// We still use the header ref (for focus rings/scroll anchors if needed),
-	// but we do NOT rely on its measured height anymore.
+	// Header/footer sizing
 	const [headerRef] = useResizeObserver();
-
-	// measure the fixed footer height (kept dynamic)
 	const [footerRef, footerSize] = useResizeObserver();
 	const footerHeight = footerSize.height || 0;
 
-	// build ActivityDock steps (mark visited/completed, and attach accent)
+	// ActivityDock steps
 	const activitySteps = activityPages.map(({ p, idx }, i) => ({
 		key: p.content.id,
 		label: `Activity ${i + 1}`,
@@ -315,28 +298,15 @@ export default function AppShell() {
 		accent: accentForActivityIndex(i),
 	}));
 
-	/* --------------------------------------------------------------------
-     Page-specific overrides (final)
-     - Header "Home/TOC" button: sky-600 pill on Cover & Contents
-     - Footer "Next" button: same sky-600 color on Cover & Contents (rounded-lg)
-     - Intro footer color: #4380D6
-     - Preparation footer color: #7443D6
-     -------------------------------------------------------------------- */
+	// Colors
 	const pageType = currentPage.type;
-
-	// Base accent for non-override pages
 	let accentForThisPage =
 		pageType === "activity"
 			? accentForActivityIndex(currentPage.activityIndex || 0)
 			: "#67AAF9";
+	if (pageType === "intro") accentForThisPage = "#4380D6";
+	else if (pageType === "preparation") accentForThisPage = "#7443D6";
 
-	if (pageType === "intro") {
-		accentForThisPage = "#4380D6";
-	} else if (pageType === "preparation") {
-		accentForThisPage = "#7443D6";
-	}
-
-	// Header: exact Tailwind class (uses same base sizing as Header.jsx)
 	const tailwindHeaderBtnClass =
 		"inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 bg-sky-600 text-sm md:text-base font-medium text-white rounded-full shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors";
 	const headerPrimaryBtnClassOverride =
@@ -344,7 +314,6 @@ export default function AppShell() {
 			? tailwindHeaderBtnClass
 			: null;
 
-	// Footer: same Tailwind color but rounded-lg, consistent with Back button
 	const tailwindFooterNextBtnClass =
 		"px-5 py-2 bg-sky-600 text-white font-medium rounded-lg shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors";
 	const footerNextBtnClassOverride =
@@ -352,15 +321,14 @@ export default function AppShell() {
 			? tailwindFooterNextBtnClass
 			: null;
 
-	// Footer label (again here for render scope)
 	const getNextLabelRender = () => getNextLabel();
 
-	// ---- LAYOUT with sticky header ----
+	// ---- LAYOUT ----
 	return (
 		<div
 			className={` app-shell relative h-screen flex flex-col ${themeClass}`}
 			style={{
-				"--header-h": `${HEADER_FIXED_H}px`, // fixed header height
+				"--header-h": `${HEADER_FIXED_H}px`,
 				"--footer-h": `${footerHeight}px`,
 			}}
 		>
@@ -379,14 +347,11 @@ export default function AppShell() {
 				primaryBtnClassOverride={headerPrimaryBtnClassOverride}
 			/>
 
-			{/* Scroll container (add top padding equal to header height) */}
+			{/* Scroll container */}
 			<div className="flex-1 relative min-h-0">
 				<div
 					className="flex h-full flex-col overflow-y-auto min-h-0"
-					style={{
-						paddingTop: "var(--header-h)",
-						scrollbarGutter: "stable",
-					}}
+					style={{ paddingTop: "var(--header-h)", scrollbarGutter: "stable" }}
 				>
 					<main className="flex-1 relative min-h-0">
 						<div style={{ zIndex: 10 }}>
@@ -398,26 +363,39 @@ export default function AppShell() {
 												<CoverPage
 													content={currentPage.content}
 													onStart={() => gotoPage(1)}
-													onIntroActiveChange={setCoverIntroActive}
+													onIntroActiveChange={() => {}}
 												/>
 											);
 										case "contents":
 											return (
 												<ContentsPage
-													activityCount={activityTotal}
 													onNavigate={gotoPage}
 													progress={curvedProgress}
 													prefillStart={0.06}
-													// ICON offsets (favicon positions)
-													nodeXOffsetOverrides={[-70, -70, -70, -80, -180]}
-													nodeYOffsetOverrides={[-100, 80, -105, 95, -130]}
-													// CARD offsets (card positions)
+													tocTargets={{
+														introIndex: idxIntro,
+														preparationIndex: idxPrep,
+														activitiesIndex: idxFirstActivity,
+														teamIndex: idxTeam,
+														reflectionIndex: idxReflection, // -1 if absent
+														conclusionIndex: idxConclusion, // ✅ real index
+														resourcesIndex: idxResources, // ✅ real index
+													}}
+													// Offsets (length will auto-match items)
+													nodeXOffsetOverrides={[
+														-70, -70, -60, -80, -70, -90, -160,
+													]}
+													nodeYOffsetOverrides={[
+														-100, 70, -105, 95, -95, 50, -130,
+													]}
 													cardPosOverrides={[
-														{ x: -30, y: -190 },
-														{ x: -10, y: -0 },
-														{ x: -0, y: -190 },
-														{ x: 0, y: 10 },
-														{ x: -80, y: -210 },
+														{ x: -9, y: -165 }, // Intro
+														{ x: -5, y: 5 }, // Preparation
+														{ x: 10, y: -170 }, // Activities
+														{ x: -15, y: 30 }, // Team
+														{ x: 0, y: -160 }, // Reflection (ignored if not present)
+														{ x: -20, y: -15 }, // Conclusion
+														{ x: -80, y: 0 }, // Resources
 													]}
 												/>
 											);
@@ -427,14 +405,20 @@ export default function AppShell() {
 											return (
 												<PreparationPage
 													content={currentPage.content}
-													onStartActivities={() => gotoPage(4)}
+													onStartActivities={() =>
+													gotoPage(
+															idxFirstActivity >= 0
+																? idxFirstActivity
+																: state.pageIndex + 1
+														)
+													}
 												/>
 											);
 										case "conclusion":
 											return (
-												<SectionPage
-													type="conclusion"
+												<ConclusionSection
 													content={currentPage.content}
+													accent="#D66843" // matches TOC Conclusion hue
 												/>
 											);
 										case "resources":
@@ -471,6 +455,19 @@ export default function AppShell() {
 											return (
 												<TeamReflectionPage
 													content={currentPage.content}
+													notes={state.notes["team"]}
+													onNotes={(v) =>
+														setState((s) => ({
+															...s,
+															notes: { ...s.notes, team: v },
+														}))
+													}
+												/>
+											);
+										case "reflection":
+											return (
+												<TeamReflectionPage
+													content={currentPage.content}
 													notes={state.notes["reflect"]}
 													onNotes={(v) =>
 														setState((s) => ({
@@ -494,14 +491,7 @@ export default function AppShell() {
 			</div>
 
 			{/* Fixed footer */}
-			<div
-				aria-hidden={currentPage.type === "cover" && coverIntroActive}
-				className={
-					currentPage.type === "cover" && coverIntroActive
-						? "transition-opacity duration-500 ease-out will-change-[opacity] opacity-0 pointer-events-none"
-						: "transition-opacity duration-500 ease-out opacity-100"
-				}
-			>
+			<div className="transition-opacity duration-500 ease-out opacity-100">
 				<Footer
 					pageIndex={state.pageIndex}
 					totalPages={totalPages}
@@ -511,8 +501,12 @@ export default function AppShell() {
 					activitySteps={activitySteps}
 					onJumpToPage={(idx) => gotoPage(idx)}
 					accent={accentForThisPage}
-					nextBtnClassOverride={footerNextBtnClassOverride}
-					containerRef={footerRef}
+					nextBtnClassOverride={
+						currentPage.type === "cover" || currentPage.type === "contents"
+							? "px-5 py-2 bg-sky-600 text-white font-medium rounded-lg shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors"
+							: null
+					}
+					containerRef={useResizeObserver()[0]}
 				/>
 			</div>
 		</div>

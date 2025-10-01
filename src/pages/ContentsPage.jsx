@@ -4,17 +4,21 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faBookOpen,
 	faClipboardList,
+	faListCheck,
 	faUsers,
+	faComments,
 	faFlagCheckered,
 	faFolderOpen,
 } from "@fortawesome/free-solid-svg-icons";
 
 const DEFAULT_CARD_OFFSETS = [
-	{ x: 50, y: -190 },
-	{ x: 50, y: -30 },
-	{ x: 70, y: -190 },
-	{ x: 100, y: 10 },
-	{ x: -65, y: 0 },
+	{ x: 40, y: -180 }, // Intro
+	{ x: 40, y: -10 }, // Preparation
+	{ x: 65, y: -185 }, // Activities
+	{ x: 100, y: 10 }, // Team
+	{ x: -65, y: 0 }, // Reflection (if present)
+	{ x: 10, y: -170 }, // Conclusion
+	{ x: -70, y: -200 }, // Resources
 ];
 
 const ANIM = {
@@ -43,68 +47,94 @@ function hslToHex(h, s, l) {
 }
 
 export default function ContentsPage({
-	activityCount = 0,
 	onNavigate,
 	progress = 0,
 	prefillStart = 0.06,
 
-	// Cards: manual x/y per card (kept from your previous setup)
-	cardPosOverrides,
+	// ✅ REAL targets passed from AppShell (no more local guessing)
+	tocTargets = {
+		introIndex: 2,
+		preparationIndex: 3,
+		activitiesIndex: 4,
+		teamIndex: -1,
+		reflectionIndex: -1,
+		conclusionIndex: -1,
+		resourcesIndex: -1,
+	},
 
-	// Layout knobs
+	// Layout / positioning
+	cardPosOverrides,
 	cardWidth = 210,
 	autoScaleCards = true,
 	clampCards = false,
 	clampMargin = 12,
-
-	// NEW: per-favicon offsets
-	// move each ICON horizontally and vertically (px)
-	nodeXOffsetOverrides = [], // e.g. [ -12, 0, 8, -6, 10 ]
-	nodeYOffsetOverrides = [], // e.g. [  -8, 6, 0,  4, -2 ]
+	nodeXOffsetOverrides = [],
+	nodeYOffsetOverrides = [],
 }) {
-	const startActivities = 4;
-	const teamIndex = startActivities + activityCount;
-	const conclusionIndex = teamIndex + 1;
-	const resourcesIndex = conclusionIndex + 1;
-
-	const items = useMemo(
-		() => [
+	// Build items strictly from the indices we got
+	const items = useMemo(() => {
+		const arr = [
 			{
-				label: "Introduction ",
-				index: 2,
+				label: "Introduction",
+				index: tocTargets.introIndex,
 				icon: faBookOpen,
 				hue: 215,
 			},
 			{
-				label: "Preparation & Activities",
-				index: 3,
+				label: "Preparation",
+				index: tocTargets.preparationIndex,
 				icon: faClipboardList,
 				hue: 260,
 			},
-			{ label: "Team & Reflection", index: teamIndex, icon: faUsers, hue: 305 },
+			{
+				label: "Activities",
+				index: tocTargets.activitiesIndex,
+				icon: faListCheck,
+				hue: 0, // red
+			},
+			{
+				label: "Team Reflections",
+				index: tocTargets.teamIndex,
+				icon: faUsers,
+				hue: 212, // match #67AAF9
+			},
+		];
+		if (
+			typeof tocTargets.reflectionIndex === "number" &&
+			tocTargets.reflectionIndex >= 0
+		) {
+			arr.push({
+				label: "Reflection",
+				index: tocTargets.reflectionIndex,
+				icon: faComments,
+				hue: 330,
+			});
+		}
+		arr.push(
 			{
 				label: "Conclusion",
-				index: conclusionIndex,
+				index: tocTargets.conclusionIndex,
 				icon: faFlagCheckered,
 				hue: 15,
 			},
 			{
 				label: "Resources",
-				index: resourcesIndex,
+				index: tocTargets.resourcesIndex,
 				icon: faFolderOpen,
 				hue: 145,
-			},
-		],
-		[teamIndex, conclusionIndex, resourcesIndex]
-	);
+			}
+		);
+
+		// filter out any invalid indices
+		return arr.filter((it) => typeof it.index === "number" && it.index >= 0);
+	}, [tocTargets]);
 
 	const prefersReduced = useReducedMotion();
 
 	const NODE_R = 26;
-	const CARD_H = 84;
 	const CARD_GAP_Y = 40;
 
-	// Cards: normalize overrides
+	// Normalize offsets to items length
 	const offsets = useMemo(() => {
 		const src = Array.isArray(cardPosOverrides)
 			? cardPosOverrides
@@ -115,7 +145,6 @@ export default function ContentsPage({
 		});
 	}, [cardPosOverrides, items]);
 
-	// Icons: normalize per-node X/Y overrides
 	const nodeX = useMemo(
 		() => items.map((_, i) => Number(nodeXOffsetOverrides?.[i]) || 0),
 		[items, nodeXOffsetOverrides]
@@ -313,7 +342,10 @@ export default function ContentsPage({
 									strokeDashoffset: prevProgOffsetRef.current ?? 1,
 									opacity: 1,
 								}}
-								animate={{ strokeDashoffset: 1 - adjusted, opacity: 1 }}
+								animate={{
+									strokeDashoffset: 1 - (prefersReduced ? clamped : adjusted),
+									opacity: 1,
+								}}
 								transition={{
 									duration: ANIM.progDuration,
 									ease: "easeInOut",
@@ -328,34 +360,37 @@ export default function ContentsPage({
 								const hue = it.hue ?? 210;
 								const nodeHex = hslToHex(hue, 64, 55);
 
+								// lane sizing
 								const lanes = items.length;
 								const laneW = 1200 / lanes;
 								const laneCenterX = laneW * (i + 0.5);
 								const lanePadding = 24;
 
-								// Card width & scaling
 								const maxCardW = Math.max(140, laneW - lanePadding * 2);
 								const scale = autoScaleCards
 									? Math.min(1, maxCardW / cardWidth)
 									: 1;
-								const CARD_W = cardWidth;
 
-								// Card position (manual per-card overrides)
+								// card position
 								const dx = offsets[i]?.x || 0;
 								const dy = offsets[i]?.y || 0;
 								let cardLeft = laneCenterX + dx;
 								const cardTop = pos.y + NODE_R + CARD_GAP_Y + dy;
 
 								if (clampCards) {
-									const halfW = (CARD_W * scale) / 2;
+									const halfW = (cardWidth * scale) / 2;
 									const minCenter = clampMargin + halfW;
 									const maxCenter = 1200 - (clampMargin + halfW);
 									cardLeft = Math.min(Math.max(cardLeft, minCenter), maxCenter);
 								}
 
 								return (
-									<li key={i} className="absolute" style={{ left: 0, top: 0 }}>
-										{/* ICON (favicon) — now supports per-node X and Y offsets */}
+									<li
+										key={`${it.label}-${i}`}
+										className="absolute"
+										style={{ left: 0, top: 0 }}
+									>
+										{/* ICON */}
 										<motion.button
 											id={`toc-node-${i}`}
 											type="button"
@@ -363,8 +398,8 @@ export default function ContentsPage({
 											className="outline-none pointer-events-auto rounded-full focus-visible:ring-4 focus-visible:ring-sky-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white/80"
 											style={{
 												position: "absolute",
-												left: pos.x + nodeX[i], // ← apply per-favicon X offset
-												top: pos.y + nodeY[i], // ← apply per-favicon Y offset
+												left: pos.x + (nodeX[i] || 0),
+												top: pos.y + (nodeY[i] || 0),
 												transform: "translate(-50%, -50%)",
 												WebkitTapHighlightColor: "transparent",
 												["--node-color"]: nodeHex,
@@ -418,7 +453,7 @@ export default function ContentsPage({
 											</motion.div>
 										</motion.button>
 
-										{/* CARD (clickable) */}
+										{/* CARD (fit-content) */}
 										<motion.button
 											id={`toc-card-${i}`}
 											type="button"
@@ -429,11 +464,11 @@ export default function ContentsPage({
 											style={{
 												left: cardLeft,
 												top: cardTop,
-												width: CARD_W,
-												height: CARD_H,
-												transform: `translate(-50%, 0) scale(${scale})`,
+												transform: `translate(-50%, 0)`,
 												WebkitTapHighlightColor: "transparent",
 												["--node-color"]: nodeHex,
+												width: "max-content",
+												maxWidth: "calc(100vw - 48px)",
 											}}
 											initial={{ opacity: 0, y: 14 }}
 											animate={{ opacity: 1, y: 0 }}
@@ -453,9 +488,9 @@ export default function ContentsPage({
 												}}
 											>
 												<div className="px-4 py-3 hover:shadow-[0_14px_40px_rgba(2,6,23,0.16)]">
-													<div className="flex items-center gap-2">
+													<div className="inline-flex items-center gap-2 whitespace-nowrap">
 														<span className="inline-block w-2.5 h-2.5 rounded-full bg-[var(--node-color)]" />
-														<span className="text-sm font-semibold text-slate-900 line-clamp-1">
+														<span className="text-sm font-semibold text-slate-900">
 															{it.label}
 														</span>
 													</div>

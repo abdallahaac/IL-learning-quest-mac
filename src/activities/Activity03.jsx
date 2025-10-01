@@ -132,7 +132,7 @@ export default function Activity03({
 					<TipCard accent={accent}>
 						Try making a traditional First Nations, Inuit or Métis recipe.
 						<br />
-						<strong>Share your experience</strong> (potluck optional!)
+						Share your experience (potluck optional!)
 					</TipCard>
 				</motion.header>
 
