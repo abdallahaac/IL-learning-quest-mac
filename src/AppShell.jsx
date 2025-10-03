@@ -389,7 +389,7 @@ export default function AppShell() {
 													}}
 													// Offsets (length will auto-match items)
 													nodeXOffsetOverrides={[
-														-70, -70, -60, -80, -70, -90, -160,
+														-70, -70, -60, -80, -70, -130, -170,
 													]}
 													nodeYOffsetOverrides={[
 														-100, 70, -105, 95, -95, 50, -130,
@@ -400,8 +400,8 @@ export default function AppShell() {
 														{ x: 10, y: -170 }, // Activities
 														{ x: -15, y: 30 }, // Team
 														{ x: 0, y: -160 }, // Reflection (ignored if not present)
-														{ x: -20, y: -15 }, // Conclusion
-														{ x: -80, y: 0 }, // Resources
+														{ x: -60, y: -15 }, // Conclusion
+														{ x: -100, y: 0 }, // Resources
 													]}
 													visitedIndices={[...state.visited]} // ← pass the visited page indices here
 												/>
