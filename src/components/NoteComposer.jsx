@@ -1,15 +1,16 @@
 import React from "react";
 import { motion } from "framer-motion";
+import Quill from "quill"; // v2
+import "quill/dist/quill.snow.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
-/** ---------- utils ---------- */
+/* ---------- utils ---------- */
 const normalizeHex = (h) => {
 	if (!h) return null;
 	let s = String(h).trim();
 	if (s[0] !== "#") s = `#${s}`;
-	if (!/^#([0-9a-f]{6})$/i.test(s)) return null;
-	return s.toUpperCase();
+	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
 };
-
 const hexToRgb = (hex) => {
 	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
 	if (!m) return { r: 0, g: 0, b: 0 };
@@ -19,624 +20,648 @@ const hexToRgb = (hex) => {
 		b: parseInt(m[3], 16),
 	};
 };
-
 const shadeHex = (hex, amt) => {
 	const { r, g, b } = hexToRgb(hex);
 	const t = amt < 0 ? 0 : 255;
 	const p = Math.abs(amt);
-	const nr = Math.round((t - r) * p + r);
-	const ng = Math.round((t - g) * p + g);
-	const nb = Math.round((t - b) * p + b);
 	const to2 = (n) => n.toString(16).padStart(2, "0");
-	return `#${to2(nr)}${to2(ng)}${to2(nb)}`;
+	return `#${to2(Math.round((t - r) * p + r))}${to2(
+		Math.round((t - g) * p + g)
+	)}${to2(Math.round((t - b) * p + b))}`;
 };
 
-const isLight = (hex) => {
-	const { r, g, b } = hexToRgb(hex);
-	const toLin = (c) =>
-		c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-	const [R, G, B] = [r, g, b].map((v) => toLin(v / 255));
-	const L = 0.2126 * R + 0.7152 * G + 0.0722 * B;
-	return L > 0.5;
+// Force heading color inline for Word (.doc) export
+const colorizeHeadings = (html, hex) => {
+	if (!hex) return html || "";
+	// add style to <h1>, <h2>, <h3> tags (keep any existing attrs)
+	return (html || "").replace(
+		/<h([1-3])(\b[^>]*)?>/gi,
+		(m, lvl, attrs = "") => {
+			// if style already sets color, leave it
+			const hasColor = /style\s*=\s*["'][^"']*color\s*:/i.test(attrs);
+			if (hasColor) return m;
+			const styleAttr = /style\s*=\s*["'][^"']*["']/i.test(attrs)
+				? attrs.replace(
+						/style\s*=\s*["']([^"']*)["']/i,
+						(sm, val) => `style="${val}; color: ${hex}"`
+				  )
+				: `${attrs} style="color: ${hex}"`;
+			return `<h${lvl}${styleAttr}>`;
+		}
+	);
 };
 
-function escapeHtml(s = "") {
-	return s
-		.replaceAll("&", "&amp;")
-		.replaceAll("<", "&lt;")
-		.replaceAll(">", "&gt;")
-		.replaceAll('"', "&quot;")
-		.replaceAll("'", "&#39;");
+/* ---------- Quill modules (preserve selection + select-all) ---------- */
+const makeQuillModules = (toolbarEl, savedRangeRef, onUndo, onRedo) => ({
+	toolbar: {
+		container: toolbarEl,
+		handlers: {
+			_restoreSel(q) {
+				const r = savedRangeRef.current || q.getSelection();
+				if (!r) return null;
+				q.setSelection(r.index, r.length, "silent");
+				return r;
+			},
+			_reselect(q, r) {
+				if (!r) return;
+				q.setSelection(r.index, r.length, "silent");
+			},
+
+			header(value) {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				const v =
+					value === false || value === "false" || value === "" ? false : value;
+				q.formatLine(r.index, Math.max(1, r.length), "header", v, "user");
+				this.handlers._reselect(q, r);
+			},
+
+			bold() {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				const cur = q.getFormat(r.index, r.length).bold;
+				q.format("bold", !cur, "user");
+				this.handlers._reselect(q, r);
+			},
+			italic() {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				const cur = q.getFormat(r.index, r.length).italic;
+				q.format("italic", !cur, "user");
+				this.handlers._reselect(q, r);
+			},
+			underline() {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				const cur = q.getFormat(r.index, r.length).underline;
+				q.format("underline", !cur, "user");
+				this.handlers._reselect(q, r);
+			},
+			strike() {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				const cur = q.getFormat(r.index, r.length).strike;
+				q.format("strike", !cur, "user");
+				this.handlers._reselect(q, r);
+			},
+
+			list(value) {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				const cur = q.getFormat(r.index, r.length).list;
+				const next = cur === value ? false : value;
+				q.format("list", next, "user");
+				this.handlers._reselect(q, r);
+			},
+
+			indent(value) {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				q.format("indent", value, "user");
+				this.handlers._reselect(q, r);
+			},
+
+			align(value) {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				q.format("align", value || false, "user");
+				this.handlers._reselect(q, r);
+			},
+			color(value) {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				q.format("color", value || false, "user");
+				this.handlers._reselect(q, r);
+			},
+			background(value) {
+				const q = this.quill;
+				const r = this.handlers._restoreSel.call(this, q);
+				if (!r) return;
+				q.format("background", value || false, "user");
+				this.handlers._reselect(q, r);
+			},
+
+			undo: onUndo,
+			redo: onRedo,
+
+			// Select all
+			selectall() {
+				const q = this.quill;
+				const len = Math.max(0, (q.getLength?.() ?? 0) - 1);
+				q.setSelection(0, len, "silent");
+				if (savedRangeRef) savedRangeRef.current = { index: 0, length: len };
+			},
+		},
+	},
+	clipboard: { matchVisual: false },
+	keyboard: {
+		bindings: {
+			link: { key: "K", shortKey: true, handler: () => false },
+			undo: {
+				key: "Z",
+				shortKey: true,
+				handler() {
+					onUndo?.();
+					return false;
+				},
+			},
+			redoShiftZ: {
+				key: "Z",
+				shortKey: true,
+				shiftKey: true,
+				handler() {
+					onRedo?.();
+					return false;
+				},
+			},
+			redoCtrlY: {
+				key: "Y",
+				shortKey: true,
+				handler() {
+					onRedo?.();
+					return false;
+				},
+			},
+			indent: {
+				key: 9,
+				handler(range, ctx) {
+					if (ctx && (ctx.format.list || ctx.format.indent >= 0)) {
+						this.quill.format("indent", "+1", "user");
+						return false;
+					}
+					return true;
+				},
+			},
+			outdent: {
+				key: 9,
+				shiftKey: true,
+				handler(range, ctx) {
+					if (ctx && (ctx.format.list || ctx.format.indent >= 0)) {
+						this.quill.format("indent", "-1", "user");
+						return false;
+					}
+					return true;
+				},
+			},
+		},
+	},
+	history: { delay: 300, maxStack: 200, userOnly: true },
+});
+
+const QUILL_FORMATS = [
+	"header",
+	"bold",
+	"italic",
+	"underline",
+	"strike",
+	"blockquote",
+	"list",
+	"indent",
+	"align",
+	"color",
+	"background",
+];
+
+/* ---------- Quill host ---------- */
+function QuillSurface({
+	value = "",
+	onChange,
+	placeholder,
+	buildModules,
+	formats,
+	className,
+	toolbarEl,
+}) {
+	const hostRef = React.useRef(null);
+	const quillRef = React.useRef(null);
+	const savedRangeRef = React.useRef(null);
+
+	React.useEffect(() => {
+		if (!hostRef.current || !toolbarEl) return;
+
+		const onUndo = () => quillRef.current?.history.undo();
+		const onRedo = () => quillRef.current?.history.redo();
+
+		quillRef.current = new Quill(hostRef.current, {
+			theme: "snow",
+			placeholder,
+			modules: buildModules(toolbarEl, savedRangeRef, onUndo, onRedo),
+			formats,
+		});
+
+		quillRef.current.root.innerHTML = value || "";
+		const onText = () => onChange?.(quillRef.current.root.innerHTML);
+		quillRef.current.on("text-change", onText);
+
+		const onSelChange = (range) => {
+			if (range) savedRangeRef.current = range;
+		};
+		quillRef.current.on("selection-change", onSelChange);
+
+		// Keep selection while clicking toolbar buttons
+		const rememberSel = () => {
+			const r = quillRef.current.getSelection();
+			if (r) savedRangeRef.current = r;
+		};
+		toolbarEl.addEventListener("pointerdown", rememberSel, { capture: true });
+		toolbarEl.addEventListener("focusin", rememberSel, { capture: true });
+		const stopFocusSteal = (e) => {
+			const isButton = e.target.closest?.(
+				"button, .ql-selectall, .ql-bold, .ql-italic, .ql-underline, .ql-strike, .ql-list, .ql-indent, .ql-undo, .ql-redo"
+			);
+			const isSelect = e.target.closest?.("select, .ql-picker");
+			if (isButton && !isSelect) e.preventDefault();
+		};
+		toolbarEl.addEventListener("mousedown", stopFocusSteal, { capture: true });
+		const restoreSelOnClick = () => {
+			const q = quillRef.current;
+			if (!q) return;
+			const r = savedRangeRef.current || q.getSelection();
+			if (!r) return;
+			q.setSelection(r.index, r.length, "silent");
+		};
+		toolbarEl.addEventListener("click", restoreSelOnClick, { capture: true });
+
+		return () => {
+			quillRef.current?.off("text-change", onText);
+			quillRef.current?.off("selection-change", onSelChange);
+			toolbarEl.removeEventListener("pointerdown", rememberSel, {
+				capture: true,
+			});
+			toolbarEl.removeEventListener("focusin", rememberSel, { capture: true });
+			toolbarEl.removeEventListener("mousedown", stopFocusSteal, {
+				capture: true,
+			});
+			toolbarEl.removeEventListener("click", restoreSelOnClick, {
+				capture: true,
+			});
+			quillRef.current = null;
+		};
+	}, [buildModules, toolbarEl]);
+
+	React.useEffect(() => {
+		const q = quillRef.current;
+		if (!q) return;
+		const next = value || "";
+		if (q.root.innerHTML !== next) {
+			const sel = q.getSelection();
+			q.root.innerHTML = next;
+			if (sel) q.setSelection(sel, "silent");
+		}
+	}, [value]);
+
+	return (
+		<div
+			ref={hostRef}
+			className={className}
+			role="textbox"
+			aria-label="Rich text editor"
+			style={{ resize: "vertical", overflow: "auto", borderRadius: "1rem" }}
+		/>
+	);
 }
 
-/** ---------- Component ---------- */
+/* ---------- Component ---------- */
 export default function NoteComposer({
 	value,
 	onChange,
 	placeholder = "Type your reflections…",
-	storageKey = "notes-default",
-	palette, // optional tailwind palette { text, ring, border }
-	accent, // hex like "#f59e0b"
-	textColor, // "white" | "black"
-
-	// sizing / overrides
-	size = "md", // "sm" | "md" | "lg" | "xl"
-	rows,
+	size = "md",
 	minHeight = "min-h-32",
 	wrapperClassName = "",
 	textareaClassName = "",
 	panelMinHClass = "min-h-64",
+	accent,
+	textColor,
 
-	// download options
-	enableDownload = true,
-	downloadFileName = "Reflection.docx",
-	docTitle = "Reflection",
-	docSubtitle, // optional subtitle
-	includeLinks = false, // Resources section toggle
-	pageLinks = [], // [{ label, url }]
+	/* NEW: export metadata */
+	downloadFileName = "Reflection.doc",
+	docTitle = "Activity",
+	docSubtitle,
+	activityNumber,
+	docIntro, // Activity tip
+	includeLinks = false,
 	linksHeading = "Resources",
-
-	// NEW
-	docIntro, // string or string[] (Tip card content)
-	headingColor = "#2563eb", // blue headings
-	activityNumber, // optional number to prepend in exported title
+	pageLinks = [],
+	headingColor = "#0b1220", // used only for export if you want to override accent
 }) {
-	/** model */
 	const model = React.useMemo(() => {
-		if (typeof value === "string" || !value) {
+		if (typeof value === "string" || !value)
 			return { text: value || "", bullets: [] };
-		}
 		return {
 			text: value.text || "",
 			bullets: Array.isArray(value.bullets) ? value.bullets : [],
 		};
 	}, [value]);
 
-	/** palette / hex mode */
-	const accentHex = normalizeHex(accent);
-	const useHex = !!accentHex;
+	const [html, setHtml] = React.useState(model.text || "");
+	React.useEffect(() => setHtml(model.text || ""), [model.text]);
+	const emit = (nextHtml) => {
+		setHtml(nextHtml);
+		onChange?.({ text: nextHtml, bullets: model.bullets || [] });
+	};
 
-	const hexBtn = useHex ? accentHex : "#0EA5E9"; // sky-500 fallback
-	const hexBtnHover = useHex ? shadeHex(accentHex, -0.1) : "#0284C7";
-	const hexBtnActive = useHex ? shadeHex(accentHex, -0.18) : "#0369A1";
+	const toolbarRef = React.useRef(null);
+	const [toolbarEl, setToolbarEl] = React.useState(null);
+	React.useEffect(() => {
+		setToolbarEl(toolbarRef.current);
+	}, []);
 
-	// text on the accent button
-	const btnText =
-		textColor === "white"
-			? "#FFFFFF"
-			: textColor === "black"
-			? "#0B1220"
-			: useHex && isLight(hexBtn)
-			? "#0B1220"
-			: "#FFFFFF";
+	const modulesBuilder = React.useCallback(
+		(toolbarEl, savedRangeRef, undo, redo) =>
+			makeQuillModules(toolbarEl, savedRangeRef, undo, redo),
+		[]
+	);
 
-	// focus "ring" imitation
-	const focusShadow = useHex ? `0 0 0 2px ${accentHex}` : undefined;
-
-	const pal = useHex
-		? {
-				text: "text-slate-900",
-				ringClass: "focus:outline-none",
-				border: "border-gray-200",
-		  }
-		: {
-				text: palette?.text || "text-sky-700",
-				ringClass: palette?.ring || "focus-visible:ring-sky-700",
-				border: palette?.border || "border-sky-100",
-		  };
-
-	/** sizes */
 	const SIZES = {
-		sm: {
-			wrapper: "p-3 space-y-2",
-			tabBtn: "px-2 py-1.5 text-xs",
-			label: "text-xs",
-			input: "px-2 py-1.5 text-sm",
-			textarea: "p-2 text-sm",
-		},
-		md: {
-			wrapper: "p-4 space-y-3",
-			tabBtn: "px-3 py-1.5 text-sm",
-			label: "text-sm",
-			input: "px-2 py-1.5 text-sm",
-			textarea: "p-3 text-base",
-		},
-		lg: {
-			wrapper: "p-5 space-y-4",
-			tabBtn: "px-3.5 py-2 text-base",
-			label: "text-sm",
-			input: "px-3 py-2 text-base",
-			textarea: "p-4 text-lg",
-		},
-		xl: {
-			wrapper: "p-6 space-y-5",
-			tabBtn: "px-4 py-2 text-lg",
-			label: "text-base",
-			input: "px-3.5 py-2 text-lg",
-			textarea: "p-5 text-xl",
-		},
+		sm: { wrapper: "p-3 space-y-2", label: "text-xs", editor: "text-sm" },
+		md: { wrapper: "p-4 space-y-3", label: "text-sm", editor: "text-base" },
+		lg: { wrapper: "p-5 space-y-4", label: "text-sm", editor: "text-lg" },
 	};
 	const sz = SIZES[size] || SIZES.md;
 
-	/** state */
-	const [tab, setTab] = React.useState("write");
-	const signal = (next) => onChange?.(next);
+	const accentHex = normalizeHex(accent) || "#0EA5E9";
+	const btnText =
+		textColor === "white" ? "#fff" : textColor === "black" ? "#0B1220" : "#fff";
 
-	/** bullets helpers */
-	const computedBullets =
-		model.bullets && model.bullets.length > 0 ? model.bullets : [""];
+	/* ---- Download as Word-compatible HTML with sections ---- */
+	const downloadWord = () => {
+		const safeTitle =
+			typeof activityNumber === "number"
+				? `Activity ${activityNumber}: ${docTitle}`
+				: docTitle;
 
-	const updateBullet = (i, v) => {
-		const base = Array.isArray(model.bullets) ? [...model.bullets] : [];
-		if (i >= base.length) {
-			while (base.length < i) base.push("");
-			base.push(v);
-		} else {
-			base[i] = v;
+		// Use headingColor if passed, otherwise fall back to accent
+		const exportHeadingColor =
+			normalizeHex(headingColor) || normalizeHex(accent) || "#2563EB";
+
+		// Word-friendly CSS. Keep the color here too, but the inline styles will win.
+		const docCss = `
+    body { background: #ffffff; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; color: #0b1220; }
+    h1, h2, h3 { margin: 0 0 8pt; }  /* color set inline */
+    h1 { font-size: 20pt; }
+    h2 { font-size: 14pt; }
+    h3 { font-size: 12pt; }
+    p { margin: 0 0 10pt; white-space: pre-wrap; }
+    ul, ol { margin: 0 0 12pt 22pt; }
+    li { margin: 0 0 6pt; }
+    a { color: ${exportHeadingColor}; text-decoration: underline; }
+
+    /* Preserve Quill semantics */
+    .ql-editor h1 { font-size: 20pt; }
+    .ql-editor h2 { font-size: 14pt; }
+    .ql-editor h3 { font-size: 12pt; }
+    .ql-align-center { text-align: center; }
+    .ql-align-right { text-align: right; }
+    .ql-align-justify { text-align: justify; }
+    .ql-indent-1 { margin-left: 2em; }
+    .ql-indent-2 { margin-left: 4em; }
+    .ql-indent-3 { margin-left: 6em; }
+    .ql-indent-4 { margin-left: 8em; }
+
+    .cover { margin-bottom: 12pt; }
+    .section { margin: 14pt 0; }
+    .small-label { font-size: 10pt; color: #475569; margin-bottom: 4pt; }
+  `;
+
+		// Colorize any headings the user created inside the editor HTML
+		const editorBlock = `<div class="ql-editor">${colorizeHeadings(
+			html,
+			exportHeadingColor
+		)}</div>`;
+
+		// Inline color on your static section headings too
+		const body = `
+    <div class="cover">
+      <h1 style="color: ${exportHeadingColor}">${safeTitle}</h1>
+      ${docSubtitle ? `<div class="small-label">${docSubtitle}</div>` : ""}
+    </div>
+
+    ${
+			docIntro
+				? `
+      <div class="section">
+        <h2 style="color: ${exportHeadingColor}">Activity tip</h2>
+        <p>${docIntro.replace(/\n/g, "<br/>")}</p>
+      </div>`
+				: ""
 		}
-		signal({ ...model, bullets: base });
-	};
 
-	const insertBulletAfter = (i) => {
-		const base = Array.isArray(model.bullets) ? [...model.bullets] : [];
-		if (base.length === 0) base.push(computedBullets[0] || "");
-		base.splice(i + 1, 0, "");
-		signal({ ...model, bullets: base });
-	};
+    <div class="section">
+      <h2 style="color: ${exportHeadingColor}">Saved reflections</h2>
+      ${editorBlock}
+    </div>
 
-	const removeBullet = (i) => {
-		const base = Array.isArray(model.bullets) ? [...model.bullets] : [];
-		if (base.length === 0) return;
-		base.splice(i, 1);
-		signal({ ...model, bullets: base });
-	};
-
-	const onBulletKeyDown = (i, e) => {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault();
-			insertBulletAfter(i);
-		}
-	};
-
-	/** download to DOCX (Arial + blue headings + intro + Activity number in title + bullet hyperlinks) */
-	const downloadDocx = async () => {
-		const baseTitle = docTitle || "Reflection";
-		const mainTitle =
-			activityNumber != null && activityNumber !== ""
-				? `Activity ${activityNumber}: ${baseTitle}`
-				: baseTitle;
-
-		const subtitle = docSubtitle;
-		const bullets = (model.bullets || []).filter(Boolean);
-		const links = includeLinks
-			? (Array.isArray(pageLinks) ? pageLinks : []).filter(
-					(l) => l && (l.url || l.href)
-			  )
-			: [];
-
-		const headingHex = normalizeHex(headingColor) || "#2563EB";
-
-		try {
-			const {
-				Document,
-				Packer,
-				Paragraph,
-				TextRun,
-				AlignmentType,
-				ExternalHyperlink,
-			} = await import("docx");
-
-			// helpers with explicit Arial + spacing + colored headings
-			const Title = (t) =>
-				new Paragraph({
-					alignment: AlignmentType.LEFT,
-					spacing: { before: 0, after: 300 }, // ~15pt after
-					children: [
-						new TextRun({
-							text: t,
-							bold: true,
-							size: 48,
-							font: "Arial",
-							color: "#4380d6",
-						}), // ~24pt
-					],
-				});
-
-			const SubtitleP = (t) =>
-				new Paragraph({
-					spacing: { before: 0, after: 240 },
-					children: [
-						new TextRun({ text: t, italics: true, size: 28, font: "Arial" }), // ~14pt
-					],
-				});
-
-			const H2 = (t) =>
-				new Paragraph({
-					spacing: { before: 280, after: 160 },
-					children: [
-						new TextRun({
-							text: t,
-							bold: true,
-							size: 32,
-							font: "Arial",
-							color: "#4380d6",
-						}),
-					], // ~16pt
-				});
-
-			const Body = (t) =>
-				new Paragraph({
-					spacing: { before: 0, after: 120, line: 360 }, // 1.5 line
-					children: [new TextRun({ text: t, size: 24, font: "Arial" })], // ~12pt
-				});
-
-			const Bullet = (t) =>
-				new Paragraph({
-					spacing: { before: 0, after: 60 },
-					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
-					bullet: { level: 0 },
-				});
-
-			// Bullet item with hyperlink label
-			const BulletLink = (label, url) =>
-				new Paragraph({
-					spacing: { before: 0, after: 60 },
-					bullet: { level: 0 },
-					children: [
-						new ExternalHyperlink({
-							link: url,
-							children: [
-								new TextRun({
-									text: label || url || "-",
-									font: "Arial",
-									size: 24,
-									underline: {},
-									color: "0563C1", // Word's default hyperlink blue
-								}),
-							],
-						}),
-					],
-				});
-
-			const children = [];
-
-			// Title / Subtitle (Activity N: Title)
-			children.push(Title(mainTitle));
-			if (subtitle) children.push(SubtitleP(subtitle));
-
-			// Activity tip (docIntro) — split into sentences
-			if (docIntro && String(docIntro).trim()) {
-				const parts = Array.isArray(docIntro)
-					? docIntro
-					: String(docIntro)
-							.split(/(?<=[.!?])\s+/)
-							.map((s) => s.trim())
-							.filter(Boolean);
-
-				children.push(H2("Activity tip"));
-				parts.forEach((p) => children.push(Body(p)));
-			}
-
-			// Saved response
-			if (model.text?.trim()) {
-				children.push(H2("Saved reflections"));
-				model.text
-					.split(/\n{2,}/)
-					.map((p) => p.trim())
-					.filter(Boolean)
-					.forEach((p) => children.push(Body(p)));
-			}
-
-			// Bullets
-			if (bullets.length) {
-				children.push(H2("Bullet points"));
-				bullets.forEach((b) => children.push(Bullet(b)));
-			}
-
-			// Resources — header + bullet hyperlinks (no table)
-			if (links.length) {
-				children.push(H2(linksHeading || "Resources"));
-				links.forEach((l) => {
-					const label = String(
-						l.label || l.title || l.url || l.href || ""
-					).trim();
-					const url = String(l.url || l.href || "").trim();
-					children.push(BulletLink(label, url));
-				});
-			}
-
-			const doc = new Document({
-				styles: {
-					default: {
-						document: {
-							run: { font: "Arial", size: 24 }, // global default ~12pt Arial
-							paragraph: { spacing: { line: 360 } }, // 1.5 line default
-						},
-					},
-				},
-				sections: [{ properties: {}, children }],
-			});
-
-			const blob = await Packer.toBlob(doc);
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = downloadFileName || "Reflection.docx";
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
-		} catch {
-			// Fallback: HTML .doc (Arial + spacing + blue headers + bullet hyperlinks)
-			const parts = [];
-
-			const safeTitle =
-				activityNumber != null && activityNumber !== ""
-					? `Activity ${escapeHtml(String(activityNumber))}: ${escapeHtml(
-							baseTitle
-					  )}`
-					: escapeHtml(baseTitle);
-
-			parts.push(
-				`<h1 style="font-family:Arial; font-size:24pt; color:${escapeHtml(
-					headingHex
-				)}; margin:0 0 15pt;">${safeTitle}</h1>`
-			);
-			if (subtitle) {
-				parts.push(
-					`<p style="font-family:Arial; font-size:14pt; font-style:italic; margin:0 0 12pt;">${escapeHtml(
-						subtitle
-					)}</p>`
-				);
-			}
-
-			// Activity tip
-			if (docIntro && String(docIntro).trim()) {
-				const tipParts = Array.isArray(docIntro)
-					? docIntro
-					: String(docIntro)
-							.split(/(?<=[.!?])\s+/)
-							.map((s) => s.trim())
-							.filter(Boolean);
-
-				parts.push(
-					`<h2 style="font-family:Arial; font-size:16pt; color:${escapeHtml(
-						headingHex
-					)}; margin:24pt 0 12pt;">Activity tip</h2>`
-				);
-				tipParts.forEach((p) =>
-					parts.push(
-						`<p style="font-family:Arial; font-size:12pt; line-height:1.5; margin:0 0 9pt;">${escapeHtml(
-							p
-						)}</p>`
-					)
-				);
-			}
-
-			// Saved response
-			if (model.text?.trim()) {
-				parts.push(
-					`<h2 style="font-family:Arial; font-size:16pt; color:${escapeHtml(
-						headingHex
-					)}; margin:24pt 0 12pt;">Saved response</h2>`
-				);
-				const paras = model.text
-					.split(/\n{2,}/)
-					.map((p) => p.trim())
-					.filter(Boolean)
-					.map(
-						(p) =>
-							`<p style="font-family:Arial; font-size:12pt; line-height:1.5; margin:0 0 9pt;">${escapeHtml(
-								p
-							).replace(/\n/g, "<br/>")}</p>`
-					)
-					.join("");
-				parts.push(paras);
-			}
-
-			// Bullets
-			const bs = (model.bullets || []).filter(Boolean);
-			if (bs.length) {
-				parts.push(
-					`<h2 style="font-family:Arial; font-size:16pt; color:${escapeHtml(
-						headingHex
-					)}; margin:24pt 0 12pt;">Bullet points</h2>`
-				);
-				parts.push(
-					`<ul style="font-family:Arial; font-size:12pt; line-height:1.5; margin:0 0 12pt 18pt;">${bs
-						.map((b) => `<li style="margin:0 0 6pt;">${escapeHtml(b)}</li>`)
-						.join("")}</ul>`
-				);
-			}
-
-			// Resources — bullets with hyperlink labels
-			if (includeLinks && links.length) {
-				parts.push(
-					`<h2 style="font-family:Arial; font-size:16pt; color:${escapeHtml(
-						headingHex
-					)}; margin:24pt 0 12pt;">${escapeHtml(
+    ${
+			includeLinks && pageLinks?.length
+				? `
+      <div class="section">
+        <h2 style="color: ${exportHeadingColor}">${
 						linksHeading || "Resources"
-					)}</h2>`
-				);
-				parts.push(
-					`<ul style="font-family:Arial; font-size:12pt; line-height:1.5; margin:0 0 12pt 18pt;">${links
+				  }</h2>
+        <ul>
+          ${pageLinks
 						.map((l) => {
-							const label = String(
-								l.label || l.title || l.url || l.href || ""
-							).trim();
-							const url = String(l.url || l.href || "").trim();
-							const safeLabel = escapeHtml(label || "-");
-							const safeUrl = escapeHtml(url || "");
-							return `<li style="margin:0 0 6pt;">${
-								safeUrl
-									? `<a href="${safeUrl}" style="text-decoration:underline; color:#0563C1;">${safeLabel}</a>`
-									: safeLabel
-							}</li>`;
+							const label = (l?.label || "").toString();
+							const url = (l?.url || "").toString();
+							return url
+								? `<li><a href="${url}">${label}</a></li>`
+								: `<li>${label}</li>`;
 						})
-						.join("")}</ul>`
-				);
-			}
-
-			const html = `
-        <html><head><meta charset="utf-8"><title>${safeTitle}</title></head>
-        <body style="font-family:Arial; line-height:1.5;">
-          ${parts.join("\n")}
-        </body></html>
-      `.trim();
-
-			const blob = new Blob([html], { type: "application/msword" });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = (downloadFileName || "Reflection.docx").replace(
-				/\.docx$/i,
-				".doc"
-			);
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
+						.join("")}
+        </ul>
+      </div>`
+				: ""
 		}
+  `.trim();
+
+		const htmlDoc = `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>${safeTitle}</title>
+          <style>${docCss}</style>
+        </head>
+        <body>${body}</body>
+      </html>
+    `.trim();
+
+		const blob = new Blob([htmlDoc], {
+			// HTML .doc plays nicest with Word’s importer
+			type: "application/msword",
+		});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = downloadFileName || "Reflection.doc";
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+		URL.revokeObjectURL(url);
 	};
 
 	return (
 		<div
-			className={`bg-white/80 backdrop-blur border border-gray-200 rounded-xl shadow ${sz.wrapper} ${wrapperClassName}`}
+			className={`bg-white/80 backdrop-blur border border-gray-200 rounded-2xl shadow ${sz.wrapper} ${wrapperClassName}`}
 		>
-			{/* Tabs + Download */}
+			{/* Top row */}
 			<div className="flex items-center justify-between gap-2">
-				<div className="flex gap-1">
-					{["write", "bullets"].map((k) => {
-						const active = tab === k;
-						return (
-							<button
-								key={k}
-								onClick={() => setTab(k)}
-								className={`rounded-lg border ${sz.tabBtn} ${
-									active
-										? ""
-										: "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
-								}`}
-								style={
-									useHex && active
-										? {
-												backgroundColor: hexBtn,
-												color: btnText,
-												borderColor: "transparent",
-										  }
-										: undefined
-								}
-								title={k === "write" ? "Write" : "Bullets"}
-							>
-								{k === "write" ? "Write" : "Bullets"}
-							</button>
-						);
-					})}
+				<div className="flex flex-wrap items-center gap-1">
+					<span className={`mr-2 font-medium text-gray-700 ${sz.label}`}>
+						Reflections
+					</span>
+
+					{/* Toolbar */}
+					<div
+						ref={toolbarRef}
+						className="flex flex-wrap items-center gap-0.5 rounded-xl bg-white/80 px-1 py-0.5 border border-gray-200"
+					>
+						{/* Select all (keep commented out if you don't want it visible) */}
+						{/* <button className="ql-selectall" title="Select all">
+              <i className="fa-regular fa-object-group" />
+            </button> */}
+
+						{/* Header */}
+						<select
+							className="ql-header rounded-lg"
+							defaultValue="false"
+							title="Paragraph / Headings"
+						>
+							<option value="false">Paragraph</option>
+							<option value="1">Heading 1</option>
+							<option value="2">Heading 2</option>
+							<option value="3">Heading 3</option>
+							<option value="4">Heading 4</option>
+						</select>
+
+						{/* Inline */}
+						<button className="ql-bold" title="Bold (Ctrl/Cmd+B)">
+							<i className="fa-solid fa-bold" />
+						</button>
+						<button className="ql-italic" title="Italic (Ctrl/Cmd+I)">
+							<i className="fa-solid fa-italic" />
+						</button>
+						<button className="ql-underline" title="Underline (Ctrl/Cmd+U)">
+							<i className="fa-solid fa-underline" />
+						</button>
+						<button className="ql-strike" title="Strikethrough">
+							<i className="fa-solid fa-strikethrough" />
+						</button>
+
+						<span className="mx-1 h-4 w-px bg-gray-200 rounded" aria-hidden />
+
+						{/* Lists */}
+						<button className="ql-list" value="ordered" title="Numbered list">
+							<i className="fa-solid fa-list-ol" />
+						</button>
+						<button className="ql-list" value="bullet" title="Bullet list">
+							<i className="fa-solid fa-list-ul" />
+						</button>
+
+						<span className="mx-1 h-4 w-px bg-gray-200 rounded" aria-hidden />
+
+						{/* Color pickers */}
+						<select className="ql-color rounded-lg" title="Text color" />
+						<select
+							className="ql-background rounded-lg"
+							title="Highlight color"
+						/>
+
+						<span className="mx-1 h-4 w-px bg-gray-200 rounded" aria-hidden />
+
+						{/* Undo / Redo */}
+						<button className="ql-undo" title="Undo (Ctrl/Cmd+Z)">
+							<i className="fa-solid fa-rotate-left" />
+						</button>
+						<button className="ql-redo" title="Redo (Ctrl+Y / Cmd+Shift+Z)">
+							<i className="fa-solid fa-rotate-right" />
+						</button>
+					</div>
 				</div>
 
-				{enableDownload && (
-					<button
-						type="button"
-						onClick={downloadDocx}
-						className={`rounded-lg ${sz.tabBtn}`}
-						style={{ backgroundColor: hexBtn, color: btnText }}
-						onMouseEnter={(e) =>
-							(e.currentTarget.style.backgroundColor = hexBtnHover)
-						}
-						onMouseLeave={(e) =>
-							(e.currentTarget.style.backgroundColor = hexBtn)
-						}
-						onMouseDown={(e) =>
-							(e.currentTarget.style.backgroundColor = hexBtnActive)
-						}
-						onMouseUp={(e) =>
-							(e.currentTarget.style.backgroundColor = hexBtnHover)
-						}
-						title="Download as .docx"
-					>
-						Download (.docx)
-					</button>
-				)}
+				{/* Download button */}
+				<button
+					type="button"
+					onClick={downloadWord}
+					className="rounded-xl px-2.5 py-1.5 text-sm shadow-sm transition-colors"
+					style={{ backgroundColor: accentHex, color: btnText }}
+					onMouseEnter={(e) =>
+						(e.currentTarget.style.backgroundColor = shadeHex(accentHex, -0.08))
+					}
+					onMouseLeave={(e) =>
+						(e.currentTarget.style.backgroundColor = accentHex)
+					}
+				>
+					Download (.doc)
+				</button>
 			</div>
 
-			{/* Panel */}
+			{/* Editor */}
 			<div className={panelMinHClass}>
-				{tab === "write" && (
-					<motion.div
-						initial={{ opacity: 0, y: 6 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.2 }}
+				<motion.div
+					initial={{ opacity: 0, y: 6 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.16 }}
+				>
+					<div
+						className={`w-full ${minHeight} bg-gray-50 border border-gray-200 rounded-2xl ${sz.editor} ${textareaClassName}`}
+						style={{ overflow: "hidden" }}
 					>
-						<label
-							htmlFor={`${storageKey}-text`}
-							className={`block font-medium text-gray-700 mb-1 ${sz.label}`}
-						>
-							Reflection
-						</label>
-						<textarea
-							id={`${storageKey}-text`}
-							value={model.text}
-							onChange={(e) => onChange?.({ ...model, text: e.target.value })}
+						<QuillSurface
+							value={html}
+							onChange={emit}
 							placeholder={placeholder}
-							rows={rows}
-							className={`w-full ${minHeight} bg-gray-50 border border-gray-200 rounded-lg text-gray-800
-                focus:outline-none ${
-									useHex ? "" : `focus:ring-2 ${pal.ringClass}`
-								}
-                resize-vertical ${sz.textarea} ${textareaClassName}`}
-							style={useHex ? { boxShadow: "none" } : undefined}
-							onFocus={(e) => {
-								if (useHex) e.currentTarget.style.boxShadow = focusShadow;
-							}}
-							onBlur={(e) => {
-								if (useHex) e.currentTarget.style.boxShadow = "none";
-							}}
+							buildModules={modulesBuilder}
+							formats={QUILL_FORMATS}
+							className="h-full"
+							toolbarEl={toolbarEl}
 						/>
-					</motion.div>
-				)}
+					</div>
+				</motion.div>
 
-				{tab === "bullets" && (
-					<motion.div
-						initial={{ opacity: 0, y: 6 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.2 }}
-						className="space-y-2"
-					>
-						<label className={`block font-medium text-gray-700 ${sz.label}`}>
-							Bullet points
-						</label>
-						<ul className="space-y-2">
-							{computedBullets.map((b, i) => (
-								<li key={i} className="flex gap-2">
-									<span className="mt-2 text-gray-400">•</span>
-									<input
-										className={`flex-1 rounded-md border border-gray-200 bg-gray-50 focus:outline-none ${
-											useHex ? "" : `focus:ring-2 ${pal.ringClass}`
-										} ${sz.input}`}
-										value={b}
-										onChange={(e) => updateBullet(i, e.target.value)}
-										onKeyDown={(e) => onBulletKeyDown(i, e)}
-										placeholder="Type a point and press Enter…"
-										style={useHex ? { boxShadow: "none" } : undefined}
-										onFocus={(e) => {
-											if (useHex) e.currentTarget.style.boxShadow = focusShadow;
-										}}
-										onBlur={(e) => {
-											if (useHex) e.currentTarget.style.boxShadow = "none";
-										}}
-									/>
-									<button
-										onClick={() => removeBullet(i)}
-										className="px-2 py-1 rounded-md border border-gray-300 bg-gray-50 hover:bg-gray-100 text-sm"
-										title="Remove"
-									>
-										Remove
-									</button>
-								</li>
-							))}
-						</ul>
-					</motion.div>
-				)}
+				{/* Style polish */}
+				<style>{`
+          .ql-container { min-height: 12rem; border: none; }
+          .ql-toolbar { border: none; padding: 0; }
+          .ql-editor { min-height: 10rem; outline: none; }
+          .ql-editor ::selection { background: rgba(37,99,235,.18); }
+
+          .ql-toolbar button, .ql-toolbar .ql-picker {
+            min-height: 22px; min-width: 22px;
+            border-radius: 12px;
+            transition: background-color .12s ease, transform .06s ease, box-shadow .12s ease;
+          }
+          .ql-toolbar button i { font-size: 12px; line-height: 1; }
+          .ql-toolbar .ql-picker-label, .ql-toolbar .ql-picker-item { line-height: 18px; padding: 0 8px; }
+
+          .ql-toolbar .ql-picker-label:hover,
+          .ql-toolbar button:hover { background: rgba(2,6,23,.05); }
+          .ql-toolbar .ql-picker-label:focus,
+          .ql-toolbar button:focus { outline: none; }
+          .ql-toolbar button:active { transform: translateY(.5px); }
+
+          .ql-snow .ql-picker.ql-header { min-width: 160px; }
+          .ql-snow .ql-picker.ql-header .ql-picker-label { padding: 0 10px; border-radius: 10px; }
+          .ql-snow .ql-picker.ql-expanded .ql-picker-options {
+            border-radius: 12px; box-shadow: 0 10px 28px rgba(2,6,23,.14);
+          }
+
+          .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="false"]::before,
+          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="false"]::before { content: "Paragraph"; }
+          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before { content: "Heading 1"; }
+          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before { content: "Heading 2"; }
+          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: "Heading 3"; }
+          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: "Heading 4"; }
+        `}</style>
 			</div>
 		</div>
 	);

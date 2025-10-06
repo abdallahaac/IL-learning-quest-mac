@@ -1,7 +1,7 @@
 // src/pages/ConclusionSection.jsx
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2, HeartHandshake } from "lucide-react";
+import { CheckCircle2, HeartHandshake, MessageSquareHeart } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFlagCheckered } from "@fortawesome/free-solid-svg-icons";
 
@@ -119,10 +119,6 @@ export default function ConclusionSection({
 							<FontAwesomeIcon icon={faFlagCheckered} className="w-4 h-4" />
 						</span>
 					</div>
-
-					<TipCard accent={accent}>
-						A quick wrap-up and a couple of gentle next steps.
-					</TipCard>
 				</motion.header>
 
 				{/* Highlights — equal heights */}
@@ -146,9 +142,7 @@ export default function ConclusionSection({
 					</ul>
 				</section>
 
-				{/* Connector between cards and paragraph to avoid the “floating” feel */}
-
-				{/* Closing paragraph — speech-bubble band anchored to background */}
+				{/* Closing paragraph — speech-bubble band */}
 				{closing && <ClosingCallout accent={accent} text={closing} />}
 
 				{/* Coda */}
@@ -183,38 +177,24 @@ export default function ConclusionSection({
 					</section>
 				)}
 
-				{/* Next steps — chips only (removed “Browse Resources”) */}
-				<section className={`${card} p-6`} aria-labelledby="next-steps">
-					<div className="text-center mb-3">
-						<span
-							id="next-steps"
-							className="inline-block text-sm font-semibold text-slate-900"
-						>
-							Next steps
-						</span>
-					</div>
-
-					<div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:flex-wrap">
-						{[
-							"Share one takeaway with your team this week.",
-							"Pick a small action to try in your next sprint or meeting.",
-						].map((n, i) => (
-							<span
-								key={i}
-								className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm ${ringAccent}`}
-								style={{
-									color: accent,
-									backgroundColor: withAlpha(accent, "0D"),
-									border: `1px solid ${withAlpha(accent, "33")}`,
-									outlineColor: accent,
-								}}
-								tabIndex={0}
-							>
-								{n}
-							</span>
-						))}
-					</div>
-				</section>
+				{/* █████ Feedback (centered, no background) █████ */}
+				<div className="py-6 flex flex-col items-center text-center gap-3">
+					<a
+						href="https://airtable.com/appiWB5orohCHzA35/shrfyFm9N7HuQBhe8"
+						target="_blank"
+						rel="noopener noreferrer"
+						className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${ringAccent}`}
+						style={{
+							color: "white",
+							backgroundColor: accent,
+							outlineColor: accent,
+							boxShadow: `0 8px 20px ${withAlpha(accent, "33")}`,
+						}}
+					>
+						<MessageSquareHeart className="w-4 h-4" strokeWidth={2.4} />
+						Open feedback form
+					</a>
+				</div>
 			</div>
 		</motion.div>
 	);
@@ -238,8 +218,6 @@ function TipCard({ accent = "#8B5CF6", children }) {
 		</section>
 	);
 }
-
-/* Soft, curved connectors that tie the cards to the paragraph band */
 
 /* Closing paragraph callout — speech-bubble with notch + measured text */
 function ClosingCallout({ text, accent }) {

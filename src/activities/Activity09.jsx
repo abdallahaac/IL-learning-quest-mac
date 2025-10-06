@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// src/pages/activities/Activity09.jsx
+import React, { useState, useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { HeartHandshake, Newspaper, ExternalLink } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
@@ -12,7 +13,7 @@ export default function Activity09({
 	completed,
 	onNotes,
 	onToggleComplete,
-	accent = "#934D6C", // rose-600 — same theming control as Activity08
+	accent = "#934D6C", // theming control
 }) {
 	const placeholder =
 		content?.notePlaceholder ||
@@ -26,7 +27,7 @@ export default function Activity09({
 
 	const reduceMotion = useReducedMotion();
 
-	// --- animations (same rhythm as Activity08) ---
+	// --- animations (homogeneous with other activities) ---
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
 
@@ -56,7 +57,7 @@ export default function Activity09({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	// --- shared classes (mirroring Activity08) ---
+	// --- shared classes (mirrors other pages) ---
 	const linkCardBase =
 		"group relative block w-full rounded-2xl border border-gray-200 bg-white p-5 " +
 		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
@@ -73,53 +74,57 @@ export default function Activity09({
 	const tipText =
 		"Choose a story from an Indigenous-led outlet. Summarize the piece and reflect on the framing, voices quoted, and possible biases.";
 
-	// Links list (exported to doc like Activity08—no table)
-	const pageLinks = [
-		{ label: "APTN", url: "https://www.aptntv.ca/" },
-		{
-			label: "The Turtle Island News",
-			url: "https://theturtleislandnews.com/",
-		},
-		{ label: "Ku'ku'kwes News", url: "https://kukukwes.com/" },
-		{ label: "IndigiNews", url: "https://indiginews.com/" },
-		{ label: "Ha-Shilth-Sa", url: "https://hashilthsa.com/" },
-		{ label: "Windspeaker", url: "https://windspeaker.com/" },
-	];
+	// Links list (exported to doc; no table) — memoized to avoid recreation each keystroke
+	const pageLinks = useMemo(
+		() => [
+			{ label: "APTN", url: "https://www.aptntv.ca/" },
+			{
+				label: "The Turtle Island News",
+				url: "https://theturtleislandnews.com/",
+			},
+			{ label: "Ku'ku'kwes News", url: "https://kukukwes.com/" },
+			{ label: "IndigiNews", url: "https://indiginews.com/" },
+			{ label: "Ha-Shilth-Sa", url: "https://hashilthsa.com/" },
+			{ label: "Windspeaker", url: "https://windspeaker.com/" },
+		],
+		[]
+	);
 
-	const OutletTile = ({ href, title, desc }) => (
-		<motion.a
-			href={href}
-			target="_blank"
-			rel="noreferrer"
-			className={linkCardBase}
-			style={{ outlineColor: accent }}
-			title={`Open: ${title} (new tab)`}
-			aria-label={`Open ${title} in a new tab`}
-			variants={cardPop}
-		>
-			{/* top-left icon badge (accent tint) */}
-			<div
-				className={badgeBase}
-				aria-hidden="true"
-				style={{ backgroundColor: withAlpha(accent, "1A"), color: accent }}
-			>
-				<Newspaper className="w-5 h-5" />
-			</div>
-
-			{/* centered content */}
-			<div className="min-h-[108px] flex flex-col items-center justify-center text-center">
-				<div className="font-medium text-slate-900 group-hover:underline">
-					{title}
-				</div>
-				{desc ? (
-					<p className="mt-1 text-sm text-gray-600 max-w-sm">{desc}</p>
-				) : null}
-				<div className={linkFooterBase} style={{ color: accent }}>
-					<ExternalLink className="w-4 h-4" aria-hidden="true" />
-					<span>Open link</span>
-				</div>
-			</div>
-		</motion.a>
+	// Also memoize the outlet tiles (so the JSX isn’t rebuilt on every keystroke)
+	const outletTiles = useMemo(
+		() => [
+			{
+				href: "https://www.aptntv.ca/",
+				title: "APTN",
+				desc: "National Indigenous television network with news coverage.",
+			},
+			{
+				href: "https://theturtleislandnews.com/",
+				title: "The Turtle Island News",
+				desc: "Community-focused reporting across Turtle Island.",
+			},
+			{
+				href: "https://kukukwes.com/",
+				title: "Ku'ku'kwes News",
+				desc: "Independent Atlantic Canada Indigenous news.",
+			},
+			{
+				href: "https://indiginews.com/",
+				title: "IndigiNews",
+				desc: "Local Indigenous voices and investigative features.",
+			},
+			{
+				href: "https://hashilthsa.com/",
+				title: "Ha-Shilth-Sa",
+				desc: "Nuu-chah-nulth Tribal Council newspaper.",
+			},
+			{
+				href: "https://windspeaker.com/",
+				title: "Windspeaker",
+				desc: "Independent Indigenous news and opinion.",
+			},
+		],
+		[]
 	);
 
 	return (
@@ -129,89 +134,130 @@ export default function Activity09({
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft accent gradient (same pattern as Activity08) */}
+			{/* soft, accessible gradient (matches A01/A08 style) */}
 			<motion.div
 				aria-hidden
-				className="absolute inset-0 -z-10 pointer-events-none"
+				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
 					backgroundImage: `linear-gradient(
             to bottom,
-            ${withAlpha(accent, "26")} 0%,   /* ~15% */
-            rgba(255,255,255,0) 45%,
-            rgba(248,250,252,0) 100%
+            ${withAlpha(accent, "3D")},
+            rgba(255,255,255,0.65),
+            rgba(248,250,252,0.8)
           )`,
 				}}
 				initial={{ opacity: 0 }}
-				animate={{ opacity: 0.2 }}
+				animate={{ opacity: 0.35 }}
 				transition={{ duration: 0.6 }}
 			/>
 
 			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header */}
+				{/* ===== HEADER (homogeneous with Activity 01) ===== */}
 				<motion.header
-					className="text-center space-y-4"
+					className="text-center"
 					variants={titleFade}
 					initial="hidden"
 					animate="show"
 				>
-					<p
-						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
-						style={{ color: accent }}
-					>
-						Activity {activityNumber}
-					</p>
-
-					<div className="flex items-center justify-center gap-3">
-						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							{pageTitle}
-						</h1>
-						<HeartHandshake
-							className="w-7 h-7"
-							aria-hidden="true"
+					<div className="mx-auto space-y-4 sm:space-y-5">
+						{/* Activity number (big, uppercase) */}
+						<p
+							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
-						/>
-					</div>
+						>
+							Activity {activityNumber}
+						</p>
 
-					<TipCard accent={accent}>{tipText}</TipCard>
+						{/* H1 + icon row */}
+						<div className="inline-flex items-center justify-center gap-3">
+							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
+								{pageTitle}
+							</h1>
+							<HeartHandshake
+								className="w-8 h-8 align-middle"
+								aria-hidden="true"
+								style={{ color: accent }}
+								title="Activity icon"
+							/>
+						</div>
+
+						{/* Instructions callout with pill header */}
+						<aside
+							role="note"
+							aria-label="Activity instructions"
+							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+							style={{ borderColor: withAlpha(accent, "33") }}
+						>
+							<div className="flex flex-col items-center gap-3 text-center">
+								<div
+									className="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold"
+									style={{
+										backgroundColor: withAlpha(accent, "15"),
+										color: accent,
+									}}
+									aria-hidden="true"
+								>
+									Instructions
+								</div>
+								<p
+									className="text-slate-800 max-w-2xl"
+									style={{ color: accent }}
+								>
+									{tipText}
+								</p>
+							</div>
+						</aside>
+					</div>
 				</motion.header>
 
-				{/* Outlets */}
+				{/* ===== Outlets ===== */}
 				<motion.section variants={gridStagger} initial="hidden" animate="show">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-						<OutletTile
-							href="https://www.aptntv.ca/"
-							title="APTN"
-							desc="National Indigenous television network with news coverage."
-						/>
-						<OutletTile
-							href="https://theturtleislandnews.com/"
-							title="The Turtle Island News"
-							desc="Community-focused reporting across Turtle Island."
-						/>
-						<OutletTile
-							href="https://kukukwes.com/"
-							title="Ku'ku'kwes News"
-							desc="Independent Atlantic Canada Indigenous news."
-						/>
-						<OutletTile
-							href="https://indiginews.com/"
-							title="IndigiNews"
-							desc="Local Indigenous voices and investigative features."
-						/>
-						<OutletTile
-							href="https://hashilthsa.com/"
-							title="Ha-Shilth-Sa"
-							desc="Nuu-chah-nulth Tribal Council newspaper."
-						/>
-						<OutletTile
-							href="https://windspeaker.com/"
-							title="Windspeaker"
-							desc="Independent Indigenous news and opinion."
-						/>
+						{outletTiles.map(({ href, title, desc }) => (
+							<motion.a
+								key={href}
+								href={href}
+								target="_blank"
+								rel="noreferrer"
+								className={linkCardBase}
+								style={{ outlineColor: accent }}
+								title={`Open: ${title} (new tab)`}
+								aria-label={`Open ${title} in a new tab`}
+								variants={cardPop}
+							>
+								{/* top-left icon badge (accent tint) */}
+								<div
+									className={badgeBase}
+									aria-hidden="true"
+									style={{
+										backgroundColor: withAlpha(accent, "1A"),
+										color: accent,
+									}}
+								>
+									<Newspaper className="w-5 h-5" />
+								</div>
+
+								{/* centered content */}
+								<div className="min-h-[108px] flex flex-col items-center justify-center text-center">
+									<div className="font-medium text-slate-900 group-hover:underline">
+										{title}
+									</div>
+									{desc ? (
+										<p className="mt-1 text-sm text-gray-600 max-w-sm">
+											{desc}
+										</p>
+									) : null}
+									<div className={linkFooterBase} style={{ color: accent }}>
+										<ExternalLink className="w-4 h-4" aria-hidden="true" />
+										<span>Open link</span>
+									</div>
+								</div>
+							</motion.a>
+						))}
 					</div>
 				</motion.section>
 
-				{/* Notes — identical NoteComposer pattern as Activity08 */}
+				{/* ===== Notes (NoteComposer) ===== */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -221,20 +267,23 @@ export default function Activity09({
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent={accent} // key: uses the same hex-accent approach as Activity08
+					accent={accent}
 					downloadFileName={`Activity-${content?.id || "09"}-Reflection.docx`}
 					/* Exported title becomes: "Activity 9: {pageTitle}" */
 					docTitle={pageTitle}
 					docSubtitle={content?.subtitle}
 					activityNumber={activityNumber}
+					/* Include the on-page tip in export */
 					docIntro={tipText}
+					/* Export resources as header + bullet list of hyperlink labels */
 					includeLinks={true}
 					linksHeading="Suggested Indigenous-Led Outlets"
 					pageLinks={pageLinks}
+					/* Use accent for exported headings */
 					headingColor={accent}
 				/>
 
-				{/* Complete toggle */}
+				{/* ===== Complete toggle ===== */}
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -254,7 +303,7 @@ export default function Activity09({
 	);
 }
 
-/* Accent-aware dashed tip — same component style as Activity08 */
+/* (kept for parity, but not used in the header anymore) */
 function TipCard({ accent = "#934D6C", children }) {
 	return (
 		<section
@@ -262,8 +311,8 @@ function TipCard({ accent = "#934D6C", children }) {
 			role="note"
 			aria-label="Activity tip"
 			style={{
-				borderColor: withAlpha(accent, "33"), // ~20%
-				backgroundColor: withAlpha(accent, "14"), // ~8% tint
+				borderColor: withAlpha(accent, "33"),
+				backgroundColor: withAlpha(accent, "14"),
 			}}
 		>
 			<p className="text-base sm:text-lg text-center text-slate-900">

@@ -1,3 +1,4 @@
+// src/pages/activities/Activity06.jsx
 import React, { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { BookOpen, ExternalLink, Library } from "lucide-react";
@@ -77,6 +78,11 @@ export default function Activity06({
 	const tipText =
 		"Read a book by a First Nations, Inuit, or Métis author. What did you think?";
 
+	// Build a “local library” search URL that opens in a new tab.
+	// (Targets general library domains and reading-list phrasing.)
+	const libraryQuery = encodeURIComponent('Local public Library"');
+	const librarySearchUrl = `https://www.google.com/search?q=${libraryQuery}`;
+
 	return (
 		<motion.div
 			className="relative bg-transparent min-h-[80svh]"
@@ -87,56 +93,82 @@ export default function Activity06({
 			{/* soft gradient (accent → clear) */}
 			<motion.div
 				aria-hidden
-				className="absolute inset-0 -z-10 pointer-events-none"
+				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
 					backgroundImage: `linear-gradient(
             to bottom,
-            ${withAlpha(accent, "26")} 0%,   /* ~15% tint */
-            rgba(255,255,255,0) 45%,
-            rgba(248,250,252,0) 100%
+            ${withAlpha(accent, "3D")},
+            rgba(255,255,255,0.65),
+            rgba(248,250,252,0.8)
           )`,
 				}}
 				initial={{ opacity: 0 }}
-				animate={{ opacity: 0.3 }}
+				animate={{ opacity: 0.35 }}
 				transition={{ duration: 0.6 }}
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header */}
+				{/* ===== HEADER (matches Activity 01) ===== */}
 				<motion.header
-					className="text-center space-y-4"
+					className="text-center"
 					variants={titleFade}
 					initial="hidden"
 					animate="show"
 				>
-					{/* small label (kept) */}
-					<p
-						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
-						style={{ color: accent }}
-					>
-						Activity {activityNumber}
-					</p>
-
-					<div className="flex items-center justify-center gap-3">
-						{/* main title now includes the activity number */}
-						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							Activity {activityNumber}: Read a Book
-						</h1>
-						<BookOpen
-							className="w-7 h-7"
-							aria-hidden="true"
+					<div className="mx-auto space-y-4 sm:space-y-5">
+						{/* Activity number */}
+						<p
+							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
-						/>
-					</div>
+						>
+							Activity {activityNumber}
+						</p>
 
-					<TipCard accent={accent}>
-						Read a book by a First Nations, Inuit, or Métis author.
-						<br />
-						<strong>What did you think?</strong>
-					</TipCard>
+						{/* Title row: H1 + icon */}
+						<div className="inline-flex items-center justify-center gap-3">
+							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
+								{content?.title || "Read a Book"}
+							</h1>
+							<BookOpen
+								className="w-8 h-8 align-middle"
+								aria-hidden="true"
+								style={{ color: accent }}
+								title="Activity icon"
+							/>
+						</div>
+
+						{/* Instructions callout (same component structure as Activity 01) */}
+						<aside
+							role="note"
+							aria-label="Activity instructions"
+							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+							style={{ borderColor: withAlpha(accent, "33") }}
+						>
+							<div className="flex flex-col items-center gap-3 text-center">
+								<div
+									className="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold"
+									style={{
+										backgroundColor: withAlpha(accent, "15"),
+										color: accent,
+									}}
+									aria-hidden="true"
+								>
+									Instructions
+								</div>
+								<p
+									className="text-slate-800 max-w-2xl"
+									style={{ color: accent }}
+								>
+									Read a book by a First Nations, Inuit, or Métis author.
+									<br />
+									<strong>What did you think?</strong>
+								</p>
+							</div>
+						</aside>
+					</div>
 				</motion.header>
 
-				{/* Resource + Tip */}
+				{/* ===== Resource + Library link ===== */}
 				<motion.section
 					className="flex justify-center"
 					variants={gridStagger}
@@ -144,7 +176,7 @@ export default function Activity06({
 					animate="show"
 				>
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-content-center w-full">
-						{/* Link card */}
+						{/* Link card: #IndigenousReads */}
 						<motion.a
 							href="https://www.rcaanc-cirnac.gc.ca/eng/1496255894592/1557840487211"
 							target="_blank"
@@ -159,7 +191,7 @@ export default function Activity06({
 								<div
 									className={badgeBase}
 									style={{
-										backgroundColor: withAlpha(accent, "1A"), // ~10%
+										backgroundColor: withAlpha(accent, "1A"),
 										color: accent,
 									}}
 								>
@@ -169,44 +201,46 @@ export default function Activity06({
 									#IndigenousReads (Government of Canada)
 								</div>
 							</div>
-							{/* Footer uses the accent color */}
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
 							</div>
 						</motion.a>
 
-						{/* Tip card with icon */}
-						<motion.div
-							className="mx-auto max-w-md w-full rounded-2xl border border-dashed p-4 shadow-sm text-center bg-white"
-							role="note"
-							aria-label="Tip: Ask your library"
-							style={{
-								borderColor: withAlpha(accent, "33"), // ~20%
-								backgroundColor: withAlpha(accent, "0F"), // subtle tint
-							}}
+						{/* Link card: Ask your local library (opens search) */}
+						<motion.a
+							href={librarySearchUrl}
+							target="_blank"
+							rel="noreferrer"
+							className={linkCardBase}
+							style={{ outlineColor: accent }}
+							title="Search the web: Ask your local library for suggestions (new tab)"
+							aria-label="Search the web in a new tab for: Ask your local library for suggestions"
 							variants={cardPop}
 						>
-							<div className="flex flex-col items-center gap-2">
+							<div className="flex items-center gap-3">
 								<div
-									className="w-10 h-10 rounded-xl grid place-items-center border"
+									className={badgeBase}
 									style={{
-										backgroundColor: "#fff",
+										backgroundColor: withAlpha(accent, "1A"),
 										color: accent,
-										borderColor: withAlpha(accent, "33"),
 									}}
 								>
 									<Library className="w-5 h-5" aria-hidden="true" />
 								</div>
-								<div className="font-medium text-slate-900">
+								<div className="font-medium text-slate-900 group-hover:underline">
 									Ask your local library for suggestions
 								</div>
 							</div>
-						</motion.div>
+							<div className={linkFooterBase} style={{ color: accent }}>
+								<ExternalLink className="w-4 h-4" aria-hidden="true" />
+								<span>Search the web</span>
+							</div>
+						</motion.a>
 					</div>
 				</motion.section>
 
-				{/* Notes (hex-accent NoteComposer) */}
+				{/* ===== Notes (hex-accent NoteComposer) ===== */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -216,7 +250,7 @@ export default function Activity06({
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent={accent} // hex-aware NoteComposer
+					accent={accent}
 					downloadFileName={`Activity-${content?.id || "06"}-Reflection.docx`}
 					/* Exported title becomes: "Activity 6: Read a Book" */
 					docTitle={content?.title || "Read a Book"}
@@ -233,7 +267,7 @@ export default function Activity06({
 					headingColor={accent}
 				/>
 
-				{/* Complete toggle */}
+				{/* ===== Complete toggle ===== */}
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -253,7 +287,7 @@ export default function Activity06({
 	);
 }
 
-/* Accent-aware, dashed/translucent tip */
+/* Accent-aware, dashed/translucent tip (kept for reuse if needed elsewhere) */
 function TipCard({ accent = "#0891B2", children }) {
 	return (
 		<section

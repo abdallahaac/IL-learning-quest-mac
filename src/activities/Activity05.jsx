@@ -1,3 +1,4 @@
+// src/pages/activities/Activity05.jsx
 import React, { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Film, ExternalLink } from "lucide-react";
@@ -24,7 +25,7 @@ export default function Activity05({
 
 	const reduceMotion = useReducedMotion();
 
-	// --- animations (consistent with other activities) ---
+	// --- animations (consistent with Activity 01) ---
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
 
@@ -54,7 +55,7 @@ export default function Activity05({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	// --- shared classes (rings via outline so we can set color inline) ---
+	// shared classes (rings via outline so we can set color inline)
 	const linkCardBase =
 		"group block mx-auto max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
 		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer " +
@@ -77,7 +78,7 @@ export default function Activity05({
 		},
 	];
 
-	// Tip to include at top of export (split into sentences)
+	// Tip to include at top of export
 	const tipText =
 		"Watch an Indigenous film/TV show or listen to an Indigenous-focused podcast. What did you learn?";
 
@@ -88,58 +89,86 @@ export default function Activity05({
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft, accessible gradient (accent → clear) */}
+			{/* soft, accessible gradient (mirrors Activity 01 technique) */}
 			<motion.div
 				aria-hidden
-				className="absolute inset-0 -z-10 pointer-events-none"
+				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
 					backgroundImage: `linear-gradient(
             to bottom,
-            ${withAlpha(accent, "26")} 0%,   /* ~15% tint */
-            rgba(255,255,255,0) 45%,
-            rgba(248,250,252,0) 100%
+            ${withAlpha(accent, "3D")},
+            rgba(255,255,255,0.65),
+            rgba(248,250,252,0.8)
           )`,
 				}}
 				initial={{ opacity: 0 }}
-				animate={{ opacity: 0.3 }}
+				animate={{ opacity: 0.35 }}
 				transition={{ duration: 0.6 }}
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header */}
+				{/* ===== HEADER (same styling as Activity 01) ===== */}
 				<motion.header
-					className="text-center space-y-4"
+					className="text-center"
 					variants={titleFade}
 					initial="hidden"
 					animate="show"
 				>
-					<p
-						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
-						style={{ color: accent }}
-					>
-						Activity {activityNumber}
-					</p>
-
-					<div className="flex items-center justify-center gap-3">
-						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							Film, TV, or Podcast
-						</h1>
-						<Film
-							className="w-7 h-7"
-							aria-hidden="true"
+					<div className="mx-auto space-y-4 sm:space-y-5">
+						{/* Activity number */}
+						<p
+							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
-						/>
-					</div>
+						>
+							Activity {activityNumber}
+						</p>
 
-					<TipCard accent={accent}>
-						Watch an Indigenous film/TV show or listen to an Indigenous-focused
-						podcast.
-						<br />
-						<strong>What did you learn?</strong>
-					</TipCard>
+						{/* Title row: center the H1 with icon immediately after */}
+						<div className="inline-flex items-center justify-center gap-3">
+							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
+								{content?.title || "Film, TV, or Podcast"}
+							</h1>
+							<Film
+								className="w-8 h-8 align-middle"
+								aria-hidden="true"
+								style={{ color: accent }}
+								title="Activity icon"
+							/>
+						</div>
+
+						{/* Instructions callout (mirrors Activity 01) */}
+						<aside
+							role="note"
+							aria-label="Activity instructions"
+							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+							style={{ borderColor: withAlpha(accent, "33") }}
+						>
+							<div className="flex flex-col items-center gap-3 text-center">
+								<div
+									className="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold"
+									style={{
+										backgroundColor: withAlpha(accent, "15"),
+										color: accent,
+									}}
+									aria-hidden="true"
+								>
+									Instructions
+								</div>
+								<p
+									className="text-slate-800 max-w-2xl"
+									style={{ color: accent }}
+								>
+									Watch an Indigenous film/TV show or listen to an
+									Indigenous-focused podcast.
+									<br />
+									<strong>What did you learn?</strong>
+								</p>
+							</div>
+						</aside>
+					</div>
 				</motion.header>
 
-				{/* Resource links */}
+				{/* ===== Resource links ===== */}
 				<motion.section
 					className="flex justify-center"
 					variants={gridStagger}
@@ -162,7 +191,7 @@ export default function Activity05({
 								<div
 									className={badgeBase}
 									style={{
-										backgroundColor: withAlpha(accent, "1A"), // ~10%
+										backgroundColor: withAlpha(accent, "1A"),
 										color: accent,
 									}}
 								>
@@ -172,7 +201,6 @@ export default function Activity05({
 									National Film Board — Indigenous cinema
 								</div>
 							</div>
-							{/* Footer uses the accent color */}
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
@@ -204,7 +232,6 @@ export default function Activity05({
 									CBC Gem — Indigenous stories
 								</div>
 							</div>
-							{/* Footer uses the accent color */}
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
@@ -213,7 +240,7 @@ export default function Activity05({
 					</div>
 				</motion.section>
 
-				{/* Notes (hex-accent) */}
+				{/* ===== Notes (hex-accent) ===== */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -240,7 +267,7 @@ export default function Activity05({
 					headingColor={accent}
 				/>
 
-				{/* Complete toggle (kept consistent with other activities) */}
+				{/* ===== Complete toggle (kept consistent with other activities) ===== */}
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -257,24 +284,5 @@ export default function Activity05({
 				</div>
 			</div>
 		</motion.div>
-	);
-}
-
-/* Reusable dashed/translucent tip (accent-aware) */
-function TipCard({ accent = "#be123c", children }) {
-	return (
-		<section
-			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
-			role="note"
-			aria-label="Activity tip"
-			style={{
-				borderColor: withAlpha(accent, "33"), // ~20%
-				backgroundColor: withAlpha(accent, "14"), // ~8% tint
-			}}
-		>
-			<p className="text-base sm:text-lg text-center text-slate-900">
-				{children}
-			</p>
-		</section>
 	);
 }

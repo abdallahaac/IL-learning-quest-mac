@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useLayoutEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
 	Palette,
@@ -20,7 +20,7 @@ export default function Activity01({
 	completed,
 	onNotes,
 	onToggleComplete,
-	accent = "#4380d6", // brand accent
+	accent = "#4380d6",
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Your reflections on the artist…";
@@ -41,7 +41,7 @@ export default function Activity01({
 		},
 	];
 
-	// Tip text to include in the Word doc (will be split into sentences)
+	// Tip text to include in the Word doc
 	const tipText =
 		"Explore works by an Indigenous artist that speak to you. How do you relate to this artist? How do they inspire you?";
 
@@ -87,6 +87,25 @@ export default function Activity01({
 
 	const activityNumber = 1;
 
+	// === Measure title row so the instructions start exactly at H1's left ===
+	const titleRowRef = useRef(null);
+	const [titleRowWidth, setTitleRowWidth] = useState(null);
+
+	useLayoutEffect(() => {
+		const el = titleRowRef.current;
+		if (!el) return;
+		const update = () => setTitleRowWidth(el.getBoundingClientRect().width);
+		update();
+
+		const ro = new ResizeObserver(update);
+		ro.observe(el);
+		window.addEventListener("resize", update);
+		return () => {
+			ro.disconnect();
+			window.removeEventListener("resize", update);
+		};
+	}, []);
+
 	return (
 		<motion.div
 			className="relative bg-transparent min-h-[80svh]"
@@ -110,33 +129,72 @@ export default function Activity01({
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header */}
+				{/* Header: centered wrapper; instructions align to H1's left */}
+				{/* Header: grid aligns instructions with H1 text; icon stays on the right */}
+				{/* ===== HEADER (centered title + icon, centered accessible instructions) ===== */}
 				<motion.header
-					className="text-center space-y-4"
+					className="text-center"
 					variants={titleFade}
 					initial="hidden"
 					animate="show"
 				>
-					<p
-						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
-						style={{ color: accent }}
-					>
-						Activity {activityNumber}
-					</p>
-
-					<div className="flex items-center justify-center gap-3">
-						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							Explore an Indigenous Artist
-						</h1>
-						<Palette
-							className="w-7 h-7"
-							aria-hidden="true"
+					<div className="mx-auto space-y-4 sm:space-y-5">
+						{/* Activity number */}
+						<p
+							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
-						/>
-					</div>
+						>
+							Activity {activityNumber}
+						</p>
 
-					{/* On-page tip card (UI) */}
-					<TipPrompt accent={accent} />
+						{/* Title row: center the H1 with the icon immediately after */}
+						<div className="inline-flex items-center justify-center gap-3">
+							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
+								Explore an Indigenous Artist
+							</h1>
+							<Palette
+								className="w-8 h-8 align-middle"
+								aria-hidden="true"
+								style={{ color: accent }}
+								title="Activity icon"
+							/>
+						</div>
+
+						{/* Instructions: centered callout, readable width, accessible semantics */}
+						<aside
+							role="note"
+							aria-label="Activity tip"
+							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm
+                 px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+							style={{ borderColor: withAlpha(accent, "33") }}
+						>
+							<div className="flex flex-col items-center gap-3 text-center">
+								<div
+									className="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold"
+									style={{
+										backgroundColor: withAlpha(accent, "15"),
+										color: accent,
+									}}
+									aria-hidden="true"
+								>
+									Instructions
+								</div>
+								<p
+									className="text-slate-800 max-w-2xl"
+									style={{
+										color: accent,
+									}}
+								>
+									Explore works by an Indigenous artist that speak to you.{" "}
+									<br />
+									<strong>
+										{" "}
+										How do you relate to this artist? How do they inspire you?
+									</strong>
+								</p>
+							</div>
+						</aside>
+					</div>
 				</motion.header>
 
 				{/* Links grid */}
@@ -168,7 +226,7 @@ export default function Activity01({
 									<ImageIcon className="w-5 h-5" aria-hidden="true" />
 								</div>
 								<div className="font-medium text-slate-900 group-hover:underline">
-									List of important Indigenous artists in Canada
+									Selection of Indigenous artists in Canada
 								</div>
 							</div>
 							<div
@@ -190,7 +248,7 @@ export default function Activity01({
 							title="Open: List of influential Indigenous musicians in Canada (new tab)"
 							aria-label="Open list of influential Indigenous musicians in Canada in a new tab"
 						>
-							<div className="flex items-center gap-3">
+							<div className="flex items-center gap-4">
 								<div
 									className={badgeBase}
 									style={{
@@ -201,7 +259,7 @@ export default function Activity01({
 									<Music4 className="w-5 h-5" aria-hidden="true" />
 								</div>
 								<div className="font-medium text-slate-900 group-hover:underline">
-									List of influential Indigenous musicians in Canada
+									Selection of influential Indigenous musicians in Canada
 								</div>
 							</div>
 							<div
@@ -219,25 +277,18 @@ export default function Activity01({
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
-					storageKey={`notes-${content?.id || "01"}`}
-					placeholder={placeholder}
-					size="md"
-					rows={8}
+					placeholder="Your reflections on the artist…"
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent="#4380d6"
-					downloadFileName={`Activity-${content?.id || "01"}-Reflection.docx`}
+					downloadFileName={`Activity-${content?.id || "01"}-Reflection.doc`}
 					docTitle={content?.title || "Explore an Indigenous Artist"}
 					docSubtitle={content?.subtitle}
-					includeLinks={true}
+					activityNumber={1}
+					docIntro={`Explore works by an Indigenous artist that speak to you.\nHow do you relate to this artist?\nHow do they inspire you?`}
+					includeLinks
 					linksHeading="Resources"
 					pageLinks={pageLinks}
-					/* send Tip card text to the doc (will be split into sentences) */
-					docIntro={tipText}
-					/* make DOCX headers blue & clear */
-					headingColor="#2563eb" // blue-600
-					/* NEW: show Activity number in the exported document */
-					activityNumber={activityNumber}
 				/>
 
 				{/* Complete toggle */}
@@ -258,25 +309,4 @@ export default function Activity01({
 			</div>
 		</motion.div>
 	);
-
-	// dashed/translucent tip (UI)
-	function TipPrompt({ accent = "#4380d6" }) {
-		return (
-			<section
-				className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
-				role="note"
-				aria-label="Activity reflection tip"
-				style={{
-					borderColor: withAlpha(accent, "33"),
-					backgroundColor: withAlpha(accent, "14"),
-				}}
-			>
-				<p className="text-base sm:text-lg text-center text-slate-900">
-					Explore works by an Indigenous artist that speak to you.
-					<br />
-					How do you relate to this artist? How do they inspire you?
-				</p>
-			</section>
-		);
-	}
 }

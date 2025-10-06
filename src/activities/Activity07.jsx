@@ -1,4 +1,5 @@
-// activity7 (homogenized with NoteComposer)
+// src/pages/activities/Activity07.jsx
+// activity7 (homogenized header/instructions to match Activity 01)
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
@@ -43,7 +44,7 @@ export default function Activity07({
 	};
 
 	/* -------------------------------------------------------------
-     DOWNLOAD #1: CARDS ONLY (unchanged)
+     DOWNLOAD #1: CARDS ONLY
   -------------------------------------------------------------- */
 	const downloadCardsDocx = async () => {
 		const cards = Array.isArray(model.cards)
@@ -179,11 +180,7 @@ export default function Activity07({
 			});
 
 			const doc = new Document({
-				styles: {
-					default: {
-						document: { run: { font: "Arial", size: 24 } },
-					},
-				},
+				styles: { default: { document: { run: { font: "Arial", size: 24 } } } },
 				sections: [{ properties: {}, children: [heading, intro, table] }],
 			});
 
@@ -242,11 +239,6 @@ export default function Activity07({
 
 	/* -------------------------------------------------------------
      DOWNLOAD #2: FULL PAGE SNAPSHOT — NoteComposer style
-     - "Activity 7: Learn Three Words"
-     - Activity tip
-     - Resources as header + bullet hyperlinks
-     - Saved response + bullets
-     - Word Cards table
   -------------------------------------------------------------- */
 	const activityNumber = 7;
 	const downloadPageDocx = async () => {
@@ -485,7 +477,21 @@ export default function Activity07({
 				"Share them with your team and use them often.",
 			];
 
-			const resHtml = resources
+			const resHtml = [
+				{ label: "FirstVoices", href: "https://www.firstvoices.com/" },
+				{
+					label: "Inuktut glossary (Inuktut Tusaalanga)",
+					href: "https://tusaalanga.ca/glossary",
+				},
+				{
+					label: "Michif Language Revitalization Circle (resources)",
+					href: "https://speakmichif.ca/learn/resources",
+				},
+				{
+					label: "Métis languages resources (Louis Riel Institute)",
+					href: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
+				},
+			]
 				.map(
 					(r) =>
 						`<li><a href="${
@@ -631,10 +637,11 @@ export default function Activity07({
 		prevValidRef.current = validCount;
 	}, [validCount]);
 
-	// motion rhythm
+	// --- animations (single definition; matches other activities) ---
 	const reduceMotion = useReducedMotion();
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
+
 	const pageFade = {
 		hidden: { opacity: 0 },
 		show: { opacity: 1, transition: { duration: 0.35 } },
@@ -691,20 +698,20 @@ export default function Activity07({
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft accent gradient */}
+			{/* soft accent gradient (match A01 style) */}
 			<motion.div
 				aria-hidden
-				className="absolute inset-0 -z-10 pointer-events-none"
+				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
 					backgroundImage: `linear-gradient(
             to bottom,
-            ${withAlpha(accent, "26")} 0%,
-            rgba(255,255,255,0) 45%,
-            rgba(248,250,252,0) 100%
+            ${withAlpha(accent, "3D")},
+            rgba(255,255,255,0.65),
+            rgba(248,250,252,0.8)
           )`,
 				}}
 				initial={{ opacity: 0 }}
-				animate={{ opacity: 0.4 }}
+				animate={{ opacity: 0.35 }}
 				transition={{ duration: 0.6 }}
 			/>
 
@@ -716,39 +723,67 @@ export default function Activity07({
 			</AnimatePresence>
 
 			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header */}
+				{/* ===== HEADER (matches Activity 01) ===== */}
 				<motion.header
-					className="text-center space-y-4"
+					className="text-center"
 					variants={titleFade}
 					initial="hidden"
 					animate="show"
 				>
-					<p
-						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
-						style={{ color: accent }}
-					>
-						Activity {activityNumber}
-					</p>
-
-					<div className="flex items-center justify-center gap-3">
-						{/* Title now matches NoteComposer format */}
-						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							Activity {activityNumber}: Learn Three Words
-						</h1>
-						<Feather
-							className="w-7 h-7"
-							aria-hidden="true"
+					<div className="mx-auto space-y-4 sm:space-y-5">
+						{/* Activity number */}
+						<p
+							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
-						/>
-					</div>
+						>
+							Activity {activityNumber}
+						</p>
 
-					<TipCard accent={accent}>
-						Learn to say a few words in an Indigenous language. <br />
-						Share them with your team and use them often.
-					</TipCard>
+						{/* Title row: H1 + icon */}
+						<div className="inline-flex items-center justify-center gap-3">
+							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
+								{content?.title || "Learn Three Words"}
+							</h1>
+							<Feather
+								className="w-8 h-8 align-middle"
+								aria-hidden="true"
+								style={{ color: accent }}
+								title="Activity icon"
+							/>
+						</div>
+
+						{/* Instructions callout (same pattern as Activity 01) */}
+						<aside
+							role="note"
+							aria-label="Activity instructions"
+							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+							style={{ borderColor: withAlpha(accent, "33") }}
+						>
+							<div className="flex flex-col items-center gap-3 text-center">
+								<div
+									className="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold"
+									style={{
+										backgroundColor: withAlpha(accent, "15"),
+										color: accent,
+									}}
+									aria-hidden="true"
+								>
+									Instructions
+								</div>
+								<p
+									className="text-slate-800 max-w-2xl"
+									style={{ color: accent }}
+								>
+									Learn to say a few words in an Indigenous language.
+									<br />
+									<strong>Share them with your team and use them often.</strong>
+								</p>
+							</div>
+						</aside>
+					</div>
 				</motion.header>
 
-				{/* Resources */}
+				{/* ===== Resources ===== */}
 				<motion.section variants={gridStagger} initial="hidden" animate="show">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 						<motion.a
@@ -827,21 +862,7 @@ export default function Activity07({
 					</div>
 				</motion.section>
 
-				{/* Instructions panel */}
-				<div
-					className="mx-auto max-w-3xl rounded-2xl border p-5 md:p-6 text-center shadow-sm"
-					style={{
-						borderColor: withAlpha(accent, "4D"),
-						backgroundColor: withAlpha(accent, "26"),
-					}}
-				>
-					<p className="text-base md:text-lg text-slate-900">
-						Add word cards below (word on the front, meaning on the back). Click
-						a card to flip it and practice anytime.
-					</p>
-				</div>
-
-				{/* Editor LEFT · Flip preview RIGHT */}
+				{/* ===== Editor LEFT · Flip preview RIGHT ===== */}
 				<section className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					{/* LEFT: Editor card */}
 					<div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow p-4">
@@ -936,6 +957,10 @@ export default function Activity07({
 							) : (
 								<p className="text-sm text-slate-500">
 									No cards yet — add your first above.
+									<br />
+									Add word cards below (word on the front, meaning on the back).
+									<br />
+									Click a card to flip it and practice anytime.
 								</p>
 							)}
 						</div>
@@ -949,7 +974,7 @@ export default function Activity07({
 
 				{/* ------- Bottom action bar ------- */}
 				<div
-					className="mt-6 pt-4  flex flex-col sm:flex-row items-center gap-3 sm:gap-2 sm:justify-end"
+					className="mt-6 pt-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-2 sm:justify-end"
 					style={{ borderColor: "rgba(203,213,225,0.8)" }}
 				>
 					<button
@@ -976,7 +1001,6 @@ export default function Activity07({
 						Download (.docx)
 					</button>
 				</div>
-				{/* ------------------------------- */}
 			</div>
 		</motion.div>
 	);
@@ -1165,24 +1189,5 @@ function ConfettiDot({ accent = "#0D9488" }) {
 				background: colors[Math.floor(Math.random() * colors.length)],
 			}}
 		/>
-	);
-}
-
-/* Accent-aware, dashed/translucent tip */
-function TipCard({ accent = "#0D9488", children }) {
-	return (
-		<section
-			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
-			role="note"
-			aria-label="Activity tip"
-			style={{
-				borderColor: withAlpha(accent, "33"),
-				backgroundColor: withAlpha(accent, "14"),
-			}}
-		>
-			<p className="text-base sm:text-lg text-center text-slate-900">
-				{children}
-			</p>
-		</section>
 	);
 }

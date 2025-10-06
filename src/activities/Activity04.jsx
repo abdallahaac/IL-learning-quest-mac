@@ -1,3 +1,4 @@
+// src/pages/activities/Activity04.jsx
 import React, { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Globe2, ExternalLink } from "lucide-react";
@@ -24,7 +25,7 @@ export default function Activity04({
 
 	const reduceMotion = useReducedMotion();
 
-	// --- animations (same rhythm as other pages) ---
+	// --- animations (same rhythm as Activity 01) ---
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
 
@@ -77,7 +78,7 @@ export default function Activity04({
 		},
 	];
 
-	// Tip text included at top of export (split into sentences automatically)
+	// Tip text included at top of export
 	const tipText =
 		"Discover facts about an Indigenous population outside Canada. What stood out to you?";
 
@@ -88,96 +89,93 @@ export default function Activity04({
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft, accessible gradient (accent → clear) */}
+			{/* soft, accessible gradient (mirrors Activity 01 technique) */}
 			<motion.div
 				aria-hidden
-				className="absolute inset-0 -z-10 pointer-events-none"
+				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
 					backgroundImage: `linear-gradient(
             to bottom,
-            ${withAlpha(accent, "26")} 0%,   /* ~15% */
-            rgba(255,255,255,0) 45%,
-            rgba(248,250,252,0) 100%
+            ${withAlpha(accent, "3D")},
+            rgba(255,255,255,0.65),
+            rgba(248,250,252,0.8)
           )`,
 				}}
 				initial={{ opacity: 0 }}
-				animate={{ opacity: 0.3 }}
+				animate={{ opacity: 0.35 }}
 				transition={{ duration: 0.6 }}
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header */}
+				{/* ===== HEADER (same styling as Activity 01) ===== */}
 				<motion.header
-					className="text-center space-y-4"
+					className="text-center"
 					variants={titleFade}
 					initial="hidden"
 					animate="show"
 				>
-					<p
-						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
-						style={{ color: accent }}
-					>
-						Activity {activityNumber}
-					</p>
-
-					<div className="flex items-center justify-center gap-3">
-						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							Indigenous Peoples Outside Canada
-						</h1>
-						<Globe2
-							className="w-7 h-7"
-							aria-hidden="true"
+					<div className="mx-auto space-y-4 sm:space-y-5">
+						{/* Activity number */}
+						<p
+							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
-						/>
-					</div>
+						>
+							Activity {activityNumber}
+						</p>
 
-					{/* dashed, translucent tip (consistent) */}
-					<TipCard accent={accent}>
-						Discover facts about an Indigenous population outside Canada.
-						<br />
-						<strong>What stood out to you?</strong>
-					</TipCard>
+						{/* Title row: center the H1 with icon immediately after */}
+						<div className="inline-flex items-center justify-center gap-3">
+							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
+								{content?.title || "Indigenous Peoples Outside Canada"}
+							</h1>
+							<Globe2
+								className="w-8 h-8 align-middle"
+								aria-hidden="true"
+								style={{ color: accent }}
+								title="Activity icon"
+							/>
+						</div>
+
+						{/* Instructions callout (mirrors Activity 01) */}
+						<aside
+							role="note"
+							aria-label="Activity instructions"
+							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+							style={{ borderColor: withAlpha(accent, "33") }}
+						>
+							<div className="flex flex-col items-center gap-3 text-center">
+								<div
+									className="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold"
+									style={{
+										backgroundColor: withAlpha(accent, "15"),
+										color: accent,
+									}}
+									aria-hidden="true"
+								>
+									Instructions
+								</div>
+								<p
+									className="text-slate-800 max-w-2xl"
+									style={{ color: accent }}
+								>
+									Discover facts about an Indigenous population outside Canada.
+									<br />
+									<strong>What stood out to you?</strong>
+								</p>
+							</div>
+						</aside>
+					</div>
 				</motion.header>
 
-				{/* Link cards */}
+				{/* ===== Link cards (unchanged behavior, matched footer color) ===== */}
 				<motion.section
 					className="flex justify-center"
 					variants={gridStagger}
 					initial="hidden"
 					animate="show"
 				>
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-content-center w-full">
+					<div className="grid  gap-4 place-content-center w-full">
 						{/* Card 1 */}
-						<motion.a
-							href="https://newshour-classroom-tc.digi-producers.pbs.org/uploads/app/uploads/2014/11/A-global-map-of-indigenous-peoples.pdf"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Open: A global map of Indigenous peoples (PDF) — new tab"
-							aria-label="Open: A global map of Indigenous peoples (PDF) in a new tab"
-							variants={cardPop}
-						>
-							<div className="flex items-center gap-3">
-								<div
-									className={badgeBase}
-									style={{
-										backgroundColor: withAlpha(accent, "1A"),
-										color: accent,
-									}}
-								>
-									<Globe2 className="w-5 h-5" aria-hidden="true" />
-								</div>
-								<div className="font-medium text-slate-900 group-hover:underline">
-									Global map of Indigenous Peoples (PDF)
-								</div>
-							</div>
-							{/* Make footer text the same color as accent */}
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" aria-hidden="true" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
 
 						{/* Card 2 */}
 						<motion.a
@@ -204,7 +202,6 @@ export default function Activity04({
 									Mapped: The world’s Indigenous Peoples
 								</div>
 							</div>
-							{/* Make footer text the same color as accent */}
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" aria-hidden="true" />
 								<span>Open link</span>
@@ -213,7 +210,7 @@ export default function Activity04({
 					</div>
 				</motion.section>
 
-				{/* Notes (hex-accent aware NoteComposer) */}
+				{/* ===== Notes (hex-accent aware NoteComposer) ===== */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -223,12 +220,11 @@ export default function Activity04({
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent={accent} // use same accent
+					accent={accent}
 					downloadFileName={`Activity-${content?.id || "04"}-Reflection.docx`}
 					/* Exported title becomes: "Activity 4: Indigenous Peoples Outside Canada" */
 					docTitle={content?.title || "Indigenous Peoples Outside Canada"}
 					docSubtitle={content?.subtitle}
-					/* Make the activity number part of the exported title */
 					activityNumber={activityNumber}
 					/* Include the on-page tip in the exported document */
 					docIntro={tipText}
@@ -236,11 +232,11 @@ export default function Activity04({
 					includeLinks={true}
 					linksHeading="Resources"
 					pageLinks={pageLinks}
-					/* Indigo headings in the exported DOCX/HTML */
+					/* Indigo headings in the exported DOCX/HTML to match page accent */
 					headingColor={accent}
 				/>
 
-				{/* Complete toggle (same as others) */}
+				{/* ===== Complete toggle (same as Activity 01) ===== */}
 				<div className="flex justify-end">
 					<button
 						type="button"
@@ -257,24 +253,5 @@ export default function Activity04({
 				</div>
 			</div>
 		</motion.div>
-	);
-}
-
-/* ---------- Reusable dashed/translucent tip (accent aware) ---------- */
-function TipCard({ accent = "#4338CA", children }) {
-	return (
-		<section
-			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
-			role="note"
-			aria-label="Activity tip"
-			style={{
-				borderColor: withAlpha(accent, "33"), // ~20%
-				backgroundColor: withAlpha(accent, "13"), // ~8% tint
-			}}
-		>
-			<p className="text-base sm:text-lg text-center text-slate-900">
-				{children}
-			</p>
-		</section>
 	);
 }

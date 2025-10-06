@@ -65,15 +65,6 @@ export default function Activity02({
 	const linkFooterBase =
 		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
 
-	// NoteComposer palette (for on-page UI only)
-	const notePalette = {
-		text: "text-emerald-700",
-		ring: "focus-visible:ring-emerald-700",
-		btn: "bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900",
-		badgeBg: "bg-emerald-50",
-		border: "border-emerald-100",
-	};
-
 	const activityNumber = 2;
 
 	// Resources for export (bulleted hyperlinks in DOCX)
@@ -88,7 +79,7 @@ export default function Activity02({
 		},
 	];
 
-	// Tip text for export (will be split into sentences)
+	// Tip text for export (and to mirror in the on-page callout)
 	const tipText =
 		"Explore traditional plant knowledge and medicinal uses. Note teachings, sources, and how they connect to your context.";
 
@@ -119,37 +110,67 @@ export default function Activity02({
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header */}
+				{/* ===== HEADER (match Activity 1’s layout) ===== */}
 				<motion.header
-					className="text-center space-y-4"
+					className="text-center"
 					variants={titleFade}
 					initial="hidden"
 					animate="show"
 				>
-					<p
-						className="font-semibold uppercase tracking-wide text-sm sm:text-base"
-						style={{ color: accent }}
-					>
-						Activity {activityNumber}
-					</p>
-
-					<div className="flex items-center justify-center gap-3">
-						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							Indigenous Medicinal Plants
-						</h1>
-						<Leaf
-							className="w-7 h-7"
-							aria-hidden="true"
+					<div className="mx-auto space-y-4 sm:space-y-5">
+						{/* Activity number */}
+						<p
+							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
-						/>
-					</div>
+						>
+							Activity {activityNumber}
+						</p>
 
-					{/* Tip card */}
-					<TipCard accent={accent}>
-						Explore traditional plant knowledge and medicinal uses.
-						<br />
-						Note teachings, sources, and how they connect to your context.
-					</TipCard>
+						{/* Title row */}
+						<div className="inline-flex items-center justify-center gap-3">
+							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
+								Indigenous Medicinal Plants
+							</h1>
+							<Leaf
+								className="w-8 h-8 align-middle"
+								aria-hidden="true"
+								style={{ color: accent }}
+								title="Activity icon"
+							/>
+						</div>
+
+						{/* Instructions callout (same style as Activity 1) */}
+						<aside
+							role="note"
+							aria-label="Activity tip"
+							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm
+                 px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+							style={{ borderColor: withAlpha(accent, "33") }}
+						>
+							<div className="flex flex-col items-center gap-3 text-center">
+								<div
+									className="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold"
+									style={{
+										backgroundColor: withAlpha(accent, "15"),
+										color: accent,
+									}}
+									aria-hidden="true"
+								>
+									Instructions
+								</div>
+								<p
+									className="text-slate-800 max-w-2xl"
+									style={{ color: accent }}
+								>
+									Explore traditional plant knowledge and medicinal uses. <br />
+									<strong>
+										Note teachings, sources, and how they connect to your
+										context.
+									</strong>
+								</p>
+							</div>
+						</aside>
+					</div>
 				</motion.header>
 
 				{/* Links */}
@@ -178,7 +199,7 @@ export default function Activity02({
 										color: accent,
 									}}
 								>
-									<BookOpen className="w-5 h-5" aria-hidden="true" />
+									<Leaf className="w-5 h-5" aria-hidden="true" />
 								</div>
 								<div className="font-medium text-gray-800 group-hover:underline">
 									Métis traditional uses for plants (PDF)
@@ -208,7 +229,7 @@ export default function Activity02({
 										color: accent,
 									}}
 								>
-									<BookOpen className="w-5 h-5" aria-hidden="true" />
+									<Leaf className="w-5 h-5" aria-hidden="true" />
 								</div>
 								<div className="font-medium text-gray-800 group-hover:underline">
 									Traditional plant foods of Indigenous Peoples in Canada (book)
@@ -226,25 +247,25 @@ export default function Activity02({
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
-					storageKey={`notes-${content?.id || "03"}`}
+					storageKey={`notes-${content?.id || "02"}`}
 					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent="#047857"
-					downloadFileName={`Activity-${content?.id || "03"}-Reflection.docx`}
+					accent={EMERALD_700}
+					downloadFileName={`Activity-${content?.id || "02"}-Reflection.doc`}
 					/* Exported title becomes: "Activity 2: Indigenous Medicinal Plants" */
 					docTitle={content?.title || "Indigenous Medicinal Plants"}
 					/* Add activity number so it's prepended to the title in the export */
 					activityNumber={activityNumber}
-					/* Include the tip text at the top of the export, split into sentences */
+					/* Include the EXACT same tip text at the top of the export */
 					docIntro={tipText}
 					/* Export resources as a header + bullet list of hyperlink labels */
-					includeLinks={true}
+					includeLinks
 					linksHeading="Resources"
 					pageLinks={pageLinks}
-					/* Emerald headings in the exported DOCX/HTML */
+					/* Emerald headings in the exported DOCX/HTML (export-only) */
 					headingColor={EMERALD_700}
 				/>
 
@@ -265,24 +286,5 @@ export default function Activity02({
 				</div>
 			</div>
 		</motion.div>
-	);
-}
-
-/* Reusable dashed/translucent tip card (exact style parity) */
-function TipCard({ accent = EMERALD_700, children }) {
-	return (
-		<section
-			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
-			role="note"
-			aria-label="Activity tip"
-			style={{
-				borderColor: EMERALD_200, // light emerald border
-				backgroundColor: withAlpha(EMERALD_50, "66"), // emerald-50 at ~40% transparency
-			}}
-		>
-			<p className="text-base sm:text-lg text-center text-slate-900">
-				{children}
-			</p>
-		</section>
 	);
 }

@@ -1,3 +1,4 @@
+// src/pages/CoverPage.jsx
 import React, {
 	useEffect,
 	useLayoutEffect,
@@ -7,7 +8,10 @@ import React, {
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import IntroOverlay from "../components/Intro/IntroOverlay";
-import HighlightBleed from "../components/HighlightBleed.jsx"; // ⬅️ use the new ink highlight
+// import HighlightBleed from "../components/HighlightBleed.jsx"; // optional
+
+// ✅ Correct path to your SCORM context (matches AppShell.jsx usage)
+import { useScorm } from "../contexts/ScormContext.jsx";
 
 export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 	const { title = "", paragraphs = [] } = content || {};
@@ -42,7 +46,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 	const [introDone, setIntroDone] = useState(!shouldPlayIntro);
 	const [introActive, setIntroActive] = useState(shouldPlayIntro);
 
-	// trigger ink sweep 4s after content shows (one-shot)
+	// trigger ink sweep after content shows (one-shot)
 	const [heroHighlightTrigger, setHeroHighlightTrigger] = useState(null);
 	const hasHighlighted = useRef(false);
 
@@ -85,12 +89,12 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 		} catch {}
 	};
 
-	// 🔔 run the “ink” highlight 4s after the content is visible, once
+	// ink highlight trigger after page visible
 	useEffect(() => {
 		if (!introDone || hasHighlighted.current) return;
 		const t = setTimeout(() => {
 			hasHighlighted.current = true;
-			setHeroHighlightTrigger(Date.now()); // change key to force animation
+			setHeroHighlightTrigger(Date.now());
 		}, 2000);
 		return () => clearTimeout(t);
 	}, [introDone]);
@@ -125,14 +129,52 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 	);
 }
 
-/* --- Body (unchanged except for the highlight component) --- */
+/* --- Body --- */
 function CoverBody({
 	title,
 	paragraphs,
 	onStart,
 	reduced,
-	heroHighlightTrigger,
+	heroHighlightTrigger, // reserved if you animate highlights later
 }) {
+	// Context may expose different shapes; be defensive
+	const scormCtx = (typeof useScorm === "function" ? useScorm() : null) || {};
+	const {
+		scorm,
+		lmsConnected: ctxConnected,
+		learnerName: ctxLearnerName,
+	} = scormCtx;
+
+	const [connected, setConnected] = useState(!!ctxConnected);
+	const [firstName, setFirstName] = useState(
+		() => extractFirstName(ctxLearnerName) || "Learner"
+	);
+
+	// Try to read name directly from SCORM if context didn't provide it
+	useEffect(() => {
+		setConnected(!!ctxConnected);
+		const fromCtx = extractFirstName(ctxLearnerName);
+		if (fromCtx) {
+			setFirstName(fromCtx);
+			return;
+		}
+
+		// Attempt SCORM get() safely
+		try {
+			const raw =
+				scorm?.get?.("cmi.core.student_name") ||
+				scorm?.get?.("cmi.learner_name") ||
+				"";
+			const extracted = extractFirstName(raw);
+			if (extracted) {
+				setFirstName(extracted);
+				setConnected(true);
+			}
+		} catch {
+			// ignore — fallback stays "Learner"
+		}
+	}, [ctxConnected, ctxLearnerName, scorm]);
+
 	const DUR = 0.4;
 	const baseDelay = reduced ? 0 : 0.12;
 	const step = (i, gap = 0.08) => (reduced ? 0 : baseDelay + i * gap);
@@ -163,17 +205,19 @@ function CoverBody({
 		idxFirstPara = 4;
 	const idxCTA = idxFirstPara + Math.max(1, paragraphs.length || 1);
 
-	const playHero = heroHighlightTrigger != null;
-
 	return (
 		<div className="max-w-4xl mx-auto">
+			{/* 👋 Personalized Welcome — now always blue like the CTA */}
 			<motion.div
 				custom={idxKicker}
 				variants={item}
 				initial="hidden"
 				animate="show"
-				className="mb-2 text-sm font-medium tracking-wide text-gray-600 uppercase"
-			></motion.div>
+				className="mb-6 text-2xl font-semibold text-sky-600"
+				aria-live="polite"
+			>
+				Welcome {firstName}!
+			</motion.div>
 
 			<h1 className="mb-2">
 				<motion.span
@@ -194,8 +238,6 @@ function CoverBody({
 						animate="show"
 						className="block text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight"
 					>
-						{/* Ink-style highlight under the second line */}
-
 						{line2}
 					</motion.span>
 				)}
@@ -209,6 +251,7 @@ function CoverBody({
 				className="mx-auto h-0.5 w-24 bg-gray-900/80 rounded-full"
 			/>
 
+			{/* ✅ Both paragraphs use the same font & size */}
 			<div className="mt-6 space-y-4 max-w-3xl mx-auto">
 				{(paragraphs.length ? paragraphs : [""]).map((p, i) => (
 					<motion.p
@@ -217,9 +260,7 @@ function CoverBody({
 						variants={item}
 						initial="hidden"
 						animate="show"
-						className={`${
-							i === 0 ? "text-lg sm:text-xl" : "text-base sm:text-lg"
-						} text-gray-700 leading-relaxed`}
+						className="text-base sm:text-lg text-gray-700 leading-relaxed"
 					>
 						{p}
 					</motion.p>
@@ -243,6 +284,8 @@ function CoverBody({
 		</div>
 	);
 }
+
+/* --- Helpers --- */
 function splitTitle(t) {
 	if (!t) return ["", ""];
 
@@ -250,14 +293,12 @@ function splitTitle(t) {
 	const re = /\s+on\s+Indigenous\s+Cultures/i;
 	const m = t.match(re);
 	if (m && m.index != null) {
-		const idx = m.index; // start of the space before "on"
-		// slice so line 2 starts at "on Indigenous Cultures"
+		const idx = m.index;
 		const before = t.slice(0, idx).trimEnd();
 		const after = t.slice(idx).trimStart();
 		return [before, after];
 	}
 
-	// Fallback: your original balanced split
 	if (t.length < 26) return [t, ""];
 	const mid = Math.floor(t.length / 2);
 	const left = t.lastIndexOf(" ", mid);
@@ -274,4 +315,15 @@ function splitTitle(t) {
 			: right;
 
 	return [t.slice(0, idx), t.slice(idx + 1)];
+}
+
+function extractFirstName(raw) {
+	if (!raw || typeof raw !== "string") return "";
+	// SCORM often returns "Last, First"
+	if (raw.includes(",")) {
+		const parts = raw.split(",");
+		return (parts[1] || "").trim() || (parts[0] || "").trim();
+	}
+	// Otherwise take first token
+	return raw.trim().split(/\s+/)[0] || "";
 }
