@@ -10,6 +10,8 @@ import {
 	Bookmark,
 	ExternalLink,
 } from "lucide-react";
+import CompleteButton from "../components/CompleteButton.jsx";
+import { hasActivityStarted } from "../utils/activityProgress.js";
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -42,6 +44,23 @@ export default function Activity07({
 		setModel(next);
 		onNotes?.(next);
 	};
+
+	// keep local model in sync with prop changes (prevents premature “started”)
+	useEffect(() => {
+		if (!notes) {
+			setModel({ text: "", bullets: [], cards: [] });
+			return;
+		}
+		if (typeof notes === "string") {
+			setModel({ text: notes, bullets: [], cards: [] });
+			return;
+		}
+		setModel({
+			text: notes.text || "",
+			bullets: Array.isArray(notes.bullets) ? notes.bullets : [],
+			cards: Array.isArray(notes.cards) ? notes.cards : [],
+		});
+	}, [notes]);
 
 	/* -------------------------------------------------------------
      DOWNLOAD #1: CARDS ONLY
@@ -639,6 +658,9 @@ export default function Activity07({
 		prevValidRef.current = validCount;
 	}, [validCount]);
 
+	// compute "started" from cards model for CompleteButton gating
+	const started = hasActivityStarted(model, "cards");
+
 	// --- animations (single definition; matches other activities) ---
 	const reduceMotion = useReducedMotion();
 	const STAGGER = 0.14;
@@ -982,19 +1004,12 @@ export default function Activity07({
 					className="mt-6 pt-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-2 sm:justify-end"
 					style={{ borderColor: "rgba(203,213,225,0.8)" }}
 				>
-					<button
-						type="button"
-						onClick={onToggleComplete}
-						aria-pressed={!!completed}
-						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-							completed
-								? "border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
-						}`}
-						title={completed ? "Marked Complete" : "Mark Complete"}
-					>
-						{completed ? "Marked Complete" : "Mark Complete"}
-					</button>
+					<CompleteButton
+						started={started}
+						completed={!!completed}
+						onToggle={onToggleComplete}
+						accent="#10B981"
+					/>
 
 					<button
 						type="button"

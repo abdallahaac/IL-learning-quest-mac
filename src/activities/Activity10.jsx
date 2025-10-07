@@ -1,5 +1,5 @@
 // src/pages/activities/Activity10.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
 	Store, // header icon
@@ -9,6 +9,8 @@ import {
 	ExternalLink,
 } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
+import CompleteButton from "../components/CompleteButton.jsx";
+import { hasActivityStarted } from "../utils/activityProgress.js";
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -23,11 +25,20 @@ export default function Activity10({
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Business, offerings, how you’ll support…";
+
+	// keep local notes synced with incoming prop so "started" is accurate
 	const [localNotes, setLocalNotes] = useState(notes);
+	useEffect(() => {
+		setLocalNotes(notes);
+	}, [notes]);
+
 	const saveNotes = (v) => {
 		setLocalNotes(v);
 		onNotes?.(v);
 	};
+
+	// compute whether the activity has started (string or object notes supported)
+	const started = hasActivityStarted(localNotes);
 
 	const reduceMotion = useReducedMotion();
 	const activityNumber = 10;
@@ -182,7 +193,6 @@ export default function Activity10({
 								>
 									{tipText}
 									<br />
-
 									<strong>
 										What products or services spoke to you and why?
 									</strong>
@@ -276,20 +286,14 @@ export default function Activity10({
 					headingColor={accent}
 				/>
 
-				{/* ===== Complete toggle ===== */}
+				{/* ===== Complete toggle (shared component) ===== */}
 				<div className="flex justify-end">
-					<button
-						type="button"
-						onClick={onToggleComplete}
-						aria-pressed={!!completed}
-						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-							completed
-								? "border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
-						}`}
-					>
-						{completed ? "Marked Complete" : "Mark Complete"}
-					</button>
+					<CompleteButton
+						started={started}
+						completed={!!completed}
+						onToggle={onToggleComplete}
+						accent="#10B981"
+					/>
 				</div>
 			</div>
 		</motion.div>

@@ -1,8 +1,10 @@
 // src/pages/activities/Activity05.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Film, ExternalLink } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
+import CompleteButton from "../components/CompleteButton.jsx";
+import { hasActivityStarted } from "../utils/activityProgress.js";
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -17,11 +19,20 @@ export default function Activity05({
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Title, creator(s), insights…";
-	const [localNotes, setLocalNotes] = useState(notes);
+
+	// Local notes + prop sync (prevents premature “started”)
+	const [localNotes, setLocalNotes] = useState(notes ?? "");
+	useEffect(() => {
+		setLocalNotes(notes ?? "");
+	}, [notes]);
+
 	const saveNotes = (v) => {
 		setLocalNotes(v);
 		onNotes?.(v);
 	};
+
+	// Compute started from freshest value
+	const started = hasActivityStarted(localNotes ?? notes, "notes");
 
 	const reduceMotion = useReducedMotion();
 
@@ -267,20 +278,14 @@ export default function Activity05({
 					headingColor={accent}
 				/>
 
-				{/* ===== Complete toggle (kept consistent with other activities) ===== */}
+				{/* ===== Complete toggle ===== */}
 				<div className="flex justify-end">
-					<button
-						type="button"
-						onClick={onToggleComplete}
-						aria-pressed={!!completed}
-						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-							completed
-								? "border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
-						}`}
-					>
-						{completed ? "Marked Complete" : "Mark Complete"}
-					</button>
+					<CompleteButton
+						started={started}
+						completed={!!completed}
+						onToggle={onToggleComplete}
+						accent="#10B981"
+					/>
 				</div>
 			</div>
 		</motion.div>

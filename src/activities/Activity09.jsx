@@ -1,8 +1,10 @@
 // src/pages/activities/Activity09.jsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { HeartHandshake, Newspaper, ExternalLink } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
+import CompleteButton from "../components/CompleteButton.jsx";
+import { hasActivityStarted } from "../utils/activityProgress.js";
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -19,11 +21,19 @@ export default function Activity09({
 		content?.notePlaceholder ||
 		"Story link; your summary and reflections on framing, voices, and biases…";
 
+	// keep local state in sync with incoming prop (prevents premature “started”)
 	const [localNotes, setLocalNotes] = useState(notes);
+	useEffect(() => {
+		setLocalNotes(notes);
+	}, [notes]);
+
 	const saveNotes = (v) => {
 		setLocalNotes(v);
 		onNotes?.(v);
 	};
+
+	// compute “started” using shared utility (works with string or object notes)
+	const started = hasActivityStarted(localNotes);
 
 	const reduceMotion = useReducedMotion();
 
@@ -74,7 +84,7 @@ export default function Activity09({
 	const tipText =
 		"Uncover a news story with an Indigenous focus and reflect on the scope of the story.";
 
-	// Links list (exported to doc; no table) — memoized to avoid recreation each keystroke
+	// Links list (exported to doc; no table) — memoized
 	const pageLinks = useMemo(
 		() => [
 			{ label: "APTN", url: "https://www.aptntv.ca/" },
@@ -288,20 +298,14 @@ export default function Activity09({
 					headingColor={accent}
 				/>
 
-				{/* ===== Complete toggle ===== */}
+				{/* ===== Complete toggle (shared component) ===== */}
 				<div className="flex justify-end">
-					<button
-						type="button"
-						onClick={onToggleComplete}
-						aria-pressed={!!completed}
-						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-							completed
-								? "border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
-						}`}
-					>
-						{completed ? "Marked Complete" : "Mark Complete"}
-					</button>
+					<CompleteButton
+						started={started}
+						completed={!!completed}
+						onToggle={onToggleComplete}
+						accent="#10B981"
+					/>
 				</div>
 			</div>
 		</motion.div>
