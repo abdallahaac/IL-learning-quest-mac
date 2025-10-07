@@ -687,6 +687,7 @@ export default function ContentsPage({
 					</motion.div>
 
 					{/* Box 2: Download All Reflections (gated) */}
+					{/* Box 2: Download All Reflections (gated, emerald-accent to match icon) */}
 					<motion.div
 						className={`rounded-2xl border p-5 shadow ${
 							reflectionsReady
@@ -702,24 +703,25 @@ export default function ContentsPage({
 								className="inline-grid place-items-center w-10 h-10 rounded-xl"
 								style={{
 									backgroundColor: reflectionsReady
-										? "rgba(16,185,129,0.12)"
-										: "rgba(148,163,184,0.15)",
+										? "rgba(16,185,129,0.12)" /* emerald-500 @ 12% */
+										: "rgba(148,163,184,0.15)" /* slate-400 @ 15% */,
 									border: reflectionsReady
 										? "1px solid rgba(16,185,129,0.28)"
 										: "1px solid rgba(148,163,184,0.35)",
-									color: reflectionsReady ? "#059669" : "#64748B",
+									color: reflectionsReady ? "#059669" : "#64748B", // emerald-600 vs slate-500
 								}}
 								aria-hidden="true"
 							>
 								<FontAwesomeIcon icon={faComments} />
 							</span>
+
 							<div className="min-w-0">
 								<div
 									className={`text-base font-semibold ${
 										reflectionsReady ? "text-slate-900" : "text-slate-400"
 									}`}
 								>
-									Download all reflections
+									Download activities reflections
 								</div>
 								<div
 									className={`text-sm mt-0.5 ${
@@ -728,10 +730,11 @@ export default function ContentsPage({
 								>
 									{reflectionsReady
 										? "Personal reflections from each activity consolidated into one document."
-										: "Finish all activities and mark each one Complete to enable this download."}
+										: "Finish all activities and mark each one complete to enable this download."}
 								</div>
 							</div>
 						</div>
+
 						<div className="mt-4">
 							<button
 								type="button"
@@ -745,15 +748,16 @@ export default function ContentsPage({
 										? "Download All Reflections (.docx)"
 										: "Finish all activities and mark each one Complete first"
 								}
-								className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors
-      focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2
-      ${
-				reflectionsReady
-					? "bg-white text-sky-700 border-sky-300 hover:bg-sky-50"
-					: "bg-white text-slate-400 border-slate-200 cursor-not-allowed"
-			}`}
+								className={[
+									"group inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium",
+									"border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2",
+									reflectionsReady
+										? // ✅ match the styling of the blue button, just recolored to emerald
+										  "bg-gradient-to-b from-emerald-50 to-white text-emerald-700 border-emerald-300 hover:from-emerald-100 hover:to-white"
+										: "bg-white text-slate-400 border-slate-200 cursor-not-allowed",
+								].join(" ")}
 							>
-								{/* icon matches the green badge when enabled */}
+								{/* icon tinted emerald when enabled, muted when disabled */}
 								<Download
 									className={`w-4 h-4 ${
 										reflectionsReady ? "text-emerald-600" : "text-slate-400"
