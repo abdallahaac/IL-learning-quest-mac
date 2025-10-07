@@ -7,6 +7,9 @@ import {
 	ExternalLink,
 } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
+import CompleteButton from "../components/CompleteButton.jsx";
+import { hasActivityStarted } from "../utils/activityProgress.js";
+// or relative: import CompleteButton from "../components/CompleteButton.jsx";
 
 // helper: add alpha to a hex color (#RRGGBB + "AA")
 function withAlpha(hex, alphaHex) {
@@ -105,6 +108,8 @@ export default function Activity01({
 			window.removeEventListener("resize", update);
 		};
 	}, []);
+
+	const started = hasActivityStarted(localNotes, "notes");
 
 	return (
 		<motion.div
@@ -293,18 +298,12 @@ export default function Activity01({
 
 				{/* Complete toggle */}
 				<div className="flex justify-end">
-					<button
-						type="button"
-						onClick={onToggleComplete}
-						aria-pressed={!!completed}
-						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-							completed
-								? "border-emerald-400 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-900 hover:bg-gray-100"
-						}`}
-					>
-						{completed ? "Marked Complete" : "Mark Complete"}
-					</button>
+					<CompleteButton
+						started={started}
+						completed={!!completed}
+						onToggle={onToggleComplete}
+						accent="#10B981" // or use activity accent
+					/>
 				</div>
 			</div>
 		</motion.div>

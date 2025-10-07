@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHouse } from "@fortawesome/free-solid-svg-icons";
@@ -32,9 +32,15 @@ export default function ContentsPage({
 		conclusionIndex: -1,
 		resourcesIndex: -1,
 	},
+	// visited for nodes (supervisor’s ask)
 	visitedIndices = [],
+
+	// Activities: we track visited (X/Total) and also completion state
 	activitiesVisitedCount = 0,
 	activitiesTotal = 10,
+	allActivitiesCompleted = false,
+
+	// Layout / positioning
 	cardPosOverrides,
 	cardWidth = 210,
 	autoScaleCards = true,
@@ -42,6 +48,8 @@ export default function ContentsPage({
 	clampMargin = 12,
 	nodeXOffsetOverrides = [],
 	nodeYOffsetOverrides = [],
+
+	// Downloads
 	onDownloadAllReflections,
 	reflectionsReady = false,
 }) {
@@ -76,7 +84,7 @@ export default function ContentsPage({
 		items.length
 	);
 
-	// Progress gating
+	// Progress gating (still gates by visited count before Activities)
 	const { gatedAdjusted, gatedClamped, prevProgOffsetRef } = useGatedProgress({
 		prefersReduced,
 		progress,
@@ -90,7 +98,11 @@ export default function ContentsPage({
 	const introHue = 215;
 	const introHex = hslToHex(introHue, 85, 56);
 
-	// Keyboard focus cycling
+	// Derived: all activities visited?
+	const allActivitiesVisited =
+		activitiesTotal > 0 && activitiesVisitedCount >= activitiesTotal;
+
+	// Keyboard focus cycling (kept)
 	const cycleFocus = (current, dir) => {
 		const n = items.length;
 		const next = (current + dir + n) % n;
@@ -215,9 +227,15 @@ export default function ContentsPage({
 										i={i}
 										item={{
 											...it,
-											ariaActivities: `Activities (${activitiesVisitedCount}/${activitiesTotal})`,
+											ariaActivities: allActivitiesCompleted
+												? "Activities (Completed)"
+												: allActivitiesVisited
+												? "Activities (Visited)"
+												: `Activities (${activitiesVisitedCount}/${activitiesTotal})`,
 											activitiesVisitedCount,
 											activitiesTotal,
+											activitiesAllVisited: allActivitiesVisited,
+											allActivitiesCompleted,
 										}}
 										pos={pos}
 										nodeOffsetX={nodeX[i] || 0}

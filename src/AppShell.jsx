@@ -1,9 +1,8 @@
-// AppShell.jsx
 import React from "react";
 import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
 import { buildPages } from "./utils/pages.js";
-import { pageThemes, activityThemes } from "./constants/themes.js"; // unchanged
+import { pageThemes, activityThemes } from "./constants/themes.js";
 
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
@@ -65,7 +64,7 @@ export default function AppShell() {
 		totalPages,
 	});
 
-	// Navigation helpers
+	// Navigation helpers (unchanged)
 	const gotoPage = (idx) => {
 		const clamped = Math.min(Math.max(idx, 0), totalPages - 1);
 		push(clamped);
@@ -138,13 +137,45 @@ export default function AppShell() {
 		key: p.content.id,
 		label: `Activity ${i + 1}`,
 		index: idx,
-		completed: state.visited.has(idx),
+		completed: state.visited.has(idx), // header breadcrumb still uses visited
 		visited: state.visited.has(idx),
 		accent: accentForActivityIndex(i),
 	}));
 
 	const currentPage = pages[state.pageIndex] ?? pages[0];
 	const accentForThisPage = accentForPage(currentPage);
+
+	// Exports
+	const activityMeta = React.useMemo(
+		() => buildActivityMeta(activityPages),
+		[activityPages]
+	);
+
+	// Completion vs visited across all activities
+	const allActivitiesVisited =
+		activityPageIndices.length > 0 &&
+		activityVisitedCount >= activityPageIndices.length;
+
+	const allActivitiesCompleted = React.useMemo(
+		() =>
+			activityPages.every(({ p }) => {
+				const id = p.content.id;
+				return !!state.completed[id]; // user clicked “Mark Complete”
+			}),
+		[activityPages, state.completed]
+	);
+
+	// Download all reflections (enabled only when ALL completed)
+	const [reflectBusy, setReflectBusy] = React.useState(false);
+	const onDownloadAllReflections = async () => {
+		if (reflectBusy || !allActivitiesCompleted) return;
+		setReflectBusy(true);
+		try {
+			downloadAllReflections({ activityMeta, notes: state.notes });
+		} finally {
+			setTimeout(() => setReflectBusy(false), 900);
+		}
+	};
 
 	// Next label
 	const getNextLabel = () => {
@@ -159,37 +190,6 @@ export default function AppShell() {
 		}
 		return nextPage?.content?.title || "Next";
 	};
-
-	// Exports
-	const activityMeta = React.useMemo(
-		() => buildActivityMeta(activityPages),
-		[activityPages]
-	);
-	const [reflectBusy, setReflectBusy] = React.useState(false);
-	const allReflectionsComplete = React.useMemo(
-		() => activityMeta.every(({ id }) => !!state.notes[id]),
-		[activityMeta, state.notes]
-	);
-	// AppShell.jsx (defensively guard the click handler)
-	const onDownloadAllReflections = async () => {
-		if (reflectBusy || !allActivitiesCompleted) return; // <-- guard
-		setReflectBusy(true);
-		try {
-			downloadAllReflections({ activityMeta, notes: state.notes });
-		} finally {
-			setTimeout(() => setReflectBusy(false), 900);
-		}
-	};
-
-	// AppShell.jsx (add this near other derived values)
-	const allActivitiesCompleted = React.useMemo(
-		() =>
-			activityPages.every(({ p }) => {
-				const id = p.content.id;
-				return !!state.completed[id]; // <-- user clicked “Mark Complete”
-			}),
-		[activityPages, state.completed]
-	);
 
 	// Layout
 	return (
@@ -240,6 +240,7 @@ export default function AppShell() {
 										onIntroActiveChange={() => {}}
 									/>
 								)}
+
 								{currentPage.type === "contents" && (
 									<ContentsPage
 										onNavigate={gotoPage}
@@ -254,8 +255,13 @@ export default function AppShell() {
 											conclusionIndex: idxConclusion,
 											resourcesIndex: idxResources,
 										}}
+										// visited-based UX (supervisor’s request)
+										visitedIndices={[...state.visited]}
 										activitiesVisitedCount={activityVisitedCount}
 										activitiesTotal={activityPageIndices.length}
+										// NEW: wire both “all visited” and “all completed”
+										allActivitiesCompleted={allActivitiesCompleted}
+										// positions
 										nodeXOffsetOverrides={[-80, -140, -90, -150, -100, -200]}
 										nodeYOffsetOverrides={[-100, 70, -105, 95, -95, 50]}
 										cardPosOverrides={[
@@ -266,9 +272,9 @@ export default function AppShell() {
 											{ x: -30, y: -160 },
 											{ x: -130, y: -15 },
 										]}
-										visitedIndices={[...state.visited]}
+										// downloads panel should only be enabled when all completed
+										reflectionsReady={allActivitiesCompleted && !reflectBusy}
 										onDownloadAllReflections={onDownloadAllReflections}
-										reflectionsReady={allActivitiesCompleted && !reflectBusy} // <-- changed
 									/>
 								)}
 

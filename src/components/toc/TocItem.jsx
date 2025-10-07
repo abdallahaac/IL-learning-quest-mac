@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 import { TOC_ANIM } from "../../constants/content.js";
-import { NODE_RADIUS, CARD_GAP_Y } from "../../constants/content.js";
 import { hslToHex } from "../../utils/color.js";
 
 /**
@@ -26,6 +25,17 @@ export default function TocItem({
 }) {
 	const hue = nodeColorHue ?? item.hue ?? 210;
 	const nodeHex = hslToHex(hue, 64, 55);
+
+	// Activities logic:
+	// - Show checkmark if either all visited OR all completed.
+	// - Chip shows:
+	//   - "Completed" when all activities completed
+	//   - "Visited"   when all activities visited (but not all completed)
+	//   - "X/Total"   otherwise
+	const activitiesAllVisited = Boolean(item.activitiesAllVisited);
+	const activitiesAllCompleted = Boolean(item.allActivitiesCompleted);
+	const showActivitiesBadge =
+		isActivities && (activitiesAllVisited || activitiesAllCompleted);
 
 	return (
 		<li className="absolute" style={{ left: 0, top: 0 }}>
@@ -58,6 +68,15 @@ export default function TocItem({
 						? item.ariaActivities
 						: `${item.label}${isVisited ? " (visited)" : ""}`
 				}
+				title={
+					isActivities
+						? activitiesAllCompleted
+							? "All activities completed"
+							: activitiesAllVisited
+							? "All activities visited"
+							: undefined
+						: undefined
+				}
 			>
 				<motion.div
 					className="backdrop-blur-md flex items-center justify-center no-backdrop-glass border-2 rounded-full relative"
@@ -84,7 +103,11 @@ export default function TocItem({
 						style={{ color: "var(--node-color)", opacity: isVisited ? 0.9 : 1 }}
 						aria-hidden
 					/>
-					{!isActivities && isVisited && (
+
+					{/* Node check badge:
+              - non-Activities: when visited
+              - Activities: when all visited or all completed */}
+					{((!isActivities && isVisited) || showActivitiesBadge) && (
 						<span
 							className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full grid place-items-center text-white"
 							style={{
@@ -150,18 +173,53 @@ export default function TocItem({
 							>
 								{item.label}
 							</span>
+
 							{isActivities ? (
-								<span
-									className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
-									style={{
-										backgroundColor: "rgba(16,185,129,0.12)",
-										border: "1px solid rgba(16,185,129,0.25)",
-									}}
-									aria-hidden
-								>
-									{item.activitiesVisitedCount}/{item.activitiesTotal}
-								</span>
+								activitiesAllCompleted ? (
+									// Completed wins if both are true
+									<span
+										className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+										style={{
+											backgroundColor: "rgba(16,185,129,0.12)",
+											border: "1px solid rgba(16,185,129,0.25)",
+										}}
+										aria-label="All activities completed"
+									>
+										<FontAwesomeIcon
+											icon={faCircleCheck}
+											className="text-[10px]"
+										/>
+										Completed
+									</span>
+								) : activitiesAllVisited ? (
+									<span
+										className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+										style={{
+											backgroundColor: "rgba(16,185,129,0.12)",
+											border: "1px solid rgba(16,185,129,0.25)",
+										}}
+										aria-label="All activities visited"
+									>
+										<FontAwesomeIcon
+											icon={faCircleCheck}
+											className="text-[10px]"
+										/>
+										Visited
+									</span>
+								) : (
+									<span
+										className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+										style={{
+											backgroundColor: "rgba(16,185,129,0.12)",
+											border: "1px solid rgba(16,185,129,0.25)",
+										}}
+										aria-hidden
+									>
+										{item.activitiesVisitedCount}/{item.activitiesTotal}
+									</span>
+								)
 							) : (
+								// Other nodes: Visited chip when visited
 								isVisited && (
 									<span
 										className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
