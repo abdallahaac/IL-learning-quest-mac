@@ -1095,21 +1095,12 @@ export default function Activity03({
 					<button
 						type="button"
 						onClick={downloadAllDocx}
-						disabled={!model.recipes.length}
-						className="px-4 py-2 rounded-lg border text-sm font-medium transition-colors disabled:cursor-not-allowed"
-						style={
-							model.recipes.length
-								? {
-										backgroundColor: accent,
-										color: "#fff",
-										borderColor: withAlpha(accent, "66"),
-								  }
-								: {
-										backgroundColor: "#f1f5f9",
-										color: "#94a3b8",
-										borderColor: "rgba(203,213,225,1)",
-								  }
-						}
+						className="px-4 py-2 rounded-lg border text-sm font-medium transition-colors"
+						style={{
+							backgroundColor: accent,
+							color: "#fff",
+							borderColor: withAlpha(accent, "66"),
+						}}
 						title="Download all saved recipes as .docx"
 					>
 						Download all (.docx)

@@ -1,8 +1,10 @@
 // src/pages/activities/Activity02.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Leaf, ExternalLink, BookOpen } from "lucide-react";
-import NoteComposer from "../components/NoteComposer.jsx";
+import { Leaf, ExternalLink } from "lucide-react";
+import NoteComposer, {
+	downloadNotesAsWord,
+} from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 
@@ -124,6 +126,25 @@ export default function Activity02({
 	const started = initialHasContentRef.current
 		? true
 		: touched && hasContentNow;
+
+	// ---- Decoupled download handler (uses current notes + page metadata) ----
+	const handleDownload = () => {
+		const html =
+			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+		downloadNotesAsWord({
+			html,
+			downloadFileName: `Activity-${content?.id || "02"}-Reflection.doc`,
+			docTitle: content?.title || "Indigenous Medicinal Plants",
+			docSubtitle: content?.subtitle,
+			activityNumber,
+			docIntro: tipText,
+			includeLinks: true,
+			linksHeading: "Resources",
+			pageLinks,
+			headingColor: accent, // use activity accent for headings in export
+			accent,
+		});
+	};
 
 	return (
 		<motion.div
@@ -283,7 +304,7 @@ export default function Activity02({
 					</div>
 				</motion.section>
 
-				{/* Notes */}
+				{/* Notes (hide internal download button; use external one below) */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -307,16 +328,26 @@ export default function Activity02({
 					pageLinks={pageLinks}
 					/* Emerald headings in the exported DOCX/HTML (export-only) */
 					headingColor={EMERALD_700}
+					showDownloadButton={false}
 				/>
 
-				{/* Complete toggle */}
-				<div className="flex justify-end">
+				{/* Bottom action row: Complete + external Download */}
+				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
 						completed={!!completed}
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
+					<button
+						type="button"
+						onClick={handleDownload}
+						className="px-4 py-2 rounded-lg text-white"
+						style={{ backgroundColor: accent }}
+						title="Download your reflections as a Word-compatible .doc file"
+					>
+						Download (.doc)
+					</button>
 				</div>
 			</div>
 		</motion.div>
