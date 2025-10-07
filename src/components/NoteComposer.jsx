@@ -231,6 +231,135 @@ const QUILL_FORMATS = [
 	"background",
 ];
 
+/* ---------- PUBLIC EXPORT: decoupled downloader ---------- */
+export function downloadNotesAsWord({
+	html = "",
+	downloadFileName = "Reflection.doc",
+	docTitle = "Activity",
+	docSubtitle,
+	activityNumber,
+	docIntro, // Activity tip
+	includeLinks = false,
+	linksHeading = "Resources",
+	pageLinks = [],
+	headingColor = "#0b1220",
+	accent,
+}) {
+	const normalizeHexLocal = (h) => {
+		if (!h) return null;
+		let s = String(h).trim();
+		if (s[0] !== "#") s = `#${s}`;
+		return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
+	};
+
+	const safeTitle =
+		typeof activityNumber === "number"
+			? `Activity ${activityNumber}: ${docTitle}`
+			: docTitle;
+
+	const exportHeadingColor =
+		normalizeHexLocal(headingColor) || normalizeHexLocal(accent) || "#2563EB";
+
+	const docCss = `
+    body { background: #ffffff; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; color: #0b1220; }
+    h1, h2, h3 { margin: 0 0 8pt; }
+    h1 { font-size: 20pt; }
+    h2 { font-size: 14pt; }
+    h3 { font-size: 12pt; }
+    p { margin: 0 0 10pt; white-space: pre-wrap; }
+    ul, ol { margin: 0 0 12pt 22pt; }
+    li { margin: 0 0 6pt; }
+    a { color: ${exportHeadingColor}; text-decoration: underline; }
+
+    .ql-editor h1 { font-size: 20pt; }
+    .ql-editor h2 { font-size: 14pt; }
+    .ql-editor h3 { font-size: 12pt; }
+    .ql-align-center { text-align: center; }
+    .ql-align-right { text-align: right; }
+    .ql-align-justify { text-align: justify; }
+    .ql-indent-1 { margin-left: 2em; }
+    .ql-indent-2 { margin-left: 4em; }
+    .ql-indent-3 { margin-left: 6em; }
+    .ql-indent-4 { margin-left: 8em; }
+
+    .cover { margin-bottom: 12pt; }
+    .section { margin: 14pt 0; }
+    .small-label { font-size: 10pt; color: #475569; margin-bottom: 4pt; }
+  `;
+
+	const editorBlock = `<div class="ql-editor">${colorizeHeadings(
+		html,
+		exportHeadingColor
+	)}</div>`;
+
+	const body = `
+    <div class="cover">
+      <h1 style="color: ${exportHeadingColor}">${safeTitle}</h1>
+      ${docSubtitle ? `<div class="small-label">${docSubtitle}</div>` : ""}
+    </div>
+
+    ${
+			docIntro
+				? `
+      <div class="section">
+        <h2 style="color: ${exportHeadingColor}">Activity tip</h2>
+        <p>${String(docIntro).replace(/\n/g, "<br/>")}</p>
+      </div>`
+				: ""
+		}
+
+    <div class="section">
+      <h2 style="color: ${exportHeadingColor}">Saved reflections</h2>
+      ${editorBlock}
+    </div>
+
+    ${
+			includeLinks && pageLinks?.length
+				? `
+      <div class="section">
+        <h2 style="color: ${exportHeadingColor}">${
+						linksHeading || "Resources"
+				  }</h2>
+        <ul>
+          ${pageLinks
+						.map((l) => {
+							const label = (l?.label || "").toString();
+							const url = (l?.url || "").toString();
+							return url
+								? `<li><a href="${url}">${label}</a></li>`
+								: `<li>${label}</li>`;
+						})
+						.join("")}
+        </ul>
+      </div>`
+				: ""
+		}
+  `.trim();
+
+	const htmlDoc = `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>${safeTitle}</title>
+          <style>${docCss}</style>
+        </head>
+        <body>${body}</body>
+      </html>
+    `.trim();
+
+	const blob = new Blob([htmlDoc], {
+		type: "application/msword",
+	});
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = downloadFileName || "Reflection.doc";
+	document.body.appendChild(a);
+	a.click();
+	a.remove();
+	URL.revokeObjectURL(url);
+}
+
 /* ---------- Quill host ---------- */
 function QuillSurface({
 	value = "",
@@ -353,6 +482,10 @@ export default function NoteComposer({
 	linksHeading = "Resources",
 	pageLinks = [],
 	headingColor = "#0b1220", // used only for export if you want to override accent
+
+	/* NEW controls to decouple the download button */
+	showDownloadButton = true,
+	onRequestDownload,
 }) {
 	const model = React.useMemo(() => {
 		if (typeof value === "string" || !value)
@@ -395,118 +528,23 @@ export default function NoteComposer({
 
 	/* ---- Download as Word-compatible HTML with sections ---- */
 	const downloadWord = () => {
-		const safeTitle =
-			typeof activityNumber === "number"
-				? `Activity ${activityNumber}: ${docTitle}`
-				: docTitle;
-
-		// Use headingColor if passed, otherwise fall back to accent
-		const exportHeadingColor =
-			normalizeHex(headingColor) || normalizeHex(accent) || "#2563EB";
-
-		// Word-friendly CSS. Keep the color here too, but the inline styles will win.
-		const docCss = `
-    body { background: #ffffff; font-family: Arial, Helvetica, sans-serif; line-height: 1.5; color: #0b1220; }
-    h1, h2, h3 { margin: 0 0 8pt; }  /* color set inline */
-    h1 { font-size: 20pt; }
-    h2 { font-size: 14pt; }
-    h3 { font-size: 12pt; }
-    p { margin: 0 0 10pt; white-space: pre-wrap; }
-    ul, ol { margin: 0 0 12pt 22pt; }
-    li { margin: 0 0 6pt; }
-    a { color: ${exportHeadingColor}; text-decoration: underline; }
-
-    /* Preserve Quill semantics */
-    .ql-editor h1 { font-size: 20pt; }
-    .ql-editor h2 { font-size: 14pt; }
-    .ql-editor h3 { font-size: 12pt; }
-    .ql-align-center { text-align: center; }
-    .ql-align-right { text-align: right; }
-    .ql-align-justify { text-align: justify; }
-    .ql-indent-1 { margin-left: 2em; }
-    .ql-indent-2 { margin-left: 4em; }
-    .ql-indent-3 { margin-left: 6em; }
-    .ql-indent-4 { margin-left: 8em; }
-
-    .cover { margin-bottom: 12pt; }
-    .section { margin: 14pt 0; }
-    .small-label { font-size: 10pt; color: #475569; margin-bottom: 4pt; }
-  `;
-
-		// Colorize any headings the user created inside the editor HTML
-		const editorBlock = `<div class="ql-editor">${colorizeHeadings(
+		if (onRequestDownload) {
+			onRequestDownload();
+			return;
+		}
+		downloadNotesAsWord({
 			html,
-			exportHeadingColor
-		)}</div>`;
-
-		// Inline color on your static section headings too
-		const body = `
-    <div class="cover">
-      <h1 style="color: ${exportHeadingColor}">${safeTitle}</h1>
-      ${docSubtitle ? `<div class="small-label">${docSubtitle}</div>` : ""}
-    </div>
-
-    ${
-			docIntro
-				? `
-      <div class="section">
-        <h2 style="color: ${exportHeadingColor}">Activity tip</h2>
-        <p>${docIntro.replace(/\n/g, "<br/>")}</p>
-      </div>`
-				: ""
-		}
-
-    <div class="section">
-      <h2 style="color: ${exportHeadingColor}">Saved reflections</h2>
-      ${editorBlock}
-    </div>
-
-    ${
-			includeLinks && pageLinks?.length
-				? `
-      <div class="section">
-        <h2 style="color: ${exportHeadingColor}">${
-						linksHeading || "Resources"
-				  }</h2>
-        <ul>
-          ${pageLinks
-						.map((l) => {
-							const label = (l?.label || "").toString();
-							const url = (l?.url || "").toString();
-							return url
-								? `<li><a href="${url}">${label}</a></li>`
-								: `<li>${label}</li>`;
-						})
-						.join("")}
-        </ul>
-      </div>`
-				: ""
-		}
-  `.trim();
-
-		const htmlDoc = `
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>${safeTitle}</title>
-          <style>${docCss}</style>
-        </head>
-        <body>${body}</body>
-      </html>
-    `.trim();
-
-		const blob = new Blob([htmlDoc], {
-			// HTML .doc plays nicest with Word’s importer
-			type: "application/msword",
+			downloadFileName,
+			docTitle,
+			docSubtitle,
+			activityNumber,
+			docIntro,
+			includeLinks,
+			linksHeading,
+			pageLinks,
+			headingColor,
+			accent,
 		});
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = downloadFileName || "Reflection.doc";
-		document.body.appendChild(a);
-		a.click();
-		a.remove();
-		URL.revokeObjectURL(url);
 	};
 
 	return (
@@ -525,11 +563,6 @@ export default function NoteComposer({
 						ref={toolbarRef}
 						className="flex flex-wrap items-center gap-0.5 rounded-xl bg-white/80 px-1 py-0.5 border border-gray-200"
 					>
-						{/* Select all (keep commented out if you don't want it visible) */}
-						{/* <button className="ql-selectall" title="Select all">
-              <i className="fa-regular fa-object-group" />
-            </button> */}
-
 						{/* Header */}
 						<select
 							className="ql-header rounded-lg"
@@ -588,21 +621,26 @@ export default function NoteComposer({
 					</div>
 				</div>
 
-				{/* Download button */}
-				<button
-					type="button"
-					onClick={downloadWord}
-					className="rounded-xl px-2.5 py-1.5 text-sm shadow-sm transition-colors"
-					style={{ backgroundColor: accentHex, color: btnText }}
-					onMouseEnter={(e) =>
-						(e.currentTarget.style.backgroundColor = shadeHex(accentHex, -0.08))
-					}
-					onMouseLeave={(e) =>
-						(e.currentTarget.style.backgroundColor = accentHex)
-					}
-				>
-					Download (.doc)
-				</button>
+				{/* Download button (can be hidden and moved outside) */}
+				{showDownloadButton && (
+					<button
+						type="button"
+						onClick={downloadWord}
+						className="rounded-xl px-2.5 py-1.5 text-sm shadow-sm transition-colors"
+						style={{ backgroundColor: accentHex, color: btnText }}
+						onMouseEnter={(e) =>
+							(e.currentTarget.style.backgroundColor = shadeHex(
+								accentHex,
+								-0.08
+							))
+						}
+						onMouseLeave={(e) =>
+							(e.currentTarget.style.backgroundColor = accentHex)
+						}
+					>
+						Download (.doc)
+					</button>
+				)}
 			</div>
 
 			{/* Editor */}

@@ -6,7 +6,9 @@ import {
 	Music4,
 	ExternalLink,
 } from "lucide-react";
-import NoteComposer from "../components/NoteComposer.jsx";
+import NoteComposer, {
+	downloadNotesAsWord,
+} from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 
@@ -116,6 +118,25 @@ export default function Activity01({
 
 	// ✅ compute from freshest value
 	const started = hasActivityStarted(localNotes ?? notes, "notes");
+
+	// ---- Decoupled download handler (uses current notes + page metadata) ----
+	const handleDownload = () => {
+		const html =
+			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+		downloadNotesAsWord({
+			html,
+			downloadFileName: `Activity-${content?.id || "01"}-Reflection.doc`,
+			docTitle: content?.title || "Explore an Indigenous Artist",
+			docSubtitle: content?.subtitle,
+			activityNumber,
+			docIntro: `Explore works by an Indigenous artist that speak to you.\nHow do you relate to this artist?\nHow do they inspire you?`,
+			includeLinks: true,
+			linksHeading: "Resources",
+			pageLinks,
+			headingColor: accent, // match page accent for exported headings
+			accent,
+		});
+	};
 
 	return (
 		<motion.div
@@ -283,7 +304,7 @@ export default function Activity01({
 					</div>
 				</motion.section>
 
-				{/* Notes */}
+				{/* Notes (Download button hidden inside composer; we'll show one below) */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -299,16 +320,26 @@ export default function Activity01({
 					includeLinks
 					linksHeading="Resources"
 					pageLinks={pageLinks}
+					showDownloadButton={false} // 👈 hide internal button
 				/>
 
-				{/* Complete toggle */}
-				<div className="flex justify-end">
+				{/* Bottom action row: external Download next to Complete */}
+				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
 						completed={!!completed}
 						onToggle={onToggleComplete}
 						accent="#10B981" // or use activity accent
 					/>
+					<button
+						type="button"
+						onClick={handleDownload}
+						className="px-4 py-2 rounded-lg text-white"
+						style={{ backgroundColor: accent }}
+						title="Download your reflections as a Word-compatible .doc file"
+					>
+						Download (.doc)
+					</button>
 				</div>
 			</div>
 		</motion.div>
