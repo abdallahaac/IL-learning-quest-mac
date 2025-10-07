@@ -173,7 +173,7 @@ export default function Activity09({
 							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
 								{pageTitle}
 							</h1>
-							<HeartHandshake
+							<Newspaper
 								className="w-8 h-8 align-middle"
 								aria-hidden="true"
 								style={{ color: accent }}

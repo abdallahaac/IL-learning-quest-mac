@@ -143,3 +143,32 @@ export const RESOURCES_CONTENT = {
 		"4 Seasons of Indigenous Learning: training offered by Outdoor Learning School and Store",
 	],
 };
+// Animation timings used across the TOC
+export const TOC_ANIM = {
+	baseDuration: 3.6,
+	baseDelay: 0.0,
+	progDuration: 2.6,
+	progDelay: 0.45,
+	nodeDelay0: 0.22,
+	nodeStagger: 0.11,
+	cardDelay0: 0.5,
+	cardStagger: 0.09,
+};
+
+// Default card offsets per section (index-aligned to items list below)
+export const DEFAULT_CARD_OFFSETS = [
+	{ x: 40, y: -180 }, // Intro
+	{ x: 40, y: -10 }, // Preparation
+	{ x: 65, y: -185 }, // Activities
+	{ x: 100, y: 10 }, // Team
+	{ x: -65, y: 0 }, // Reflection (if present)
+	{ x: 10, y: -170 }, // Conclusion
+	{ x: -70, y: -200 }, // Resources
+];
+
+// Node & card layout constants
+export const NODE_RADIUS = 26;
+export const CARD_GAP_Y = 40;
+export const SVG_VIEWBOX = "0 0 1200 230";
+export const SVG_PATH_D =
+	"M0,165 C220,65 420,205 600,125 C780,45 980,205 1200,125";

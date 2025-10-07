@@ -796,7 +796,7 @@ export default function Activity07({
 							aria-label="Open FirstVoices in a new tab"
 							variants={cardPop}
 						>
-							<TitleRow Icon={Link2}>FirstVoices</TitleRow>
+							<TitleRow Icon={BookOpen}>FirstVoices</TitleRow>
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
 								<span>Open link</span>
@@ -813,7 +813,7 @@ export default function Activity07({
 							aria-label="Open Inuktut glossary in a new tab"
 							variants={cardPop}
 						>
-							<TitleRow Icon={BookText}>
+							<TitleRow Icon={BookOpen}>
 								Inuktut glossary (Inuktut Tusaalanga)
 							</TitleRow>
 							<div className={linkFooterBase} style={{ color: accent }}>
@@ -851,7 +851,7 @@ export default function Activity07({
 							aria-label="Open Métis languages resources in a new tab"
 							variants={cardPop}
 						>
-							<TitleRow Icon={Bookmark}>
+							<TitleRow Icon={BookOpen}>
 								Métis languages resources (Louis Riel Institute)
 							</TitleRow>
 							<div className={linkFooterBase} style={{ color: accent }}>

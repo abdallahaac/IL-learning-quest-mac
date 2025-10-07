@@ -8,6 +8,7 @@ import {
 	Bookmark,
 	ExternalLink,
 	Users,
+	Rainbow,
 } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
 
@@ -159,7 +160,7 @@ export default function Activity08({
 							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
 								{pageTitle}
 							</h1>
-							<HeartHandshake
+							<Rainbow
 								className="w-8 h-8 align-middle"
 								aria-hidden="true"
 								style={{ color: accent }}
@@ -210,7 +211,7 @@ export default function Activity08({
 							aria-label="Open Indigenous knowledge & Two-Spirit leadership in a new tab"
 							variants={cardPop}
 						>
-							<TitleRow Icon={Link2}>
+							<TitleRow Icon={Rainbow}>
 								Indigenous knowledge &amp; Two-Spirit leadership
 							</TitleRow>
 							<div className={linkFooterBase} style={{ color: accent }}>
@@ -229,7 +230,7 @@ export default function Activity08({
 							aria-label="Open Two-Spirit Library in a new tab"
 							variants={cardPop}
 						>
-							<TitleRow Icon={BookOpen}>Two-Spirit Library (W2SA)</TitleRow>
+							<TitleRow Icon={Rainbow}>Two-Spirit Library (W2SA)</TitleRow>
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
 								<span>Open link</span>
@@ -254,7 +255,7 @@ export default function Activity08({
 									color: accent,
 								}}
 							>
-								<Bookmark className="w-5 h-5" />
+								<Rainbow className="w-5 h-5" />
 							</div>
 
 							<div className="w-full text-center font-medium text-slate-900 group-hover:underline pt-10">
@@ -333,7 +334,7 @@ export default function Activity08({
 /* Advocates list with pills, accent-aware */
 function AdvocatesTip({
 	accent = "#E11D48",
-	icon: Icon = Users,
+	icon: Icon = Rainbow,
 	title = "Advocates to explore",
 	subtitle,
 	items = [],
