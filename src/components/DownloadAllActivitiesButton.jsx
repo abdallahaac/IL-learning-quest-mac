@@ -1,3 +1,4 @@
+// src/components/DownloadAllActivitiesButton.jsx
 import React from "react";
 import { motion } from "framer-motion";
 import { Download } from "lucide-react";
@@ -21,12 +22,14 @@ export default function DownloadAllActivitiesButton({
 	const accentHex = normalizeHex(accent) || "#2563EB";
 	const ringAccent = `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${accentHex}] focus-visible:ring-offset-2`;
 
+	const [busy, setBusy] = React.useState(false);
+
 	const handleDownload = async () => {
-		const today = new Date().toLocaleDateString();
+		if (busy) return;
+		setBusy(true);
 		const items = Array.isArray(activitiesData?.activities)
 			? activitiesData.activities
 			: [];
-
 		try {
 			const {
 				Document,
@@ -39,6 +42,7 @@ export default function DownloadAllActivitiesButton({
 			} = await import("docx");
 			const { saveAs } = await import("file-saver");
 
+			const today = new Date().toLocaleDateString();
 			const children = [];
 
 			// Cover
@@ -50,7 +54,7 @@ export default function DownloadAllActivitiesButton({
 						new TextRun({
 							text: coverTitle,
 							bold: true,
-							size: 56, // ~28pt
+							size: 56,
 							font: "Arial",
 							color: accentHex.replace("#", ""),
 						}),
@@ -65,7 +69,7 @@ export default function DownloadAllActivitiesButton({
 						new TextRun({
 							text: `Exported ${today}`,
 							italics: true,
-							size: 24, // ~12pt
+							size: 24,
 							font: "Arial",
 						}),
 					],
@@ -76,7 +80,6 @@ export default function DownloadAllActivitiesButton({
 			items.forEach((a, idx) => {
 				const heading = a?.title || `Activity ${a?.id ?? idx + 1}`;
 
-				// H1
 				children.push(
 					new Paragraph({
 						text: `${idx + 1}. ${heading}`,
@@ -85,7 +88,6 @@ export default function DownloadAllActivitiesButton({
 					})
 				);
 
-				// Subtitle (italic)
 				if (a?.subtitle) {
 					children.push(
 						new Paragraph({
@@ -102,7 +104,6 @@ export default function DownloadAllActivitiesButton({
 					);
 				}
 
-				// Resources
 				const links = Array.isArray(a?.resources) ? a.resources : [];
 				if (links.length) {
 					children.push(
@@ -112,11 +113,9 @@ export default function DownloadAllActivitiesButton({
 							spacing: { before: 200, after: 120 },
 						})
 					);
-
 					links.forEach((l) => {
 						const label = String(l?.label || l?.title || l?.url || "").trim();
 						const url = String(l?.url || "").trim();
-
 						children.push(
 							new Paragraph({
 								bullet: { level: 0 },
@@ -147,8 +146,8 @@ export default function DownloadAllActivitiesButton({
 				styles: {
 					default: {
 						document: {
-							run: { font: "Arial", size: 24 }, // ~12pt
-							paragraph: { spacing: { line: 360 } }, // 1.5 line
+							run: { font: "Arial", size: 24 },
+							paragraph: { spacing: { line: 360 } },
 						},
 					},
 				},
@@ -158,8 +157,10 @@ export default function DownloadAllActivitiesButton({
 			const blob = await Packer.toBlob(doc);
 			saveAs(blob, docName);
 		} catch {
-			// graceful no-op if docx/file-saver unavailable
 			alert("Unable to generate DOCX in this environment.");
+		} finally {
+			// cooldown protects against rapid double-clicks
+			setTimeout(() => setBusy(false), 900);
 		}
 	};
 
@@ -167,27 +168,39 @@ export default function DownloadAllActivitiesButton({
 		<motion.button
 			type="button"
 			onClick={handleDownload}
-			className={`inline-flex items-center gap-2 rounded-lg px-4 sm:px-5 py-2.5 text-sm font-semibold border shadow-sm ${ringAccent} ${className}`}
+			disabled={busy}
+			aria-disabled={busy}
+			className={`inline-flex items-center gap-2 rounded-lg px-4 sm:px-5 py-2.5 text-sm font-semibold border shadow-sm ${ringAccent} ${className} ${
+				busy ? "opacity-60 cursor-not-allowed" : ""
+			}`}
 			style={{
 				backgroundColor: withAlpha(accentHex, "14"),
 				color: accentHex,
 				borderColor: withAlpha(accentHex, "33"),
 			}}
-			whileHover={{
-				backgroundColor: withAlpha(accentHex, "20"),
-				boxShadow: `0 6px 18px ${withAlpha(accentHex, "1A")}`,
-			}}
-			whileTap={{
-				backgroundColor: withAlpha(accentHex, "26"),
-				scale: 0.98,
-				boxShadow: `0 2px 10px ${withAlpha(accentHex, "1A")}`,
-			}}
+			whileHover={
+				!busy
+					? {
+							backgroundColor: withAlpha(accentHex, "20"),
+							boxShadow: `0 6px 18px ${withAlpha(accentHex, "1A")}`,
+					  }
+					: {}
+			}
+			whileTap={
+				!busy
+					? {
+							backgroundColor: withAlpha(accentHex, "26"),
+							scale: 0.98,
+							boxShadow: `0 2px 10px ${withAlpha(accentHex, "1A")}`,
+					  }
+					: {}
+			}
 			transition={{ duration: 0.15, ease: "easeOut" }}
 			aria-label="Download all activities overview"
 			title="Download all activities overview"
 		>
 			<Download className="w-4 h-4" />
-			<span>Download All Activities (.docx)</span>
+			<span>{busy ? "Preparing…" : "Download All Activities (.docx)"}</span>
 		</motion.button>
 	);
 }

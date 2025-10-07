@@ -1,9 +1,9 @@
 // AppShell.jsx
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React from "react";
 import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
 import { buildPages } from "./utils/pages.js";
-import { pageThemes, activityThemes } from "./constants/themes.js";
+import { pageThemes, activityThemes } from "./constants/themes.js"; // unchanged
 
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
@@ -21,187 +21,58 @@ import PatternMorph from "./components/PatternMorph.jsx";
 import useResizeObserver from "./hooks/useResizeObserver.jsx";
 import ConclusionSection from "./pages/ConclusionSection.jsx";
 
-/* ========================================================================
-   Accent map to keep Header/Footer/Dock aligned with activities
-   ======================================================================== */
-const ACTIVITY_ACCENTS = {
-	1: "#2563EB",
-	2: "#047857",
-	3: "#B45309",
-	4: "#4338CA",
-	5: "#BE123C",
-	6: "#0891B2",
-	7: "#0D9488",
-	8: "#E11D48",
-	9: "#934D6C",
-	10: "#DB5A42",
-};
-const normalizeHex = (h) => {
-	if (!h) return null;
-	let s = String(h).trim();
-	if (s[0] !== "#") s = `#${s}`;
-	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
-};
-const accentForActivityIndex = (idx /* 0-based */) =>
-	normalizeHex(ACTIVITY_ACCENTS[idx + 1]) || "#67AAF9";
-
-/* ========================================================================
-   Persistence helpers (SCORM + localStorage)
-   ======================================================================== */
-const STATE_VERSION = 3;
-// Bump this when you want to invalidate stale persisted state.
-const BUILD_ID = "toc-progress-2025-10-01-03";
-const LS_KEY = "quest_state_v1";
-
-function loadFromLS() {
-	try {
-		const raw = localStorage.getItem(LS_KEY);
-		return raw ? JSON.parse(raw) : null;
-	} catch {
-		return null;
-	}
-}
-function saveToLS(payload) {
-	try {
-		localStorage.setItem(LS_KEY, JSON.stringify(payload));
-	} catch {}
-}
-
-// Keep header height hard-coded to match Header.jsx
-const HEADER_FIXED_H = 88;
+import { HEADER_FIXED_H } from "./constants/storage.js";
+import { accentForActivityIndex } from "./constants/accents.js";
+import { useQuestState } from "./state/useQuestState.js";
+import {
+	idxByType,
+	buildActivityMeta,
+	computeActivityProgress,
+	computeCurvedProgress,
+	accentForPage,
+} from "./selectors/pageSelectors.js";
+import { downloadAllReflections } from "./exports/downloadReflections.js";
 
 export default function AppShell() {
 	const { getSuspendData, setSuspendData, scorm } = useScorm();
-
-	// Build static page list once
-	const pages = useMemo(() => buildPages(), []);
+	const pages = React.useMemo(() => buildPages(), []);
 	const totalPages = pages.length;
 
-	// Activity helpers
-	const activityPages = useMemo(
+	const activityPages = React.useMemo(
 		() =>
 			pages
 				.map((p, idx) => ({ p, idx }))
 				.filter(({ p }) => p.type === "activity"),
 		[pages]
 	);
-	const activityPageIndices = useMemo(
+	const activityPageIndices = React.useMemo(
 		() => activityPages.map(({ idx }) => idx),
 		[activityPages]
 	);
-	const activityTotal = activityPages.length;
 
-	// Hash-based routing
 	const [route, push] = useHashRoute();
 
-	/* --------------------------------------------------------------------
-     Hydrate state
-     -------------------------------------------------------------------- */
-	const [state, setState] = useState(() => {
-		const scormSaved = getSuspendData?.();
-		const lsSaved = loadFromLS();
-
-		let saved = scormSaved ?? lsSaved ?? null;
-
-		// Support a manual "fresh" launch flag
-		let forceFresh = false;
-		try {
-			const url = new URL(window.location.href);
-			forceFresh = url.searchParams.has("fresh");
-		} catch {}
-
-		const usingSaved =
-			!!saved &&
-			!forceFresh &&
-			saved?.version === STATE_VERSION &&
-			saved?.buildId === BUILD_ID;
-
-		if (!usingSaved) saved = null;
-
-		const initialIndex = Math.min(saved?.pageIndex ?? 0, totalPages - 1);
-
-		const visitedFromSave = Array.isArray(saved?.visited)
-			? new Set(saved.visited)
-			: new Set();
-
-		// Ensure current page is marked visited
-		if (!visitedFromSave.has(initialIndex)) visitedFromSave.add(initialIndex);
-
-		return {
-			pageIndex: initialIndex,
-			notes: saved?.notes ?? {},
-			completed: saved?.completed ?? {},
-			finished: saved?.finished ?? false,
-			visited: visitedFromSave,
-		};
+	// Centralized state (persisted)
+	const { state, setState, setNote, toggleComplete } = useQuestState({
+		scorm: {
+			getSuspendData,
+			setSuspendData,
+			set: scorm?.set,
+			save: scorm?.save,
+			setSuspendData: setSuspendData,
+		},
+		routePageIndex: route.pageIndex,
+		totalPages,
 	});
-
-	// Skip the very first persist so we don't immediately re-save stale LMS data
-	const firstPersistSkipRef = useRef(true);
-
-	// Sync with hash route + mark visited
-	useEffect(() => {
-		const idx = Math.min(Math.max(route.pageIndex, 0), totalPages - 1);
-		setState((s) => {
-			if (idx === s.pageIndex && s.visited.has(idx)) return s;
-			const nextVisited = new Set(s.visited);
-			nextVisited.add(idx);
-			return { ...s, pageIndex: idx, visited: nextVisited };
-		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [route.pageIndex, totalPages]);
-
-	// Persist (guard first mount)
-	useEffect(() => {
-		if (firstPersistSkipRef.current) {
-			firstPersistSkipRef.current = false;
-			return;
-		}
-		const payload = {
-			pageIndex: state.pageIndex,
-			notes: state.notes,
-			completed: state.completed,
-			finished: state.finished,
-			visited: Array.from(state.visited),
-			version: STATE_VERSION,
-			buildId: BUILD_ID,
-		};
-		setSuspendData?.(payload);
-		saveToLS(payload);
-	}, [state, setSuspendData]);
-
-	// Expose a console helper to reset progress fully
-	useEffect(() => {
-		window.resetQuestProgress = () => {
-			try {
-				localStorage.removeItem(LS_KEY);
-			} catch {}
-			try {
-				scorm?.set?.("cmi.suspend_data", "");
-				scorm?.set?.("cmi.core.lesson_status", "not attempted");
-				scorm?.set?.("cmi.completion_status", "not attempted");
-				scorm?.set?.("cmi.location", "");
-				scorm?.save?.();
-			} catch {}
-			location.reload();
-		};
-	}, [scorm]);
-
-	// Current page & theme
-	const currentPage = pages[state.pageIndex] ?? pages[0];
-	const themeClass =
-		currentPage.type === "activity"
-			? activityThemes[currentPage.activityIndex]
-			: pageThemes[currentPage.type] || "";
 
 	// Navigation helpers
 	const gotoPage = (idx) => {
 		const clamped = Math.min(Math.max(idx, 0), totalPages - 1);
 		push(clamped);
 		setState((s) => {
-			const nextVisited = new Set(s.visited);
-			nextVisited.add(clamped);
-			return { ...s, pageIndex: clamped, visited: nextVisited };
+			const visited = new Set(s.visited);
+			visited.add(clamped);
+			return { ...s, pageIndex: clamped, visited };
 		});
 	};
 	const next = () => {
@@ -213,38 +84,69 @@ export default function AppShell() {
 					scorm.save();
 				}
 				push(0);
-				const nextVisited = new Set(s.visited);
-				nextVisited.add(0);
-				return { ...s, pageIndex: 0, finished: true, visited: nextVisited };
+				const visited = new Set(s.visited);
+				visited.add(0);
+				return { ...s, pageIndex: 0, finished: true, visited };
 			}
 			const nextIndex = s.pageIndex + 1;
 			push(nextIndex);
-			const nextVisited = new Set(s.visited);
-			nextVisited.add(nextIndex);
-			return { ...s, pageIndex: nextIndex, visited: nextVisited };
+			const visited = new Set(s.visited);
+			visited.add(nextIndex);
+			return { ...s, pageIndex: nextIndex, visited };
 		});
 	};
 	const prev = () => {
 		setState((s) => {
 			const prevIndex = Math.max(0, s.pageIndex - 1);
 			push(prevIndex);
-			const nextVisited = new Set(s.visited);
-			nextVisited.add(prevIndex);
-			return { ...s, pageIndex: prevIndex, visited: nextVisited };
+			const visited = new Set(s.visited);
+			visited.add(prevIndex);
+			return { ...s, pageIndex: prevIndex, visited };
 		});
 	};
 
-	const setNote = (id, value) => {
-		setState((s) => ({ ...s, notes: { ...s.notes, [id]: value } }));
-	};
-	const toggleComplete = (id) => {
-		setState((s) => ({
-			...s,
-			completed: { ...s.completed, [id]: !s.completed[id] },
-		}));
-	};
+	// Derived indices & progress
+	const idxIntro = idxByType(pages, "intro");
+	const idxPrep = idxByType(pages, "preparation");
+	const idxTeam = idxByType(pages, "team");
+	const idxReflection = idxByType(pages, "reflection");
+	const idxConclusion = idxByType(pages, "conclusion");
+	const idxResources = idxByType(pages, "resources");
+	const idxFirstActivity = activityPageIndices[0] ?? -1;
 
-	// Footer CTA label
+	const { count: activityVisitedCount, frac: activityFrac } =
+		computeActivityProgress(activityPageIndices, state.visited);
+
+	const curvedProgress = computeCurvedProgress({
+		visited: state.visited,
+		pages,
+		activityFrac,
+		idxIntro,
+		idxPrep,
+		idxTeam,
+		idxReflection,
+		idxConclusion,
+		idxResources,
+	});
+
+	const siteTitle = "Learning Quest on Indigenous Cultures";
+	const [headerRef] = useResizeObserver();
+	const [footerRef, footerSize] = useResizeObserver();
+	const footerHeight = footerSize.height || 0;
+
+	const activitySteps = activityPages.map(({ p, idx }, i) => ({
+		key: p.content.id,
+		label: `Activity ${i + 1}`,
+		index: idx,
+		completed: state.visited.has(idx),
+		visited: state.visited.has(idx),
+		accent: accentForActivityIndex(i),
+	}));
+
+	const currentPage = pages[state.pageIndex] ?? pages[0];
+	const accentForThisPage = accentForPage(currentPage);
+
+	// Next label
 	const getNextLabel = () => {
 		const i = state.pageIndex;
 		const atLast = i >= totalPages - 1;
@@ -258,219 +160,45 @@ export default function AppShell() {
 		return nextPage?.content?.title || "Next";
 	};
 
-	/* --------------------------------------------------------------------
-     Progress & TOC targets
-     -------------------------------------------------------------------- */
-	const idxByType = (t) => pages.findIndex((p) => p.type === t);
-	const idxIntro = idxByType("intro");
-	const idxPrep = idxByType("preparation");
-	const idxTeam = idxByType("team");
-	const idxReflection = idxByType("reflection"); // may be -1 if not present
-	const idxConclusion = idxByType("conclusion");
-	const idxResources = idxByType("resources");
-
-	// For Activities, jump to the first activity page (if any)
-	const idxFirstActivity = activityPageIndices[0] ?? -1;
-
-	// Visited helpers
-	const visitedHas = (i) => (i >= 0 ? state.visited.has(i) : false);
-
-	// Activity progress (fraction of visited activity pages)
-	const activityVisitedCount = activityPageIndices.reduce(
-		(acc, idx) => acc + (state.visited.has(idx) ? 1 : 0),
-		0
-	);
-	const activityFrac =
-		activityPages.length > 0 ? activityVisitedCount / activityPages.length : 0;
-
-	// Activities contribute after Preparation visited (gate)
-	const activitiesSlot = visitedHas(idxPrep) ? activityFrac : 0;
-
-	// Slots order: Intro, Preparation, Activities, Team, (optional) Reflection, Conclusion, Resources
-	const reflectionPresent = idxReflection >= 0;
-	const slots = [
-		visitedHas(idxIntro) ? 1 : 0,
-		visitedHas(idxPrep) ? 1 : 0,
-		activitiesSlot,
-		visitedHas(idxTeam) ? 1 : 0,
-		...(reflectionPresent ? [visitedHas(idxReflection) ? 1 : 0] : []),
-		visitedHas(idxConclusion) ? 1 : 0,
-		visitedHas(idxResources) ? 1 : 0,
-	];
-
-	let acc = 0;
-	for (let i = 0; i < slots.length; i++) {
-		const f = Math.max(0, Math.min(1, slots[i]));
-		if (f >= 1) acc += 1;
-		else {
-			acc += f;
-			break;
-		}
-	}
-	const curvedProgress = acc / slots.length;
-
-	const siteTitle = "Learning Quest on Indigenous Cultures";
-
-	// Header/footer sizing
-	const [headerRef] = useResizeObserver();
-	const [footerRef, footerSize] = useResizeObserver();
-	const footerHeight = footerSize.height || 0;
-
-	// ActivityDock steps (both `completed` and `visited` mirror the visited set)
-	const activitySteps = activityPages.map(({ p, idx }, i) => ({
-		key: p.content.id,
-		label: `Activity ${i + 1}`,
-		index: idx,
-		completed: state.visited.has(idx),
-		visited: state.visited.has(idx),
-		accent: accentForActivityIndex(i),
-	}));
-
-	// Colors
-	const pageType = currentPage.type;
-
-	let accentForThisPage =
-		pageType === "activity"
-			? accentForActivityIndex(currentPage.activityIndex || 0)
-			: "#67AAF9"; // default
-
-	if (pageType === "intro") accentForThisPage = "#4380D6";
-	else if (pageType === "preparation") accentForThisPage = "#7443D6";
-	else if (pageType === "conclusion") accentForThisPage = "#D66843";
-	else if (pageType === "resources") accentForThisPage = "#10B981";
-
-	const tailwindHeaderBtnClass =
-		"inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 bg-sky-600 text-sm md:text-base font-medium text-white rounded-full shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors";
-	const headerPrimaryBtnClassOverride =
-		pageType === "cover" || pageType === "contents"
-			? tailwindHeaderBtnClass
-			: null;
-
-	const tailwindFooterNextBtnClass =
-		"px-5 py-2 bg-sky-600 text-white font-medium rounded-lg shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors";
-	const footerNextBtnClassOverride =
-		pageType === "cover" || pageType === "contents"
-			? tailwindFooterNextBtnClass
-			: null;
-
-	/* --------------------------------------------------------------------
-     Downloads (for ContentsPage): activities list (component exists) +
-     all reflections (generated here)
-     -------------------------------------------------------------------- */
-
-	// Build activity meta (id + title + number) for reflections export
-	const activityMeta = useMemo(
-		() =>
-			activityPages.map(({ p, idx }, i) => ({
-				id: p?.content?.id || `activity-${i + 1}`,
-				title: p?.content?.title || `Activity ${i + 1}`,
-				number: i + 1,
-				index: idx,
-			})),
+	// Exports
+	const activityMeta = React.useMemo(
+		() => buildActivityMeta(activityPages),
 		[activityPages]
 	);
-
-	const hasNoteContent = (val) => {
-		if (!val) return false;
-		if (typeof val === "string") return val.trim().length > 0;
-		if (typeof val === "object") {
-			if (typeof val.text === "string" && val.text.trim()) return true;
-			if (Array.isArray(val.bullets) && val.bullets.some(Boolean)) return true;
-			if (
-				Array.isArray(val.cards) &&
-				val.cards.some((c) => c?.front || c?.back)
-			)
-				return true;
-			const squished = JSON.stringify(val).replace(/[\s{}\[\]":,]/g, "");
-			return squished.length > 0;
+	const [reflectBusy, setReflectBusy] = React.useState(false);
+	const allReflectionsComplete = React.useMemo(
+		() => activityMeta.every(({ id }) => !!state.notes[id]),
+		[activityMeta, state.notes]
+	);
+	// AppShell.jsx (defensively guard the click handler)
+	const onDownloadAllReflections = async () => {
+		if (reflectBusy || !allActivitiesCompleted) return; // <-- guard
+		setReflectBusy(true);
+		try {
+			downloadAllReflections({ activityMeta, notes: state.notes });
+		} finally {
+			setTimeout(() => setReflectBusy(false), 900);
 		}
-		return false;
 	};
 
-	const allReflectionsComplete = useMemo(() => {
-		if (!activityMeta.length) return false;
-		return activityMeta.every(({ id }) => hasNoteContent(state.notes[id]));
-	}, [activityMeta, state.notes]);
+	// AppShell.jsx (add this near other derived values)
+	const allActivitiesCompleted = React.useMemo(
+		() =>
+			activityPages.every(({ p }) => {
+				const id = p.content.id;
+				return !!state.completed[id]; // <-- user clicked “Mark Complete”
+			}),
+		[activityPages, state.completed]
+	);
 
-	// Helpers to create a simple .doc (HTML) for reflections
-	const downloadFile = (filename, html) => {
-		const blob = new Blob([html], { type: "application/msword" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = filename;
-		document.body.appendChild(a);
-		a.click();
-		a.remove();
-		URL.revokeObjectURL(url);
-	};
-
-	const esc = (s = "") =>
-		String(s)
-			.replaceAll("&", "&amp;")
-			.replaceAll("<", "&lt;")
-			.replaceAll(">", "&gt;");
-
-	const formatNote = (val) => {
-		if (!val) return "";
-		if (typeof val === "string") return esc(val).replace(/\n/g, "<br/>");
-		const parts = [];
-		if (val.text) parts.push(`<p>${esc(val.text).replace(/\n/g, "<br/>")}</p>`);
-		if (Array.isArray(val.bullets) && val.bullets.length) {
-			parts.push(
-				`<ul>${val.bullets
-					.filter(Boolean)
-					.map((b) => `<li>${esc(b)}</li>`)
-					.join("")}</ul>`
-			);
-		}
-		if (Array.isArray(val.cards) && val.cards.length) {
-			const rows = val.cards
-				.map(
-					(c) =>
-						`<tr><td>${esc(c?.front || "")}</td><td>${esc(
-							c?.back || ""
-						)}</td></tr>`
-				)
-				.join("");
-			parts.push(
-				`<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;margin:6pt 0;">
-           <thead><tr><th>Front</th><th>Back</th></tr></thead><tbody>${rows}</tbody>
-         </table>`
-			);
-		}
-		if (parts.length === 0) {
-			parts.push(`<pre>${esc(JSON.stringify(val, null, 2))}</pre>`);
-		}
-		return parts.join("");
-	};
-
-	const downloadAllReflections = () => {
-		const sections = activityMeta.map(({ number, title, id }) => {
-			const note = state.notes[id];
-			const body = hasNoteContent(note)
-				? formatNote(note)
-				: `<p><em>No reflection saved.</em></p>`;
-			return `
-        <h2 style="font-size:14pt; margin:14pt 0 6pt;">Activity ${number}: ${esc(
-				title
-			)}</h2>
-        ${body}
-      `;
-		});
-		const html = `
-      <html><head><meta charset="utf-8"><title>All Reflections</title></head>
-      <body style="font-family:Arial; line-height:1.5;">
-        <h1 style="font-size:18pt; margin:0 0 10pt;">My Reflections</h1>
-        ${sections.join("\n")}
-      </body></html>`;
-		downloadFile("my-reflections.doc", html);
-	};
-
-	// ---- LAYOUT ----
+	// Layout
 	return (
 		<div
-			className={` app-shell relative h-screen flex flex-col ${themeClass}`}
+			className={`app-shell relative h-screen flex flex-col ${
+				currentPage.type === "activity"
+					? activityThemes[currentPage.activityIndex]
+					: pageThemes[currentPage.type] || ""
+			}`}
 			style={{
 				"--header-h": `${HEADER_FIXED_H}px`,
 				"--footer-h": `${footerHeight}px`,
@@ -481,7 +209,6 @@ export default function AppShell() {
 				sequence={["dots", "plus", "grid", "plus"]}
 			/>
 
-			{/* Fixed header with dock */}
 			<Header
 				containerRef={headerRef}
 				siteTitle={siteTitle}
@@ -491,10 +218,13 @@ export default function AppShell() {
 				currentPageIndex={state.pageIndex}
 				onJumpToPage={(idx) => gotoPage(idx)}
 				accent={accentForThisPage}
-				primaryBtnClassOverride={headerPrimaryBtnClassOverride}
+				primaryBtnClassOverride={
+					["cover", "contents"].includes(currentPage.type)
+						? "inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 bg-sky-600 text-sm md:text-base font-medium text-white rounded-full shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors"
+						: null
+				}
 			/>
 
-			{/* Scroll container */}
 			<div className="flex-1 relative min-h-0">
 				<div
 					className="flex h-full flex-col overflow-y-auto min-h-0"
@@ -503,143 +233,115 @@ export default function AppShell() {
 					<main className="flex-1 relative min-h-0">
 						<div style={{ zIndex: 10 }}>
 							<TransitionView screenKey={`page-${state.pageIndex}`}>
-								{(() => {
-									switch (currentPage.type) {
-										case "cover":
-											return (
-												<CoverPage
-													content={currentPage.content}
-													onStart={() => gotoPage(1)}
-													onIntroActiveChange={() => {}}
-												/>
-											);
-										case "contents":
-											return (
-												<ContentsPage
-													onNavigate={gotoPage}
-													progress={curvedProgress}
-													prefillStart={0.06}
-													tocTargets={{
-														introIndex: idxIntro,
-														preparationIndex: idxPrep,
-														activitiesIndex: idxFirstActivity,
-														teamIndex: idxTeam,
-														reflectionIndex: idxReflection,
-														conclusionIndex: idxConclusion,
-														resourcesIndex: idxResources,
-													}}
-													activitiesVisitedCount={activityVisitedCount}
-													activitiesTotal={activityTotal}
-													nodeXOffsetOverrides={[
-														-80, -140, -90, -150, -100, -200,
-													]}
-													nodeYOffsetOverrides={[-100, 70, -105, 95, -95, 50]}
-													cardPosOverrides={[
-														{ x: -19, y: -165 }, // Intro
-														{ x: -75, y: 5 }, // Preparation
-														{ x: -20, y: -170 }, // Activities
-														{ x: -85, y: 30 }, // Team
-														{ x: -30, y: -160 }, // Reflection
-														{ x: -130, y: -15 }, // Conclusion
-													]}
-													visitedIndices={[...state.visited]}
-													/* NEW: reflections export controls */
-													onDownloadAllReflections={downloadAllReflections}
-													reflectionsReady={allReflectionsComplete}
-												/>
-											);
-										case "intro":
-											return <IntroPage content={currentPage.content} />;
-										case "preparation":
-											return (
-												<PreparationPage
-													content={currentPage.content}
-													onStartActivities={() =>
-														gotoPage(
-															idxFirstActivity >= 0
-																? idxFirstActivity
-																: state.pageIndex + 1
-														)
-													}
-												/>
-											);
-										case "conclusion":
-											return (
-												<ConclusionSection
-													content={currentPage.content}
-													accent="#D66843"
-												/>
-											);
-										case "resources":
-											return <ResourcesPage content={currentPage.content} />;
-										case "activity":
-											return (
-												<ActivityPage
-													content={currentPage.content}
-													notes={state.notes[currentPage.content.id]}
-													completed={!!state.completed[currentPage.content.id]}
-													onNotes={(v) =>
-														setState((s) => ({
-															...s,
-															notes: {
-																...s.notes,
-																[currentPage.content.id]: v,
-															},
-														}))
-													}
-													onToggleComplete={() =>
-														setState((s) => ({
-															...s,
-															completed: {
-																...s.completed,
-																[currentPage.content.id]:
-																	!s.completed[currentPage.content.id],
-															},
-														}))
-													}
-													activityIndex={currentPage.activityIndex}
-												/>
-											);
-										case "team":
-											return (
-												<TeamReflectionPage
-													content={currentPage.content}
-													notes={state.notes["team"]}
-													onNotes={(v) =>
-														setState((s) => ({
-															...s,
-															notes: { ...s.notes, team: v },
-														}))
-													}
-												/>
-											);
-										case "reflection":
-											return (
-												<TeamReflectionPage
-													content={currentPage.content}
-													notes={state.notes["reflect"]}
-													onNotes={(v) =>
-														setState((s) => ({
-															...s,
-															notes: { ...s.notes, reflect: v },
-														}))
-													}
-												/>
-											);
-										default:
-											return <SectionPage content={currentPage.content} />;
-									}
-								})()}
+								{currentPage.type === "cover" && (
+									<CoverPage
+										content={currentPage.content}
+										onStart={() => gotoPage(1)}
+										onIntroActiveChange={() => {}}
+									/>
+								)}
+								{currentPage.type === "contents" && (
+									<ContentsPage
+										onNavigate={gotoPage}
+										progress={curvedProgress}
+										prefillStart={0.06}
+										tocTargets={{
+											introIndex: idxIntro,
+											preparationIndex: idxPrep,
+											activitiesIndex: idxFirstActivity,
+											teamIndex: idxTeam,
+											reflectionIndex: idxReflection,
+											conclusionIndex: idxConclusion,
+											resourcesIndex: idxResources,
+										}}
+										activitiesVisitedCount={activityVisitedCount}
+										activitiesTotal={activityPageIndices.length}
+										nodeXOffsetOverrides={[-80, -140, -90, -150, -100, -200]}
+										nodeYOffsetOverrides={[-100, 70, -105, 95, -95, 50]}
+										cardPosOverrides={[
+											{ x: -19, y: -165 },
+											{ x: -75, y: 5 },
+											{ x: -20, y: -170 },
+											{ x: -85, y: 30 },
+											{ x: -30, y: -160 },
+											{ x: -130, y: -15 },
+										]}
+										visitedIndices={[...state.visited]}
+										onDownloadAllReflections={onDownloadAllReflections}
+										reflectionsReady={allActivitiesCompleted && !reflectBusy} // <-- changed
+									/>
+								)}
+
+								{currentPage.type === "intro" && (
+									<IntroPage content={currentPage.content} />
+								)}
+								{currentPage.type === "preparation" && (
+									<PreparationPage
+										content={currentPage.content}
+										onStartActivities={() =>
+											gotoPage(
+												idxFirstActivity >= 0
+													? idxFirstActivity
+													: state.pageIndex + 1
+											)
+										}
+									/>
+								)}
+								{currentPage.type === "conclusion" && (
+									<ConclusionSection
+										content={currentPage.content}
+										accent="#D66843"
+									/>
+								)}
+								{currentPage.type === "resources" && (
+									<ResourcesPage content={currentPage.content} />
+								)}
+								{currentPage.type === "activity" && (
+									<ActivityPage
+										content={currentPage.content}
+										notes={state.notes[currentPage.content.id]}
+										completed={!!state.completed[currentPage.content.id]}
+										onNotes={(v) => setNote(currentPage.content.id, v)}
+										onToggleComplete={() =>
+											toggleComplete(currentPage.content.id)
+										}
+										activityIndex={currentPage.activityIndex}
+									/>
+								)}
+								{currentPage.type === "team" && (
+									<TeamReflectionPage
+										content={currentPage.content}
+										notes={state.notes["team"]}
+										onNotes={(v) => setNote("team", v)}
+									/>
+								)}
+								{currentPage.type === "reflection" && (
+									<TeamReflectionPage
+										content={currentPage.content}
+										notes={state.notes["reflect"]}
+										onNotes={(v) => setNote("reflect", v)}
+									/>
+								)}
+								{![
+									"cover",
+									"contents",
+									"intro",
+									"preparation",
+									"conclusion",
+									"resources",
+									"activity",
+									"team",
+									"reflection",
+								].includes(currentPage.type) && (
+									<SectionPage content={currentPage.content} />
+								)}
 							</TransitionView>
 						</div>
-
-						{/* keep footer off content */}
 						<div aria-hidden className="h-24 sm:h-20" />
 					</main>
 				</div>
 			</div>
 
-			{/* Fixed footer */}
 			<div className="transition-opacity duration-500 ease-out opacity-100">
 				<Footer
 					pageIndex={state.pageIndex}
@@ -651,7 +353,7 @@ export default function AppShell() {
 					onJumpToPage={(idx) => gotoPage(idx)}
 					accent={accentForThisPage}
 					nextBtnClassOverride={
-						currentPage.type === "cover" || currentPage.type === "contents"
+						["cover", "contents"].includes(currentPage.type)
 							? "px-5 py-2 bg-sky-600 text-white font-medium rounded-lg shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors"
 							: null
 					}

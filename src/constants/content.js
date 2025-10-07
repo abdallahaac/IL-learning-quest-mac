@@ -7,7 +7,7 @@ export const COVER_CONTENT = {
 };
 
 export const INTRO_INFO_CONTENT = {
-	title: "Introduction & Quest Info",
+	title: "Introduction ",
 	paragraphs: [
 		"The Learning Quest was created to spark joy and curiosity in public servants while supporting their journey toward meaningful allyship. Developed by Indigenous-identifying creators, it encourages learning through shared experiences, helping participants connect through common interests and resource sharing.",
 		"Rather than being a test of knowledge, the Learning Quest is a lifelong practice—an invitation to explore Indigenous perspectives in everyday life with openness and intention.",

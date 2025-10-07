@@ -1,6 +1,8 @@
 // src/pages/ContentsPage.jsx
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { Download } from "lucide-react";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faBookOpen,
@@ -724,12 +726,12 @@ export default function ContentsPage({
 										reflectionsReady ? "text-slate-600" : "text-slate-400"
 									}`}
 								>
-									Personal reflections from each activity consolidated into one
-									document.
+									{reflectionsReady
+										? "Personal reflections from each activity consolidated into one document."
+										: "Finish all activities and mark each one Complete to enable this download."}
 								</div>
 							</div>
 						</div>
-
 						<div className="mt-4">
 							<button
 								type="button"
@@ -738,16 +740,27 @@ export default function ContentsPage({
 								}
 								disabled={!reflectionsReady}
 								aria-disabled={!reflectionsReady}
-								className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2
-                    ${
-											reflectionsReady
-												? "bg-sky-600 text-white hover:bg-sky-700"
-												: "bg-slate-200 text-slate-500 cursor-not-allowed"
-										}`}
+								title={
+									reflectionsReady
+										? "Download All Reflections (.docx)"
+										: "Finish all activities and mark each one Complete first"
+								}
+								className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2
+      ${
+				reflectionsReady
+					? "bg-white text-sky-700 border-sky-300 hover:bg-sky-50"
+					: "bg-white text-slate-400 border-slate-200 cursor-not-allowed"
+			}`}
 							>
-								{reflectionsReady
-									? "Download"
-									: "Finish all reflections to enable"}
+								{/* icon matches the green badge when enabled */}
+								<Download
+									className={`w-4 h-4 ${
+										reflectionsReady ? "text-emerald-600" : "text-slate-400"
+									}`}
+									aria-hidden="true"
+								/>
+								<span>Download All Reflections (.docx)</span>
 							</button>
 						</div>
 					</motion.div>
