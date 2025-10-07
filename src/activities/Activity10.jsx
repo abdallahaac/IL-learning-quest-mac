@@ -74,7 +74,7 @@ export default function Activity10({
 	// Title & tip (used both in UI and export)
 	const pageTitle = content?.title || "Indigenous-Owned Business";
 	const tipText =
-		"Explore a First Nations, Inuit or Métis-owned business (in person or online). What products/services spoke to you and why?";
+		"Explore in person or online a First Nations, Inuit or Métis-owned business or shop.";
 
 	// Exportable resources (no table)
 	const pageLinks = [
@@ -181,6 +181,11 @@ export default function Activity10({
 									style={{ color: accent }}
 								>
 									{tipText}
+									<br />
+
+									<strong>
+										What products or services spoke to you and why?
+									</strong>
 								</p>
 							</div>
 						</aside>

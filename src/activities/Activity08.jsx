@@ -192,6 +192,8 @@ export default function Activity08({
 								>
 									Enrich your understanding of Two-Spirit, Indigiqueer and
 									Indigenous 2SLGBTQQIA+ communities and their histories.
+									<br />
+									<strong>Share what you learned with your team.</strong>
 								</p>
 							</div>
 						</aside>

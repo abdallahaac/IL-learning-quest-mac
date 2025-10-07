@@ -80,7 +80,7 @@ export default function Activity04({
 
 	// Tip text included at top of export
 	const tipText =
-		"Discover facts about an Indigenous population outside Canada. What stood out to you?";
+		"Discover some interesting facts about an Indigenous population outside Canada. What stood out to you?";
 
 	return (
 		<motion.div
@@ -158,9 +158,10 @@ export default function Activity04({
 									className="text-slate-800 max-w-2xl"
 									style={{ color: accent }}
 								>
-									Discover facts about an Indigenous population outside Canada.
+									Discover some interesting facts about an Indigenous population
+									outside Canada.
 									<br />
-									<strong>What stood out to you?</strong>
+									<strong>Describe the things you learned about. </strong>
 								</p>
 							</div>
 						</aside>

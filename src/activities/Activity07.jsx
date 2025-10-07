@@ -246,7 +246,7 @@ export default function Activity07({
 		const title = `Activity ${activityNumber}: ${baseTitle}`;
 		const subtitle =
 			content?.subtitle ||
-			"Learn to say a few words in an Indigenous language. Share them with your team and use them often.";
+			"Learn to say three words in an Indigenous language.";
 
 		const headingHex = accent; // align heading color with page accent
 
@@ -371,7 +371,9 @@ export default function Activity07({
 			// Activity tip (matches on-page copy)
 			children.push(H2("Activity tip"));
 			children.push(
-				Body("Learn to say a few words in an Indigenous language.")
+				Body(
+					"Share the words you learned with your team, and use them as often as possible."
+				)
 			);
 			children.push(Body("Share them with your team and use them often."));
 
@@ -473,7 +475,7 @@ export default function Activity07({
 					.replaceAll("<", "&lt;")
 					.replaceAll(">", "&gt;");
 			const tip = [
-				"Learn to say a few words in an Indigenous language.",
+				"Share the words you learned with your team, and use them as often as possible.",
 				"Share them with your team and use them often.",
 			];
 
@@ -771,12 +773,15 @@ export default function Activity07({
 									Instructions
 								</div>
 								<p
-									className="text-slate-800 max-w-2xl"
+									className="text-slate-800 max-w-3xl"
 									style={{ color: accent }}
 								>
-									Learn to say a few words in an Indigenous language.
+									Learn to say three words in an Indigenous language.
 									<br />
-									<strong>Share them with your team and use them often.</strong>
+									<strong>
+										Share the words you learned with your team, and use them as
+										often as possible.
+									</strong>
 								</p>
 							</div>
 						</aside>

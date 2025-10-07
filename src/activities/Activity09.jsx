@@ -72,7 +72,7 @@ export default function Activity09({
 	// Title & tip (used both in UI and export)
 	const pageTitle = content?.title || "Indigenous-Focused News Story";
 	const tipText =
-		"Choose a story from an Indigenous-led outlet. Summarize the piece and reflect on the framing, voices quoted, and possible biases.";
+		"Uncover a news story with an Indigenous focus and reflect on the scope of the story.";
 
 	// Links list (exported to doc; no table) — memoized to avoid recreation each keystroke
 	const pageLinks = useMemo(
@@ -204,6 +204,11 @@ export default function Activity09({
 									style={{ color: accent }}
 								>
 									{tipText}
+									<br />
+									<strong>
+										Share your thoughts and perspectives on what you learned—for
+										example, challenges people face or biases the story reveals.
+									</strong>{" "}
 								</p>
 							</div>
 						</aside>

@@ -80,7 +80,7 @@ export default function Activity05({
 
 	// Tip to include at top of export
 	const tipText =
-		"Watch an Indigenous film/TV show or listen to an Indigenous-focused podcast. What did you learn?";
+		"Watch an Indigenous movie or TV show or listen to an Indigenous-focused podcast. What did you learn?";
 
 	return (
 		<motion.div

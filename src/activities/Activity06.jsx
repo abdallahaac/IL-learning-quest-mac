@@ -76,7 +76,7 @@ export default function Activity06({
 
 	// Tip to include at top of export (split into sentences)
 	const tipText =
-		"Read a book by a First Nations, Inuit, or Métis author. What did you think?";
+		"Read a book by a First Nations, Inuit or Métis author.  Share what you thought of this book.";
 
 	// Build a “local library” search URL that opens in a new tab.
 	// (Targets general library domains and reading-list phrasing.)
@@ -161,7 +161,7 @@ export default function Activity06({
 								>
 									Read a book by a First Nations, Inuit, or Métis author.
 									<br />
-									<strong>What did you think?</strong>
+									<strong>Share what you thought of this book.</strong>
 								</p>
 							</div>
 						</aside>

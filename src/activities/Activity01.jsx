@@ -46,7 +46,7 @@ export default function Activity01({
 
 	// Tip text to include in the Word doc
 	const tipText =
-		"Explore works by an Indigenous artist that speak to you. How do you relate to this artist? How do they inspire you?";
+		"Explore works by an Indigenous artist that speak to you. Describe how you relate to this artist. How does this artist inspire you?";
 
 	const reduceMotion = useReducedMotion();
 
@@ -194,7 +194,8 @@ export default function Activity01({
 									<br />
 									<strong>
 										{" "}
-										How do you relate to this artist? How do they inspire you?
+										Describe how you relate to this artist. How does this artist
+										inspire you?
 									</strong>
 								</p>
 							</div>

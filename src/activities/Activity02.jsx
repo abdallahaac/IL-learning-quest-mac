@@ -81,7 +81,7 @@ export default function Activity02({
 
 	// Tip text for export (and to mirror in the on-page callout)
 	const tipText =
-		"Explore traditional plant knowledge and medicinal uses. Note teachings, sources, and how they connect to your context.";
+		"Discover the Indigenous medicinal uses for plants in your area. Describe the things you learned about";
 
 	return (
 		<motion.div
@@ -162,11 +162,9 @@ export default function Activity02({
 									className="text-slate-800 max-w-2xl"
 									style={{ color: accent }}
 								>
-									Explore traditional plant knowledge and medicinal uses. <br />
-									<strong>
-										Note teachings, sources, and how they connect to your
-										context.
-									</strong>
+									Discover the Indigenous medicinal uses for plants in your
+									area. <br />{" "}
+									<strong> Describe the things you learned about.</strong>
 								</p>
 							</div>
 						</aside>
