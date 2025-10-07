@@ -1,3 +1,4 @@
+// src/components/toc/DownloadsPanel.jsx
 import React from "react";
 import { motion } from "framer-motion";
 import { Download } from "lucide-react";
@@ -5,10 +6,41 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faListCheck, faComments } from "@fortawesome/free-solid-svg-icons";
 import DownloadAllActivitiesButton from "../DownloadAllActivitiesButton.jsx";
 
+// local utils (match DownloadAllActivitiesButton without new files)
+const normalizeHex = (h) => {
+	if (!h) return null;
+	let s = String(h).trim();
+	if (s[0] !== "#") s = `#${s}`;
+	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
+};
+const withAlpha = (hex, aa) => `${hex}${aa}`;
+
 export default function DownloadsPanel({
 	reflectionsReady,
 	onDownloadAllReflections,
 }) {
+	// Use emerald to mirror your gated “complete all activities” state
+	const reflectionsAccentHex = normalizeHex("#10B981") || "#10B981";
+	const ringAccent =
+		`focus:outline-none focus-visible:ring-2 ` +
+		`focus-visible:ring-[${reflectionsAccentHex}] focus-visible:ring-offset-2`;
+
+	// small local “working” lock so the button also shows “Preparing…” like the activities one
+	const [working, setWorking] = React.useState(false);
+
+	const handleReflections = async () => {
+		if (!reflectionsReady || working) return;
+		setWorking(true);
+		try {
+			await onDownloadAllReflections?.();
+		} finally {
+			// cooldown similar to the activities button
+			setTimeout(() => setWorking(false), 900);
+		}
+	};
+
+	const reflectionsDisabled = !reflectionsReady || working;
+
 	return (
 		<div className="px-6 pb-10 mt-9">
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -41,11 +73,12 @@ export default function DownloadsPanel({
 						</div>
 					</div>
 					<div className="mt-4">
+						{/* keep your original button exactly */}
 						<DownloadAllActivitiesButton accent="#2563EB" />
 					</div>
 				</motion.div>
 
-				{/* Box 2: Reflections (gated) */}
+				{/* Box 2: Reflections (gated) — styled EXACTLY like DownloadAllActivitiesButton */}
 				<motion.div
 					className={`rounded-2xl border p-5 shadow ${
 						reflectionsReady
@@ -91,33 +124,58 @@ export default function DownloadsPanel({
 							</div>
 						</div>
 					</div>
+
 					<div className="mt-4">
-						<button
+						{/* Mirror DownloadAllActivitiesButton (motion.button, classes, inline styles, hover/tap) */}
+						<motion.button
 							type="button"
-							onClick={reflectionsReady ? onDownloadAllReflections : undefined}
-							disabled={!reflectionsReady}
-							aria-disabled={!reflectionsReady}
+							onClick={handleReflections}
+							disabled={reflectionsDisabled}
+							aria-disabled={reflectionsDisabled}
+							className={`inline-flex items-center gap-2 rounded-lg px-4 sm:px-5 py-2.5 text-sm font-semibold border shadow-sm ${ringAccent} ${
+								reflectionsDisabled ? "opacity-60 cursor-not-allowed" : ""
+							}`}
+							style={{
+								backgroundColor: withAlpha(reflectionsAccentHex, "14"),
+								color: reflectionsAccentHex,
+								borderColor: withAlpha(reflectionsAccentHex, "33"),
+							}}
+							whileHover={
+								!reflectionsDisabled
+									? {
+											backgroundColor: withAlpha(reflectionsAccentHex, "20"),
+											boxShadow: `0 6px 18px ${withAlpha(
+												reflectionsAccentHex,
+												"1A"
+											)}`,
+									  }
+									: {}
+							}
+							whileTap={
+								!reflectionsDisabled
+									? {
+											backgroundColor: withAlpha(reflectionsAccentHex, "26"),
+											scale: 0.98,
+											boxShadow: `0 2px 10px ${withAlpha(
+												reflectionsAccentHex,
+												"1A"
+											)}`,
+									  }
+									: {}
+							}
+							transition={{ duration: 0.15, ease: "easeOut" }}
+							aria-label="Download all reflections"
 							title={
 								reflectionsReady
 									? "Download All Reflections (.docx)"
 									: "Finish all activities and mark each one Complete first"
 							}
-							className={[
-								"group inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium",
-								"border transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2",
-								reflectionsReady
-									? "bg-gradient-to-b from-emerald-50 to-white text-emerald-700 border-emerald-300 hover:from-emerald-100 hover:to-white"
-									: "bg-white text-slate-400 border-slate-200 cursor-not-allowed",
-							].join(" ")}
 						>
-							<Download
-								className={`w-4 h-4 ${
-									reflectionsReady ? "text-emerald-600" : "text-slate-400"
-								}`}
-								aria-hidden="true"
-							/>
-							<span>Download All Reflections (.docx)</span>
-						</button>
+							<Download className="w-4 h-4" aria-hidden="true" />
+							<span>
+								{working ? "Preparing…" : "Download All Reflections (.docx)"}
+							</span>
+						</motion.button>
 					</div>
 				</motion.div>
 			</div>
