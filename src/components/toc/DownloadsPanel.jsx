@@ -136,10 +136,15 @@ export default function DownloadsPanel({
 								reflectionsDisabled ? "opacity-60 cursor-not-allowed" : ""
 							}`}
 							style={{
-								backgroundColor: withAlpha(reflectionsAccentHex, "14"),
-								color: reflectionsAccentHex,
-								borderColor: withAlpha(reflectionsAccentHex, "33"),
+								backgroundColor: reflectionsReady
+									? "rgba(16,185,129,0.12)"
+									: "rgba(148,163,184,0.15)",
+								border: reflectionsReady
+									? "1px solid rgba(16,185,129,0.28)"
+									: "1px solid rgba(148,163,184,0.35)",
+								color: reflectionsReady ? "#059669" : "#64748B",
 							}}
+							aria-hidden="true"
 							whileHover={
 								!reflectionsDisabled
 									? {

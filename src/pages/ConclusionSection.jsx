@@ -1,18 +1,18 @@
 // src/pages/ConclusionSection.jsx
 import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { CheckCircle2, HeartHandshake, MessageSquareHeart } from "lucide-react";
+import { CheckCircle2, HeartHandshake } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFlagCheckered } from "@fortawesome/free-solid-svg-icons";
+import { faMessage } from "@fortawesome/free-regular-svg-icons"; // ⬅️ outlined chat bubble
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
 export default function ConclusionSection({
 	content = {},
-	accent = "#8B5CF6", // keep the purple theme
+	accent = "#8B5CF6",
 }) {
-	// copy (unchanged)
 	const defaultContent = {
 		title: "Conclusion",
 		paragraphs: [
@@ -33,7 +33,6 @@ export default function ConclusionSection({
 
 	const reduceMotion = useReducedMotion();
 
-	// animations (subtle)
 	const pageFade = {
 		hidden: { opacity: 0 },
 		show: { opacity: 1, transition: { duration: 0.35 } },
@@ -43,12 +42,10 @@ export default function ConclusionSection({
 		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 	};
 
-	// shared styles
 	const card = "rounded-2xl border border-gray-200 bg-white shadow-sm";
 	const ringAccent =
 		"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 
-	// perfectly centered badge for icons
 	const Badge = ({ children }) => (
 		<div
 			className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -72,7 +69,6 @@ export default function ConclusionSection({
 			role="main"
 			aria-labelledby="conclusion-title"
 		>
-			{/* Original purple gradient overlay */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 -z-10 pointer-events-none"
@@ -105,7 +101,6 @@ export default function ConclusionSection({
 							{title}
 						</h1>
 
-						{/* Accent-matched FA flag badge */}
 						<span
 							className="inline-flex items-center justify-center w-9 h-9 rounded-lg"
 							style={{
@@ -121,7 +116,7 @@ export default function ConclusionSection({
 					</div>
 				</motion.header>
 
-				{/* Highlights — equal heights */}
+				{/* Highlights */}
 				<section aria-label="Key takeaways">
 					<ul role="list" className="grid grid-cols-1 md:grid-cols-3 gap-6">
 						{highlights.map((h, i) => (
@@ -142,7 +137,7 @@ export default function ConclusionSection({
 					</ul>
 				</section>
 
-				{/* Closing paragraph — speech-bubble band */}
+				{/* Closing paragraph */}
 				{closing && <ClosingCallout accent={accent} text={closing} />}
 
 				{/* Coda */}
@@ -177,30 +172,59 @@ export default function ConclusionSection({
 					</section>
 				)}
 
-				{/* █████ Feedback (centered, no background) █████ */}
-				<div className="py-6 flex flex-col items-center text-center gap-3">
-					<a
-						href="https://airtable.com/appiWB5orohCHzA35/shrfyFm9N7HuQBhe8"
-						target="_blank"
-						rel="noopener noreferrer"
-						className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${ringAccent}`}
-						style={{
-							color: "white",
-							backgroundColor: accent,
-							outlineColor: accent,
-							boxShadow: `0 8px 20px ${withAlpha(accent, "33")}`,
-						}}
-					>
-						<MessageSquareHeart className="w-4 h-4" strokeWidth={2.4} />
-						Open feedback form
-					</a>
+				{/* █████ Feedback — bigger, outline-only █████ */}
+				<div className="py-6 flex justify-center">
+					<div className="inline-flex items-center gap-3">
+						{/* Large outlined circular button */}
+						<span
+							className="inline-flex items-center justify-center rounded-full"
+							style={{
+								width: 56, // 56px circle (w-14)
+								height: 56, // 56px
+								backgroundColor: "#ffffff",
+								border: `2px solid ${accent}`, // outline only
+								color: accent,
+								boxShadow: "0 4px 14px rgba(2,6,23,0.12)",
+							}}
+							aria-hidden="true"
+							title="Feedback"
+						>
+							<FontAwesomeIcon icon={faMessage} className="text-[22px]" />
+						</span>
+
+						{/* Outlined pill link (white bg, accent text) */}
+						<a
+							href="https://airtable.com/appiWB5orohCHzA35/shrfyFm9N7HuQBhe8"
+							target="_blank"
+							rel="noopener noreferrer"
+							className={`inline-flex items-center rounded-xl px-3.5 py-2 text-[15px] font-semibold ${ringAccent}`}
+							style={{
+								backgroundColor: "#ffffff",
+								color: accent,
+								border: `2px solid ${accent}`,
+								outlineColor: accent,
+								boxShadow: "0 4px 14px rgba(2,6,23,0.08)",
+							}}
+							onMouseEnter={(e) =>
+								(e.currentTarget.style.backgroundColor = withAlpha(
+									accent,
+									"08"
+								))
+							}
+							onMouseLeave={(e) =>
+								(e.currentTarget.style.backgroundColor = "#ffffff")
+							}
+						>
+							Feedback
+						</a>
+					</div>
 				</div>
 			</div>
 		</motion.div>
 	);
 }
 
-/* dashed tip box — same style language as Activities */
+/* dashed tip box */
 function TipCard({ accent = "#8B5CF6", children }) {
 	return (
 		<section
@@ -219,7 +243,6 @@ function TipCard({ accent = "#8B5CF6", children }) {
 	);
 }
 
-/* Closing paragraph callout — speech-bubble with notch + measured text */
 function ClosingCallout({ text, accent }) {
 	return (
 		<section aria-label="Closing reflection" className="px-0">
@@ -232,7 +255,6 @@ function ClosingCallout({ text, accent }) {
 							"0 1px 2px rgba(2,6,23,.04), 0 8px 24px rgba(2,6,23,.06)",
 					}}
 				>
-					{/* speech-bubble notch */}
 					<span
 						aria-hidden="true"
 						className="absolute left-1/2 -translate-x-1/2 -top-2 w-4 h-4 rotate-45 bg-white"
@@ -241,7 +263,6 @@ function ClosingCallout({ text, accent }) {
 							borderTop: `1px solid ${withAlpha(accent, "22")}`,
 						}}
 					/>
-					{/* accent rail (subtle) */}
 					<span
 						aria-hidden="true"
 						className="absolute left-0 top-0 h-full w-1.5 rounded-l-2xl"

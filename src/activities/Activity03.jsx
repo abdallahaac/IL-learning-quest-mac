@@ -8,18 +8,55 @@ import {
 	Infinity as InfinityIcon,
 	Plus,
 	X,
-	Download,
 	Trash2,
-	Info,
 } from "lucide-react";
 import inuk from "../assets/inuk.svg";
+import inukGrey from "../assets/inuk-grey.svg";
+
+import CompleteButton from "../components/CompleteButton.jsx";
+import { hasActivityStarted } from "../utils/activityProgress.js";
 
 /* #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
 /* Simple wrapper so the imported SVG behaves like an icon component */
+/* Simple wrapper so the imported SVG tints with currentColor */
 function InukIcon({ className = "w-4 h-4", title = "Inuk symbol" }) {
-	return <img src={inuk} alt={title} className={className} />;
+	return (
+		<span
+			role="img"
+			aria-label={title}
+			className={className}
+			style={{
+				display: "inline-block",
+				backgroundColor: "currentColor",
+				WebkitMask: `url(${inuk}) center / contain no-repeat`,
+				mask: `url(${inuk}) center / contain no-repeat`,
+			}}
+		/>
+	);
+}
+/* Cross-fades between grey and orange versions of the Inuk SVG */
+function InukSwapIcon({
+	active,
+	className = "w-4 h-4",
+	title = "Inuk symbol",
+}) {
+	return (
+		<span
+			className={className}
+			role="img"
+			aria-label={title}
+			style={{ display: "inline-block" }}
+		>
+			<motion.img
+				key={active ? "inuk-color" : "inuk-grey"}
+				src={active ? inuk : inukGrey}
+				alt=""
+				className="w-full h-full"
+			/>
+		</span>
+	);
 }
 
 export default function Activity03({
@@ -100,6 +137,9 @@ export default function Activity03({
 			} catch {}
 		}
 	}, [notes, storageKey]);
+
+	// compute "started" from freshest model state (recipes)
+	const started = hasActivityStarted(model, "recipes");
 
 	// UI state for new recipe
 	const [group, setGroup] = useState("firstNations");
@@ -205,7 +245,7 @@ export default function Activity03({
 		window.setTimeout(() => setJustSavedId(null), 1400);
 	};
 
-	// New: real DOCX export for all recipes
+	// DOCX export for all recipes
 	const downloadAllDocx = async () => {
 		const items = Array.isArray(model.recipes) ? model.recipes : [];
 		if (!items.length) return;
@@ -265,7 +305,7 @@ export default function Activity03({
 				],
 			});
 
-			// === Resources header (styled like a subheader using the accent) ===
+			// Resources header
 			const resourceHeading = new Paragraph({
 				spacing: { before: 80, after: 120 },
 				children: [
@@ -273,7 +313,7 @@ export default function Activity03({
 						text: "Resources",
 						bold: true,
 						font: "Arial",
-						size: 32, // smaller than H1 (48)
+						size: 32,
 						color: accent,
 					}),
 				],
@@ -652,7 +692,7 @@ export default function Activity03({
 						<div className="flex items-center justify-center gap-2 sm:gap-3">
 							{[
 								{ id: "firstNations", label: "First Nations", Icon: Feather },
-								{ id: "inuit", label: "Inuit", Icon: InukIcon },
+								{ id: "inuit", label: "Inuit", Icon: null }, // we'll render custom
 								{ id: "metis", label: "Métis", Icon: InfinityIcon },
 							].map(({ id, label, Icon }) => {
 								const active = id === group;
@@ -672,7 +712,14 @@ export default function Activity03({
 										}}
 										aria-pressed={active}
 									>
-										<Icon className="w-4 h-4" aria-hidden="true" />
+										{id === "inuit" ? (
+											<InukSwapIcon active={active} className="w-4 h-4" />
+										) : (
+											<Icon
+												className="w-4 h-4 transition-colors"
+												aria-hidden="true"
+											/>
+										)}
 										<span className="font-medium">{label}</span>
 									</button>
 								);
@@ -1037,18 +1084,12 @@ export default function Activity03({
 
 				{/* Bottom action bar: Mark Complete on left, Download DOCX on right */}
 				<div className="flex justify-end gap-2">
-					<button
-						type="button"
-						onClick={onToggleComplete}
-						aria-pressed={!!completed}
-						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-							completed
-								? "border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
-						}`}
-					>
-						{completed ? "Marked Complete" : "Mark Complete"}
-					</button>
+					<CompleteButton
+						started={started}
+						completed={!!completed}
+						onToggle={onToggleComplete}
+						accent="#10B981"
+					/>
 
 					{/* Download all (.docx) sits to the RIGHT; greyed out when empty */}
 					<button

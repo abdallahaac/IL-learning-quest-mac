@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+// src/pages/activities/Activity02.jsx
+import React, { useState, useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Leaf, ExternalLink, BookOpen } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
+import CompleteButton from "../components/CompleteButton.jsx";
+import { hasActivityStarted } from "../utils/activityProgress.js";
 
 /* Tailwind emerald hexes */
 const EMERALD_50 = "#ECFDF5"; // bg-emerald-50
-const EMERALD_200 = "#A7F3D0"; // border-emerald-200
 const EMERALD_700 = "#047857"; // text/ring default
 
 /* #RRGGBB + "AA" → #RRGGBBAA */
@@ -17,14 +19,44 @@ export default function Activity02({
 	completed,
 	onNotes,
 	onToggleComplete,
-	accent = EMERALD_700, // change to re-skin the whole activity
+	accent = EMERALD_700, // theme color
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Plants, uses, teachings you discovered…";
-	const [localNotes, setLocalNotes] = useState(notes);
-	const saveNotes = (v) => {
-		setLocalNotes(v);
-		onNotes?.(v);
+
+	// Local state + sync from prop
+	const [localNotes, setLocalNotes] = useState(notes ?? "");
+	useEffect(() => {
+		setLocalNotes(notes ?? "");
+	}, [notes]);
+
+	// Track if the learner actually edited in THIS session
+	const initialHasContentRef = useRef(hasActivityStarted(notes ?? "", "notes"));
+	const [touched, setTouched] = useState(false);
+	const firstChangeIgnoredRef = useRef(false);
+
+	const saveNotes = (next) => {
+		setLocalNotes(next);
+
+		// Only mark as "touched" when a real user edit happens.
+		// We ignore a single initial onChange echo that some editors fire on mount.
+		if (!firstChangeIgnoredRef.current) {
+			firstChangeIgnoredRef.current = true;
+
+			// If the first change is identical to initial value, don't count it as a user edit.
+			const sameAsInitial =
+				(typeof next === "string" &&
+					typeof (notes ?? "") === "string" &&
+					next === (notes ?? "")) ||
+				(typeof next === "object" &&
+					typeof (notes ?? "") === "object" &&
+					JSON.stringify(next) === JSON.stringify(notes ?? ""));
+			if (!sameAsInitial) setTouched(true);
+		} else {
+			setTouched(true);
+		}
+
+		onNotes?.(next);
 	};
 
 	const reduceMotion = useReducedMotion();
@@ -83,6 +115,16 @@ export default function Activity02({
 	const tipText =
 		"Discover the Indigenous medicinal uses for plants in your area. Describe the things you learned about";
 
+	/**
+	 * STARTED RULE:
+	 * - If this activity already had content (from props/localStorage), allow enabling immediately (return true)
+	 * - Otherwise, require the user to actually type (touched) AND have non-empty content now.
+	 */
+	const hasContentNow = hasActivityStarted(localNotes ?? "", "notes");
+	const started = initialHasContentRef.current
+		? true
+		: touched && hasContentNow;
+
 	return (
 		<motion.div
 			className="relative bg-transparent min-h-[100svh]"
@@ -110,7 +152,7 @@ export default function Activity02({
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* ===== HEADER (match Activity 1’s layout) ===== */}
+				{/* ===== HEADER ===== */}
 				<motion.header
 					className="text-center"
 					variants={titleFade}
@@ -139,7 +181,7 @@ export default function Activity02({
 							/>
 						</div>
 
-						{/* Instructions callout (same style as Activity 1) */}
+						{/* Instructions callout */}
 						<aside
 							role="note"
 							aria-label="Activity tip"
@@ -269,18 +311,12 @@ export default function Activity02({
 
 				{/* Complete toggle */}
 				<div className="flex justify-end">
-					<button
-						type="button"
-						onClick={onToggleComplete}
-						aria-pressed={!!completed}
-						className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-							completed
-								? "border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-								: "border-gray-300 bg-gray-50 text-gray-800 hover:bg-gray-100"
-						}`}
-					>
-						{completed ? "Marked Complete" : "Mark Complete"}
-					</button>
+					<CompleteButton
+						started={started}
+						completed={!!completed}
+						onToggle={onToggleComplete}
+						accent="#10B981"
+					/>
 				</div>
 			</div>
 		</motion.div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
 	Palette,
@@ -9,7 +9,6 @@ import {
 import NoteComposer from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
-// or relative: import CompleteButton from "../components/CompleteButton.jsx";
 
 // helper: add alpha to a hex color (#RRGGBB + "AA")
 function withAlpha(hex, alphaHex) {
@@ -27,7 +26,13 @@ export default function Activity01({
 }) {
 	const placeholder =
 		content?.notePlaceholder || "Your reflections on the artist…";
-	const [localNotes, setLocalNotes] = useState(notes);
+
+	// keep local for responsiveness; sync when prop changes
+	const [localNotes, setLocalNotes] = useState(notes ?? "");
+	useEffect(() => {
+		setLocalNotes(notes ?? "");
+	}, [notes]);
+
 	const saveNotes = (v) => {
 		setLocalNotes(v);
 		onNotes?.(v);
@@ -109,7 +114,8 @@ export default function Activity01({
 		};
 	}, []);
 
-	const started = hasActivityStarted(localNotes, "notes");
+	// ✅ compute from freshest value
+	const started = hasActivityStarted(localNotes ?? notes, "notes");
 
 	return (
 		<motion.div
@@ -134,9 +140,7 @@ export default function Activity01({
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* Header: centered wrapper; instructions align to H1's left */}
-				{/* Header: grid aligns instructions with H1 text; icon stays on the right */}
-				{/* ===== HEADER (centered title + icon, centered accessible instructions) ===== */}
+				{/* ===== HEADER ===== */}
 				<motion.header
 					className="text-center"
 					variants={titleFade}
@@ -152,8 +156,11 @@ export default function Activity01({
 							Activity {activityNumber}
 						</p>
 
-						{/* Title row: center the H1 with the icon immediately after */}
-						<div className="inline-flex items-center justify-center gap-3">
+						{/* Title row */}
+						<div
+							className="inline-flex items-center justify-center gap-3"
+							ref={titleRowRef}
+						>
 							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
 								Explore an Indigenous Artist
 							</h1>
@@ -165,7 +172,7 @@ export default function Activity01({
 							/>
 						</div>
 
-						{/* Instructions: centered callout, readable width, accessible semantics */}
+						{/* Instructions */}
 						<aside
 							role="note"
 							aria-label="Activity tip"
@@ -186,14 +193,11 @@ export default function Activity01({
 								</div>
 								<p
 									className="text-slate-800 max-w-2xl"
-									style={{
-										color: accent,
-									}}
+									style={{ color: accent }}
 								>
 									Explore works by an Indigenous artist that speak to you.{" "}
 									<br />
 									<strong>
-										{" "}
 										Describe how you relate to this artist. How does this artist
 										inspire you?
 									</strong>
@@ -283,7 +287,7 @@ export default function Activity01({
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
-					placeholder="Your reflections on the artist…"
+					placeholder={placeholder}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent="#4380d6"
