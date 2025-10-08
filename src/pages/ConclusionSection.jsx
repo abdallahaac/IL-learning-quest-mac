@@ -172,38 +172,39 @@ export default function ConclusionSection({
 					</section>
 				)}
 
-				{/* █████ Feedback — bigger, outline-only █████ */}
+				{/* █████ Feedback — same layout, just bigger █████ */}
 				<div className="py-6 flex justify-center">
-					<div className="inline-flex items-center gap-3">
-						{/* Large outlined circular button */}
+					<div className="inline-flex items-center gap-4 sm:gap-5">
+						{/* Larger outlined circular icon (not a link) */}
 						<span
 							className="inline-flex items-center justify-center rounded-full"
 							style={{
-								width: 56, // 56px circle (w-14)
-								height: 56, // 56px
+								width: 72, // was 56
+								height: 72, // was 56
 								backgroundColor: "#ffffff",
-								border: `2px solid ${accent}`, // outline only
+								border: `3px solid ${accent}`, // thicker outline
 								color: accent,
-								boxShadow: "0 4px 14px rgba(2,6,23,0.12)",
+								boxShadow: "0 6px 18px rgba(2,6,23,0.14)", // beefier shadow
 							}}
 							aria-hidden="true"
 							title="Feedback"
 						>
-							<FontAwesomeIcon icon={faMessage} className="text-[22px]" />
+							<FontAwesomeIcon icon={faMessage} className="text-[28px]" />
+							{/* was 22px */}
 						</span>
 
-						{/* Outlined pill link (white bg, accent text) */}
+						{/* Larger outlined pill link */}
 						<a
 							href="https://airtable.com/appiWB5orohCHzA35/shrfyFm9N7HuQBhe8"
 							target="_blank"
 							rel="noopener noreferrer"
-							className={`inline-flex items-center rounded-xl px-3.5 py-2 text-[15px] font-semibold ${ringAccent}`}
+							className={`inline-flex items-center rounded-2xl px-4 sm:px-5 py-2.5 text-[17px] font-semibold ${ringAccent}`}
 							style={{
 								backgroundColor: "#ffffff",
 								color: accent,
-								border: `2px solid ${accent}`,
+								border: `2.5px solid ${accent}`, // slightly thicker
 								outlineColor: accent,
-								boxShadow: "0 4px 14px rgba(2,6,23,0.08)",
+								boxShadow: "0 6px 18px rgba(2,6,23,0.10)",
 							}}
 							onMouseEnter={(e) =>
 								(e.currentTarget.style.backgroundColor = withAlpha(

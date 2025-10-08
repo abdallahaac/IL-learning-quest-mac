@@ -1,8 +1,10 @@
 // src/pages/activities/Activity04.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Globe2, ExternalLink } from "lucide-react";
-import NoteComposer from "../components/NoteComposer.jsx";
+import NoteComposer, {
+	downloadNotesAsWord,
+} from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 
@@ -92,6 +94,34 @@ export default function Activity04({
 	// Tip text included at top of export
 	const tipText =
 		"Discover some interesting facts about an Indigenous population outside Canada. What stood out to you?";
+
+	// External download handler (always enabled)
+	const handleDownload = useCallback(() => {
+		const html =
+			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+		downloadNotesAsWord({
+			html,
+			downloadFileName: `Activity-${content?.id || "04"}-Reflection.doc`,
+			docTitle: content?.title || "Indigenous Peoples Outside Canada",
+			docSubtitle: content?.subtitle,
+			activityNumber,
+			docIntro: tipText,
+			includeLinks: true,
+			linksHeading: "Resources",
+			pageLinks,
+			headingColor: accent, // exported headings match page accent
+			accent,
+		});
+	}, [
+		localNotes,
+		content?.id,
+		content?.title,
+		content?.subtitle,
+		activityNumber,
+		tipText,
+		pageLinks,
+		accent,
+	]);
 
 	return (
 		<motion.div
@@ -231,7 +261,7 @@ export default function Activity04({
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent={accent}
-					downloadFileName={`Activity-${content?.id || "04"}-Reflection.docx`}
+					downloadFileName={`Activity-${content?.id || "04"}-Reflection.doc`}
 					/* Exported title becomes: "Activity 4: Indigenous Peoples Outside Canada" */
 					docTitle={content?.title || "Indigenous Peoples Outside Canada"}
 					docSubtitle={content?.subtitle}
@@ -244,16 +274,27 @@ export default function Activity04({
 					pageLinks={pageLinks}
 					/* Indigo headings in the exported DOCX/HTML to match page accent */
 					headingColor={accent}
+					/* Hide the internal download; we present an external button next to Complete */
+					showDownloadButton={false}
 				/>
 
-				{/* ===== Complete toggle ===== */}
-				<div className="flex justify-end">
+				{/* ===== Complete + external Download (always enabled) ===== */}
+				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
 						completed={!!completed}
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
+					<button
+						type="button"
+						onClick={handleDownload}
+						className="px-4 py-2 rounded-lg text-white"
+						style={{ backgroundColor: accent }}
+						title="Download your reflections as a Word-compatible .doc file"
+					>
+						Download (.doc)
+					</button>
 				</div>
 			</div>
 		</motion.div>

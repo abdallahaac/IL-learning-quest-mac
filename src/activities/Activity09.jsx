@@ -137,6 +137,177 @@ export default function Activity09({
 		[]
 	);
 
+	/* ------- External Download (.docx) — always enabled, next to Complete ------- */
+	const downloadPageDocx = async () => {
+		const title = `Activity ${activityNumber}: ${pageTitle}`;
+		const fileName = `activity-a${activityNumber}-reflection.docx`;
+
+		try {
+			const {
+				Document,
+				Packer,
+				Paragraph,
+				TextRun,
+				AlignmentType,
+				ExternalHyperlink,
+			} = await import("docx");
+
+			const H1 = new Paragraph({
+				alignment: AlignmentType.LEFT,
+				spacing: { before: 0, after: 300 },
+				children: [
+					new TextRun({
+						text: title,
+						bold: true,
+						size: 48,
+						font: "Arial",
+						color: accent,
+					}),
+				],
+			});
+
+			const Intro = new Paragraph({
+				spacing: { before: 0, after: 240 },
+				children: [
+					new TextRun({
+						text: tipText,
+						italics: true,
+						size: 28,
+						font: "Arial",
+					}),
+				],
+			});
+
+			const H2 = (t) =>
+				new Paragraph({
+					spacing: { before: 280, after: 160 },
+					children: [
+						new TextRun({
+							text: t,
+							bold: true,
+							size: 32,
+							font: "Arial",
+							color: accent,
+						}),
+					],
+				});
+
+			const Body = (t) =>
+				new Paragraph({
+					spacing: { before: 0, after: 120, line: 360 },
+					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
+				});
+
+			const LinkBullet = (label, url) =>
+				new Paragraph({
+					bullet: { level: 0 },
+					spacing: { before: 0, after: 60 },
+					children: [
+						new ExternalHyperlink({
+							link: url,
+							children: [
+								new TextRun({
+									text: label,
+									font: "Arial",
+									size: 24,
+									underline: {},
+									color: "0563C1",
+								}),
+							],
+						}),
+					],
+				});
+
+			const children = [H1, Intro, H2("Suggested Indigenous-Led Outlets")];
+			pageLinks.forEach((l) => children.push(LinkBullet(l.label, l.url)));
+
+			if (typeof localNotes === "string" && localNotes?.trim()) {
+				children.push(H2("Saved response"));
+				localNotes
+					.split(/\n{2,}/)
+					.map((p) => p.trim())
+					.filter(Boolean)
+					.forEach((p) => children.push(Body(p)));
+			}
+
+			const doc = new Document({
+				styles: {
+					default: {
+						document: {
+							run: { font: "Arial", size: 24 },
+							paragraph: { spacing: { line: 360 } },
+						},
+					},
+				},
+				sections: [{ properties: {}, children }],
+			});
+
+			const blob = await Packer.toBlob(doc);
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = fileName;
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		} catch {
+			// HTML fallback
+			const esc = (s = "") =>
+				String(s)
+					.replaceAll("&", "&amp;")
+					.replaceAll("<", "&lt;")
+					.replaceAll(">", "&gt;");
+			const links = pageLinks
+				.map(
+					(l) =>
+						`<li><a href="${esc(
+							l.url
+						)}" style="color:#0563C1;text-decoration:underline;">${esc(
+							l.label
+						)}</a></li>`
+				)
+				.join("");
+			const body =
+				typeof localNotes === "string" && localNotes?.trim()
+					? `<h2 style="font-size:16pt;color:${esc(
+							accent
+					  )};margin:24pt 0 12pt;">Saved response</h2>
+             <p style="font-size:12pt;margin:0 0 9pt;">${esc(
+								localNotes
+							).replace(/\n/g, "<br/>")}</p>`
+					: "";
+			const html = `
+        <html>
+          <head><meta charset="utf-8"><title>${esc(title)}</title></head>
+          <body style="font-family:Arial;line-height:1.5;">
+            <h1 style="font-size:24pt;color:${esc(
+							accent
+						)};margin:0 0 12pt;">${esc(title)}</h1>
+            <p style="font-size:14pt;font-style:italic;margin:0 0 12pt;">${esc(
+							tipText
+						)}</p>
+            <h2 style="font-size:16pt;color:${esc(
+							accent
+						)};margin:24pt 0 12pt;">Suggested Indigenous-Led Outlets</h2>
+            <ul style="margin:0 0 12pt 18pt;font-size:12pt;">${links}</ul>
+            ${body}
+          </body>
+        </html>
+      `.trim();
+
+			const blob = new Blob([html], { type: "application/msword" });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `activity-a${activityNumber}-reflection.doc`;
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
+		}
+	};
+
 	return (
 		<motion.div
 			className="relative bg-transparent min-h-[80svh]"
@@ -296,16 +467,26 @@ export default function Activity09({
 					pageLinks={pageLinks}
 					/* Use accent for exported headings */
 					headingColor={accent}
+					showDownloadButton={false}
 				/>
 
-				{/* ===== Complete toggle (shared component) ===== */}
-				<div className="flex justify-end">
+				{/* ===== Complete + Download (always enabled) ===== */}
+				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
 						completed={!!completed}
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
+					<button
+						type="button"
+						onClick={downloadPageDocx}
+						className="px-4 py-2 rounded-lg text-white"
+						style={{ backgroundColor: accent }}
+						title="Download your notes and resources as .docx"
+					>
+						Download (.docx)
+					</button>
 				</div>
 			</div>
 		</motion.div>

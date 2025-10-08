@@ -1,8 +1,10 @@
 // src/pages/activities/Activity05.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Film, ExternalLink } from "lucide-react";
-import NoteComposer from "../components/NoteComposer.jsx";
+import NoteComposer, {
+	downloadNotesAsWord,
+} from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 
@@ -92,6 +94,34 @@ export default function Activity05({
 	// Tip to include at top of export
 	const tipText =
 		"Watch an Indigenous movie or TV show or listen to an Indigenous-focused podcast. What did you learn?";
+
+	// External download (always enabled)
+	const handleDownload = useCallback(() => {
+		const html =
+			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+		downloadNotesAsWord({
+			html,
+			downloadFileName: `Activity-${content?.id || "05"}-Reflection.doc`,
+			docTitle: content?.title || "Film, TV, or Podcast",
+			docSubtitle: content?.subtitle,
+			activityNumber,
+			docIntro: tipText,
+			includeLinks: true,
+			linksHeading: "Resources",
+			pageLinks,
+			headingColor: accent,
+			accent,
+		});
+	}, [
+		localNotes,
+		content?.id,
+		content?.title,
+		content?.subtitle,
+		activityNumber,
+		tipText,
+		pageLinks,
+		accent,
+	]);
 
 	return (
 		<motion.div
@@ -262,7 +292,7 @@ export default function Activity05({
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent={accent} // hex-aware NoteComposer
-					downloadFileName={`Activity-${content?.id || "05"}-Reflection.docx`}
+					downloadFileName={`Activity-${content?.id || "05"}-Reflection.doc`}
 					/* Exported title becomes: "Activity 5: Film, TV, or Podcast" */
 					docTitle={content?.title || "Film, TV, or Podcast"}
 					docSubtitle={content?.subtitle}
@@ -276,16 +306,27 @@ export default function Activity05({
 					pageLinks={pageLinks}
 					/* Use accent for exported headings too */
 					headingColor={accent}
+					/* Hide internal composer download; we show our own next to Complete */
+					showDownloadButton={false}
 				/>
 
-				{/* ===== Complete toggle ===== */}
-				<div className="flex justify-end">
+				{/* ===== Complete toggle + external Download (enabled) ===== */}
+				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
 						completed={!!completed}
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
+					<button
+						type="button"
+						onClick={handleDownload}
+						className="px-4 py-2 rounded-lg text-white"
+						style={{ backgroundColor: accent }}
+						title="Download your reflections as a Word-compatible .doc file"
+					>
+						Download (.doc)
+					</button>
 				</div>
 			</div>
 		</motion.div>

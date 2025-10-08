@@ -63,8 +63,8 @@ export default function Activity07({
 	}, [notes]);
 
 	/* -------------------------------------------------------------
-     DOWNLOAD #1: CARDS ONLY
-  -------------------------------------------------------------- */
+       DOWNLOAD #1: CARDS ONLY
+    -------------------------------------------------------------- */
 	const downloadCardsDocx = async () => {
 		const cards = Array.isArray(model.cards)
 			? model.cards.filter((c) => c?.front?.trim() && c?.back?.trim())
@@ -257,8 +257,8 @@ export default function Activity07({
 	};
 
 	/* -------------------------------------------------------------
-     DOWNLOAD #2: FULL PAGE SNAPSHOT — NoteComposer style
-  -------------------------------------------------------------- */
+       DOWNLOAD #2: FULL PAGE SNAPSHOT — NoteComposer style
+    -------------------------------------------------------------- */
 	const activityNumber = 7;
 	const downloadPageDocx = async () => {
 		const baseTitle = content?.title || "Learn Three Words";
@@ -1011,6 +1011,7 @@ export default function Activity07({
 						accent="#10B981"
 					/>
 
+					{/* Always-enabled download button right next to Complete */}
 					<button
 						type="button"
 						onClick={downloadPageDocx}

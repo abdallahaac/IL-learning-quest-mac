@@ -1,20 +1,19 @@
 import React, { useMemo, useState, useEffect } from "react";
-import {
-	Users,
-	ClipboardList,
-	CheckCircle2,
-	Sparkles,
-	Download,
-} from "lucide-react";
+import { Users, ClipboardList, CheckCircle2, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import CommitmentsCard from "../components/CommitmentsCard";
-import DownloadAllActivitiesButton from "../components/DownloadAllActivitiesButton.jsx";
-import DownloadCommitmentsButton from "../components/DownloadCommitmentsButton.jsx";
+import DownloadsPanel from "../components/toc/DownloadsPanel.jsx"; // <-- use the same panel as Contents page
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
-export default function TeamReflectionPage({ content, notes, onNotes }) {
+export default function TeamReflectionPage({
+	content,
+	notes,
+	onNotes,
+	// pass these through just like ContentsPage so DownloadsPanel works the same
+	reflectionsReady = false,
+	onDownloadAllReflections,
+}) {
 	// THEME
 	const ACCENT = "#67AAF9";
 	const wrap = "max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6";
@@ -50,9 +49,9 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 				],
 			},
 			{
-				heading: "Make a commitment",
+				heading: "Make a reflection",
 				items: [
-					"Invite each team member to identify one action they will take to continue learning or contribute to reconciliation:",
+					"Invite each team member to identify one idea they will carry forward in their role.",
 					"This could include using Indigenous-owned resources, incorporating Indigenous perspectives into work, or continuing personal education.",
 				],
 			},
@@ -75,13 +74,11 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 				: defaultContent.steps,
 	};
 
-	// MODEL
+	// MODEL (text + checks only)
 	const model = useMemo(() => {
-		if (typeof notes === "string")
-			return { text: notes, commitments: [], checks: [] };
+		if (typeof notes === "string") return { text: notes, checks: [] };
 		return {
 			text: notes?.text ?? "",
-			commitments: notes?.commitments ?? [],
 			checks: Array.isArray(notes?.checks) ? notes.checks : [],
 		};
 	}, [notes]);
@@ -94,18 +91,9 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 
 	// Persist text/steps to parent
 	useEffect(() => {
-		onNotes({ ...model, text, checks });
+		onNotes?.({ ...model, text, checks });
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [text, checks]);
-
-	const addCommitment = (t) =>
-		onNotes({ ...model, text, checks, commitments: [...model.commitments, t] });
-
-	const removeCommitment = (idx) => {
-		const next = [...model.commitments];
-		next.splice(idx, 1);
-		onNotes({ ...model, text, checks, commitments: next });
-	};
 
 	// UI helpers
 	const totalSteps = modelContent?.steps?.length ?? 0;
@@ -118,7 +106,7 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 		setSaved(true);
 		const t = setTimeout(() => setSaved(false), 800);
 		return () => clearTimeout(t);
-	}, [text, checks, model.commitments]);
+	}, [text, checks]);
 
 	// Celebrate at 100%
 	const [didCelebrate, setDidCelebrate] = useState(
@@ -195,12 +183,31 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 						/>
 					</div>
 
-					{/* NEW: Tip card subtitle */}
-					<TipCard accent={ACCENT}>
-						To make the most of your team discussions during the learning quest,
-						follow these steps to create a safe, respectful, and reflective
-						learning environment:
-					</TipCard>
+					{/* Instructions-style callout (matches activity pages) */}
+					<aside
+						role="note"
+						aria-label="Team reflection instructions"
+						className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+						style={{ borderColor: withAlpha(ACCENT, "33") }}
+					>
+						<div className="flex flex-col items-center gap-3 text-center">
+							<div
+								className="inline-flex items-center justify-center rounded-full px-3 py-1 text-sm font-semibold"
+								style={{
+									backgroundColor: withAlpha(ACCENT, "15"),
+									color: ACCENT,
+								}}
+								aria-hidden="true"
+							>
+								Instruction
+							</div>
+							<p className="text-slate-800 max-w-2xl" style={{ color: ACCENT }}>
+								To make the most of your team discussions during the learning
+								quest, follow these steps to create a safe, respectful, and
+								reflective learning environment.
+							</p>
+						</div>
+					</aside>
 				</header>
 
 				{/* Steps + progress */}
@@ -360,8 +367,8 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 					</AnimatePresence>
 				</section>
 
-				{/* Notes + Commitments */}
-				<section className="grid md:grid-cols-2 gap-6">
+				{/* Notes (left) + Reflection preview (right) */}
+				<section className="grid  gap-6">
 					<div className={`${card} p-4 sm:p-5`}>
 						<div className="flex items-center justify-between">
 							<label
@@ -376,7 +383,12 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 						</div>
 
 						<div className="mt-2 flex flex-wrap gap-2">
-							{quickPrompts.map((p) => (
+							{[
+								"One thing that surprised me…",
+								"A perspective I hadn’t considered…",
+								"Where I might follow up…",
+								"How this connects to my work…",
+							].map((p) => (
 								<button
 									key={p}
 									type="button"
@@ -408,50 +420,17 @@ export default function TeamReflectionPage({ content, notes, onNotes }) {
 						</p>
 					</div>
 
-					<div className={`${card} p-4 sm:p-5`}>
-						<CommitmentsCard
-							commitments={model.commitments}
-							onAdd={addCommitment}
-							onRemove={removeCommitment}
-						/>
-					</div>
+					{/* Right column preview */}
 				</section>
 
-				{/* Downloads */}
+				{/* Downloads — same component as ContentsPage */}
 				<section className="pt-2">
-					<div className="flex items-center justify-center">
-						<div className="flex flex-wrap gap-3">
-							<DownloadAllActivitiesButton accent="#0000" />
-							<DownloadCommitmentsButton
-								accent="#000"
-								commitments={model.commitments}
-								reflectionText={text}
-								title="Team Commitments"
-								docName="Team-Commitments.docx"
-							/>
-						</div>
-					</div>
+					<DownloadsPanel
+						reflectionsReady={reflectionsReady}
+						onDownloadAllReflections={onDownloadAllReflections}
+					/>
 				</section>
 			</div>
 		</div>
-	);
-}
-
-/* Reusable tip card (matches other sections) */
-function TipCard({ accent = "#67AAF9", children }) {
-	return (
-		<section
-			className="mx-auto max-w-2xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
-			role="note"
-			aria-label="Tip"
-			style={{
-				borderColor: withAlpha(accent, "33"),
-				backgroundColor: withAlpha(accent, "14"),
-			}}
-		>
-			<p className="text-base sm:text-lg text-center text-slate-900">
-				{children}
-			</p>
-		</section>
 	);
 }

@@ -8,7 +8,9 @@ import {
 	Landmark, // government directory
 	ExternalLink,
 } from "lucide-react";
-import NoteComposer from "../components/NoteComposer.jsx";
+import NoteComposer, {
+	downloadNotesAsWord,
+} from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 
@@ -114,6 +116,27 @@ export default function Activity10({
 			</div>
 		</div>
 	);
+
+	// ---- Download handler (external button) ----
+	const handleDownload = () => {
+		const html =
+			typeof localNotes === "string"
+				? localNotes || ""
+				: localNotes?.text || ""; // in case notes are stored as an object
+		downloadNotesAsWord({
+			html,
+			downloadFileName: `Activity-${content?.id || "10"}-Reflection.docx`,
+			docTitle: pageTitle,
+			docSubtitle: content?.subtitle,
+			activityNumber,
+			docIntro: tipText,
+			includeLinks: true,
+			linksHeading: "Resources",
+			pageLinks,
+			headingColor: accent, // export headings match page accent
+			accent,
+		});
+	};
 
 	return (
 		<motion.div
@@ -284,16 +307,27 @@ export default function Activity10({
 					pageLinks={pageLinks}
 					/* Use accent for exported headings */
 					headingColor={accent}
+					/* Hide NoteComposer's built-in download button */
+					showDownloadButton={false}
 				/>
 
-				{/* ===== Complete toggle (shared component) ===== */}
-				<div className="flex justify-end">
+				{/* ===== Bottom actions: Mark Complete + Download ===== */}
+				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
 						completed={!!completed}
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
+					<button
+						type="button"
+						onClick={handleDownload}
+						className="px-4 py-2 rounded-lg text-white"
+						style={{ backgroundColor: accent }}
+						title="Download your reflections as a Word-compatible .docx file"
+					>
+						Download (.docx)
+					</button>
 				</div>
 			</div>
 		</motion.div>
