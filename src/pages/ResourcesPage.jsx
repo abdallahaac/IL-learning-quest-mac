@@ -512,11 +512,6 @@ export default function ResourcesPage() {
 					</div>
 
 					{/* Concise tip */}
-					<TipCard>
-						{" "}
-						Explore a few resources each week. Save favourites and bring one
-						into your next team conversation.
-					</TipCard>
 
 					{/* Actions */}
 					<div className="mt-1 flex flex-wrap items-center justify-center gap-2">
