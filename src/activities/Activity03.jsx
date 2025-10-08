@@ -19,8 +19,7 @@ import { hasActivityStarted } from "../utils/activityProgress.js";
 /* #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
-/* Simple wrapper so the imported SVG behaves like an icon component */
-/* Simple wrapper so the imported SVG tints with currentColor */
+/* SVG wrappers */
 function InukIcon({ className = "w-4 h-4", title = "Inuk symbol" }) {
 	return (
 		<span
@@ -36,7 +35,6 @@ function InukIcon({ className = "w-4 h-4", title = "Inuk symbol" }) {
 		/>
 	);
 }
-/* Cross-fades between grey and orange versions of the Inuk SVG */
 function InukSwapIcon({
 	active,
 	className = "w-4 h-4",
@@ -59,13 +57,25 @@ function InukSwapIcon({
 	);
 }
 
+/* Format helpers */
+const formatIngredient = (it) => {
+	if (typeof it === "string") return it;
+	if (!it || typeof it !== "object") return "";
+	const qty = it.qty ? String(it.qty).trim() : "";
+	const unit = it.unit || "";
+	const name = it.item || "";
+	return [qty, unit, name].filter(Boolean).join(" ");
+};
+const formatDirectionsText = (steps = []) =>
+	steps.map((s, i) => `${i + 1}. ${s}`).join("\n");
+
 export default function Activity03({
 	content,
 	notes,
 	onNotes,
 	completed,
 	onToggleComplete,
-	accent = "#b45309", // theme color
+	accent = "#b45309",
 }) {
 	const reduceMotion = useReducedMotion();
 	const activityNumber = 3;
@@ -100,24 +110,38 @@ export default function Activity03({
 		url: "https://www.firstnations.org/knowledge-center/recipes/",
 	};
 
-	// Model
+	// Model (normalize ingredients + directions)
 	const initial = useMemo(() => {
-		if (notes && typeof notes === "object" && Array.isArray(notes.recipes)) {
-			return { recipes: notes.recipes };
-		}
-		try {
-			const raw = localStorage.getItem(storageKey);
-			if (raw) {
-				const parsed = JSON.parse(raw);
-				if (parsed && Array.isArray(parsed.recipes))
-					return { recipes: parsed.recipes };
-			}
-		} catch {}
-		return { recipes: [] };
+		const fromNotes = notes && typeof notes === "object" ? notes : null;
+		const tryLocal = () => {
+			try {
+				const raw = localStorage.getItem(storageKey);
+				if (raw) return JSON.parse(raw);
+			} catch {}
+			return null;
+		};
+		const base = fromNotes ?? tryLocal() ?? { recipes: [] };
+		const recipes = Array.isArray(base.recipes)
+			? base.recipes.map((r) => ({
+					...r,
+					// directions normalized to array of steps
+					directions: Array.isArray(r.directions)
+						? r.directions
+						: typeof r.directions === "string" && r.directions.trim()
+						? [r.directions.trim()]
+						: [],
+					// ingredients normalized to objects
+					ingredients: Array.isArray(r.ingredients)
+						? r.ingredients.map((it) =>
+								typeof it === "string" ? { item: it, qty: "", unit: "" } : it
+						  )
+						: [],
+			  }))
+			: [];
+		return { recipes };
 	}, [notes, storageKey]);
 
 	const [model, setModel] = useState(initial);
-
 	const saveModel = (next) => {
 		setModel(next);
 		onNotes?.(next);
@@ -128,51 +152,97 @@ export default function Activity03({
 
 	useEffect(() => {
 		if (notes && typeof notes === "object" && Array.isArray(notes.recipes)) {
-			setModel({ recipes: notes.recipes });
+			const normalized = {
+				recipes: notes.recipes.map((r) => ({
+					...r,
+					directions: Array.isArray(r.directions)
+						? r.directions
+						: typeof r.directions === "string" && r.directions.trim()
+						? [r.directions.trim()]
+						: [],
+					ingredients: Array.isArray(r.ingredients)
+						? r.ingredients.map((it) =>
+								typeof it === "string" ? { item: it, qty: "", unit: "" } : it
+						  )
+						: [],
+				})),
+			};
+			setModel(normalized);
 			try {
-				localStorage.setItem(
-					storageKey,
-					JSON.stringify({ recipes: notes.recipes })
-				);
+				localStorage.setItem(storageKey, JSON.stringify(normalized));
 			} catch {}
 		}
 	}, [notes, storageKey]);
 
-	// compute "started" from freshest model state (recipes)
 	const started = hasActivityStarted(model, "recipes");
 
 	// UI state for new recipe
 	const [group, setGroup] = useState("firstNations");
 	const [name, setName] = useState("");
-	const [ing, setIng] = useState("");
 	const [ingredients, setIngredients] = useState([]);
+	const [steps, setSteps] = useState([]);
 
-	// Inline edit state for saved items
+	// Ingredient composer (embedded controls)
+	const [ingItem, setIngItem] = useState("");
+	const [ingQty, setIngQty] = useState("");
+	const [ingUnit, setIngUnit] = useState("");
+
+	// Directions composer (add steps)
+	const [stepText, setStepText] = useState("");
+
+	// Inline edit state
 	const [editingId, setEditingId] = useState(null);
 	const [editName, setEditName] = useState("");
-	const [editIng, setEditIng] = useState("");
 	const [editIngredients, setEditIngredients] = useState([]);
+	const [editSteps, setEditSteps] = useState([]);
+	const [editIngItem, setEditIngItem] = useState("");
+	const [editIngQty, setEditIngQty] = useState("");
+	const [editIngUnit, setEditIngUnit] = useState("");
+	const [editStepText, setEditStepText] = useState("");
 	const [justSavedId, setJustSavedId] = useState(null);
 
-	const pills = [
-		{ id: "firstNations", label: "First Nations", Icon: Feather },
-		{ id: "inuit", label: "Inuit", Icon: InukIcon },
-		{ id: "metis", label: "Métis", Icon: InfinityIcon },
+	const unitOptions = [
+		"tsp",
+		"tbsp",
+		"ml",
+		"L",
+		"cup",
+		"cups",
+		"g",
+		"kg",
+		"oz",
+		"lb",
+		"pinch",
+		"clove",
+		"slice",
 	];
 
-	const canAddIngredient = ing.trim().length > 0;
+	const canAddIngredient = ingItem.trim().length > 0;
+	const canAddStep = stepText.trim().length > 0;
 	const canSave = group && name.trim().length > 0 && ingredients.length > 0;
 
 	const addIngredient = () => {
-		const v = ing.trim();
-		if (!v) return;
-		setIngredients((prev) => [...prev, v]);
-		setIng("");
+		if (!canAddIngredient) return;
+		const nextIt = {
+			item: ingItem.trim(),
+			qty: (ingQty || "").trim(),
+			unit: (ingUnit || "").trim(),
+		};
+		setIngredients((prev) => [...prev, nextIt]);
+		setIngItem("");
+		setIngQty("");
+		setIngUnit("");
 	};
-
-	const removeIngredient = (i) => {
+	const removeIngredient = (i) =>
 		setIngredients((prev) => prev.filter((_, idx) => idx !== i));
+
+	const addStep = () => {
+		if (!canAddStep) return;
+		setSteps((prev) => [...prev, stepText.trim()]);
+		setStepText("");
 	};
+	const removeStep = (i) =>
+		setSteps((prev) => prev.filter((_, idx) => idx !== i));
 
 	const saveRecipe = () => {
 		if (!canSave) return;
@@ -181,13 +251,24 @@ export default function Activity03({
 		const next = {
 			recipes: [
 				...model.recipes,
-				{ id, group, name: name.trim(), ingredients, createdAt: now },
+				{
+					id,
+					group,
+					name: name.trim(),
+					ingredients,
+					directions: steps, // array of steps
+					createdAt: now,
+				},
 			],
 		};
 		saveModel(next);
 		setName("");
 		setIngredients([]);
-		setIng("");
+		setIngItem("");
+		setIngQty("");
+		setIngUnit("");
+		setSteps([]);
+		setStepText("");
 	};
 
 	const deleteRecipe = (id) => {
@@ -197,33 +278,52 @@ export default function Activity03({
 
 	const filtered = model.recipes.filter((r) => r.group === group);
 
-	// Inline edit controls
+	// Edit flow
 	const startEdit = (r) => {
 		setEditingId(r.id);
 		setEditName(r.name);
-		setEditIng("");
 		setEditIngredients([...r.ingredients]);
+		setEditSteps(Array.isArray(r.directions) ? [...r.directions] : []);
+		setEditIngItem("");
+		setEditIngQty("");
+		setEditIngUnit("");
+		setEditStepText("");
 		setJustSavedId(null);
 	};
-
 	const cancelEdit = () => {
 		setEditingId(null);
 		setEditName("");
-		setEditIng("");
 		setEditIngredients([]);
+		setEditSteps([]);
+		setEditIngItem("");
+		setEditIngQty("");
+		setEditIngUnit("");
+		setEditStepText("");
 	};
-
-	const canAddEditIngredient = editIng.trim().length > 0;
 	const addEditIngredient = () => {
-		const v = editIng.trim();
-		if (!v) return;
-		setEditIngredients((prev) => [...prev, v]);
-		setEditIng("");
+		if (!editIngItem.trim()) return;
+		setEditIngredients((prev) => [
+			...prev,
+			{
+				item: editIngItem.trim(),
+				qty: (editIngQty || "").trim(),
+				unit: (editIngUnit || "").trim(),
+			},
+		]);
+		setEditIngItem("");
+		setEditIngQty("");
+		setEditIngUnit("");
 	};
-
-	const removeEditIngredient = (i) => {
+	const removeEditIngredient = (i) =>
 		setEditIngredients((prev) => prev.filter((_, idx) => idx !== i));
+
+	const addEditStep = () => {
+		if (!editStepText.trim()) return;
+		setEditSteps((prev) => [...prev, editStepText.trim()]);
+		setEditStepText("");
 	};
+	const removeEditStep = (i) =>
+		setEditSteps((prev) => prev.filter((_, idx) => idx !== i));
 
 	const saveEdit = () => {
 		if (!editingId) return;
@@ -234,6 +334,7 @@ export default function Activity03({
 							...r,
 							name: editName.trim() || r.name,
 							ingredients: editIngredients,
+							directions: editSteps, // array
 					  }
 					: r
 			),
@@ -245,7 +346,7 @@ export default function Activity03({
 		window.setTimeout(() => setJustSavedId(null), 1400);
 	};
 
-	// DOCX export for all recipes
+	// DOCX export (uses formatted ingredients + numbered directions)
 	const downloadAllDocx = async () => {
 		const items = Array.isArray(model.recipes) ? model.recipes : [];
 		if (!items.length) return;
@@ -305,7 +406,6 @@ export default function Activity03({
 				],
 			});
 
-			// Resources header
 			const resourceHeading = new Paragraph({
 				spacing: { before: 80, after: 120 },
 				children: [
@@ -319,7 +419,6 @@ export default function Activity03({
 				],
 			});
 
-			// Link line
 			const resourceLine = new Paragraph({
 				spacing: { before: 0, after: 280 },
 				children: [
@@ -405,7 +504,7 @@ export default function Activity03({
 											new Paragraph({
 												children: [
 													new TextRun({
-														text: String(it),
+														text: formatIngredient(it),
 														font: "Arial",
 														size: 24,
 													}),
@@ -417,7 +516,7 @@ export default function Activity03({
 							})
 					);
 
-					const table = new Table({
+					const ingTable = new Table({
 						width: { size: 100, type: WidthType.PERCENTAGE },
 						rows: [ingHeaderRow, ...ingRows],
 						borders: {
@@ -438,7 +537,38 @@ export default function Activity03({
 						},
 					});
 
-					sections.push(header, when, table);
+					sections.push(header, when, ingTable);
+
+					if ((r.directions || []).length > 0) {
+						sections.push(
+							new Paragraph({
+								spacing: { before: 160, after: 80 },
+								children: [
+									new TextRun({
+										text: "Directions",
+										bold: true,
+										font: "Arial",
+										size: 24,
+										color: accent,
+									}),
+								],
+							})
+						);
+						(r.directions || []).forEach((step, i) => {
+							sections.push(
+								new Paragraph({
+									spacing: { before: 0, after: 80 },
+									children: [
+										new TextRun({
+											text: `${i + 1}. ${step}`,
+											font: "Arial",
+											size: 24,
+										}),
+									],
+								})
+							);
+						});
+					}
 				});
 
 			const doc = new Document({
@@ -463,7 +593,7 @@ export default function Activity03({
 			a.remove();
 			URL.revokeObjectURL(url);
 		} catch {
-			// Fallback: Word-compatible HTML (+ Resources header)
+			// Fallback: Word-compatible HTML
 			const esc = (s = "") =>
 				String(s)
 					.replaceAll("&", "&amp;")
@@ -473,17 +603,32 @@ export default function Activity03({
 			const rows = (items || [])
 				.map((r) => {
 					const ings = (r.ingredients || [])
-						.map((it) => `<li>${esc(it)}</li>`)
+						.map((it) => `<li>${esc(formatIngredient(it))}</li>`)
 						.join("");
+					const steps = (r.directions || [])
+						.map((s, i) => `<li>${esc(`${i + 1}. ${s}`)}</li>`)
+						.join("");
+					const dir = steps
+						? `<h3 style="font-size:13pt; color:${esc(
+								accent
+						  )}; margin:10pt 0 6pt;">Directions</h3>
+               <ol style="margin:0 0 12pt 18pt; font-size:12pt; list-style:none; padding-left:0;">
+                 ${steps}
+               </ol>`
+						: "";
 					return `
-          <h2 style="font-size:16pt; color:${esc(
-						accent
-					)}; margin:18pt 0 6pt;">${esc(r.name || "Untitled recipe")}</h2>
-          <p style="margin:0 0 6pt; color:#6B7280;">${esc(
-						labelForGroup(r.group)
-					)} • ${esc(new Date(r.createdAt).toLocaleString())}</p>
-          <ul style="margin:0 0 12pt 18pt; font-size:12pt;">${ings}</ul>
-        `;
+            <h2 style="font-size:16pt; color:${esc(
+							accent
+						)}; margin:18pt 0 6pt;">${esc(r.name || "Untitled recipe")}</h2>
+            <p style="margin:0 0 6pt; color:#6B7280;">${esc(
+							labelForGroup(r.group)
+						)} • ${esc(new Date(r.createdAt).toLocaleString())}</p>
+            <h3 style="font-size:13pt; color:${esc(
+							accent
+						)}; margin:10pt 0 6pt;">Ingredients</h3>
+            <ul style="margin:0 0 12pt 18pt; font-size:12pt;">${ings}</ul>
+            ${dir}
+          `;
 				})
 				.join("");
 
@@ -491,36 +636,30 @@ export default function Activity03({
 				content?.title || "Make a Traditional Recipe"
 			)}`;
 			const html = `
-      <html>
-        <head><meta charset="utf-8"><title>${title}</title></head>
-        <body style="font-family:Arial; line-height:1.5;">
-          <h1 style="font-size:24pt; color:${esc(
-						accent
-					)}; margin:0 0 12pt;">${title}</h1>
-          <p style="font-size:12pt; font-style:italic; margin:0 0 6pt;">
-            Try your hand at making a traditional First Nations, Inuit or Métis recipe.
-          </p>
-          <p style="font-size:12pt; font-style:italic; margin:0 0 12pt;">
-            Share your experience or maybe have a lunch-time potluck.
-          </p>
-
-          <!-- Resources header styled like a subheader -->
-          <h2 style="font-size:16pt; color:${esc(
-						accent
-					)}; margin:12pt 0 8pt;">Resources</h2>
-          <p style="font-size:12pt; margin:0 0 18pt;">
-            ${esc(referenceLink.label)} —
-            <a href="${esc(
-							referenceLink.url
-						)}" style="color:#1155CC; text-decoration:underline;">
-              ${esc(referenceLink.url)}
-            </a>
-          </p>
-
-          ${rows}
-        </body>
-      </html>
-    `.trim();
+        <html>
+          <head><meta charset="utf-8"><title>${title}</title></head>
+          <body style="font-family:Arial; line-height:1.5;">
+            <h1 style="font-size:24pt; color:${esc(
+							accent
+						)}; margin:0 0 12pt;">${title}</h1>
+            <p style="font-size:12pt; font-style:italic; margin:0 0 6pt;">Try your hand at making a traditional First Nations, Inuit or Métis recipe.</p>
+            <p style="font-size:12pt; font-style:italic; margin:0 0 12pt;">Share your experience or maybe have a lunch-time potluck.</p>
+            <h2 style="font-size:16pt; color:${esc(
+							accent
+						)}; margin:12pt 0 8pt;">Resources</h2>
+            <p style="font-size:12pt; margin:0 0 18pt;">${esc(
+							referenceLink.label
+						)} —
+              <a href="${esc(
+								referenceLink.url
+							)}" style="color:#1155CC; text-decoration:underline;">${esc(
+				referenceLink.url
+			)}</a>
+            </p>
+            ${rows}
+          </body>
+        </html>
+      `.trim();
 
 			const blob = new Blob([html], { type: "application/msword" });
 			const url = URL.createObjectURL(blob);
@@ -534,7 +673,6 @@ export default function Activity03({
 		}
 	};
 
-	// legacy txt downloader (kept for single-recipe buttons if you want to keep them)
 	const downloadOne = (r) => {
 		const body = [
 			`Activity ${activityNumber}: ${
@@ -544,8 +682,11 @@ export default function Activity03({
 			`Name: ${r.name}`,
 			"",
 			"Ingredients:",
-			...r.ingredients.map((x) => `- ${x}`),
+			...(r.ingredients || []).map((x) => `- ${formatIngredient(x)}`),
 			"",
+			(r.directions || []).length
+				? "Directions:\n" + formatDirectionsText(r.directions) + "\n"
+				: "",
 			`Saved: ${new Date(r.createdAt).toLocaleString()}`,
 			`Source: ${referenceLink.url}`,
 		].join("\n");
@@ -631,13 +772,12 @@ export default function Activity03({
 										Share your experience or maybe have a lunch-time potluck.
 									</strong>
 								</p>
-								<div className="mt-2 inline-flex items-center gap-2 text-xs text-slate-600"></div>
 							</div>
 						</aside>
 					</div>
 				</motion.header>
 
-				{/* Reference card — directly below instructions */}
+				{/* Reference card */}
 				<motion.section
 					className="flex justify-center"
 					variants={cardPop}
@@ -689,10 +829,11 @@ export default function Activity03({
 						initial="hidden"
 						animate="show"
 					>
+						{/* Group pills */}
 						<div className="flex items-center justify-center gap-2 sm:gap-3">
 							{[
 								{ id: "firstNations", label: "First Nations", Icon: Feather },
-								{ id: "inuit", label: "Inuit", Icon: null }, // we'll render custom
+								{ id: "inuit", label: "Inuit", Icon: null },
 								{ id: "metis", label: "Métis", Icon: InfinityIcon },
 							].map(({ id, label, Icon }) => {
 								const active = id === group;
@@ -726,7 +867,7 @@ export default function Activity03({
 							})}
 						</div>
 
-						{/* Step 2: name field */}
+						{/* Name */}
 						<AnimatePresence initial={false}>
 							<motion.div
 								key="name"
@@ -750,7 +891,7 @@ export default function Activity03({
 							</motion.div>
 						</AnimatePresence>
 
-						{/* Step 3: ingredients */}
+						{/* Ingredients */}
 						<AnimatePresence initial={false}>
 							{name.trim() && (
 								<motion.div
@@ -764,18 +905,73 @@ export default function Activity03({
 									<label className="block text-xs text-slate-600 mb-1">
 										Ingredients
 									</label>
-									<div className="flex items-center gap-2">
+
+									{/* Embedded controls */}
+									<div
+										className="relative rounded-lg border text-sm flex items-stretch"
+										style={{ borderColor: withAlpha(accent, "33") }}
+									>
+										{/* Item */}
 										<input
 											type="text"
-											value={ing}
-											onChange={(e) => setIng(e.target.value)}
+											value={ingItem}
+											onChange={(e) => setIngItem(e.target.value)}
 											onKeyDown={(e) =>
 												e.key === "Enter" && canAddIngredient && addIngredient()
 											}
-											placeholder="Add an ingredient and press Enter"
-											className="flex-1 rounded-lg border px-3 py-2 text-sm"
-											style={{ borderColor: withAlpha(accent, "33") }}
+											placeholder="Ingredient (e.g., wild rice)"
+											className="flex-1 bg-transparent px-3 py-2 rounded-l-lg focus:outline-none"
 										/>
+
+										{/* Divider */}
+										<span
+											aria-hidden
+											className="self-stretch"
+											style={{
+												width: 1,
+												backgroundColor: withAlpha(accent, "22"),
+											}}
+										/>
+
+										{/* Qty */}
+										<input
+											type="text"
+											inputMode="decimal"
+											value={ingQty}
+											onChange={(e) => setIngQty(e.target.value)}
+											placeholder="qty"
+											className="w-20 text-center bg-white"
+											style={{
+												color: accent,
+												backgroundColor: withAlpha(accent, "0F"),
+												borderLeft: `1px solid ${withAlpha(accent, "22")}`,
+											}}
+										/>
+
+										{/* Unit (text field with suggestions) */}
+										<input
+											type="text"
+											value={ingUnit}
+											onChange={(e) => setIngUnit(e.target.value)}
+											placeholder="unit"
+											className="w-24 text-center bg-white rounded-r-lg"
+											style={{
+												color: accent,
+												backgroundColor: withAlpha(accent, "0F"),
+												borderLeft: `1px solid ${withAlpha(accent, "22")}`,
+											}}
+										/>
+									</div>
+
+									{/* Suggested units */}
+									<datalist id="unitOptions">
+										{unitOptions.map((u) => (
+											<option key={u} value={u} />
+										))}
+									</datalist>
+
+									{/* Add button */}
+									<div className="mt-2">
 										<button
 											type="button"
 											onClick={addIngredient}
@@ -797,17 +993,17 @@ export default function Activity03({
 									<ul className="mt-2 flex flex-wrap gap-2">
 										{ingredients.map((it, i) => (
 											<li
-												key={`${it}-${i}`}
+												key={`${formatIngredient(it)}-${i}`}
 												className="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs"
 												style={{ borderColor: withAlpha(accent, "33") }}
 											>
-												<span>{it}</span>
+												<span>{formatIngredient(it)}</span>
 												<button
 													type="button"
 													onClick={() => removeIngredient(i)}
 													className="p-0.5 rounded-full hover:bg-slate-100"
-													aria-label={`Remove ${it}`}
-													title={`Remove ${it}`}
+													aria-label={`Remove ${formatIngredient(it)}`}
+													title={`Remove ${formatIngredient(it)}`}
 												>
 													<X className="w-3.5 h-3.5" />
 												</button>
@@ -818,7 +1014,91 @@ export default function Activity03({
 							)}
 						</AnimatePresence>
 
-						{/* Step 4: save */}
+						{/* Directions as addable steps */}
+						<AnimatePresence initial={false}>
+							{name.trim() && (
+								<motion.div
+									key="directions"
+									variants={reveal}
+									initial="hidden"
+									animate="show"
+									exit="exit"
+									className="mt-4"
+								>
+									<label className="block text-xs text-slate-600 mb-1">
+										Directions (steps)
+									</label>
+
+									<div
+										className="relative rounded-lg border text-sm flex items-stretch"
+										style={{ borderColor: withAlpha(accent, "33") }}
+									>
+										<input
+											type="text"
+											value={stepText}
+											onChange={(e) => setStepText(e.target.value)}
+											onKeyDown={(e) =>
+												e.key === "Enter" && canAddStep && addStep()
+											}
+											placeholder="Add a step and press Enter (e.g., Rinse wild rice until water runs clear)"
+											className="flex-1 bg-transparent px-3 py-2 rounded-l-lg focus:outline-none"
+										/>
+										<span
+											aria-hidden
+											className="self-stretch"
+											style={{
+												width: 1,
+												backgroundColor: withAlpha(accent, "22"),
+											}}
+										/>
+										<button
+											type="button"
+											onClick={addStep}
+											disabled={!canAddStep}
+											className="px-3 py-2 rounded-r-lg text-sm font-medium"
+											style={{
+												color: accent,
+												backgroundColor: withAlpha(accent, "0F"),
+												borderLeft: `1px solid ${withAlpha(accent, "22")}`,
+											}}
+											title="Add step"
+										>
+											Add
+										</button>
+									</div>
+
+									{/* steps list */}
+									<ol className="mt-2 grid gap-1 text-sm text-slate-700 list-none pl-0">
+										{steps.map((s, i) => (
+											<li key={`${s}-${i}`} className="flex items-start gap-2">
+												<span
+													className="inline-flex items-center justify-center mt-[2px] w-5 h-5 rounded-full text-[11px] font-semibold"
+													style={{
+														color: "#fff",
+														backgroundColor: withAlpha(accent, "CC"),
+													}}
+													aria-hidden="true"
+												>
+													{i + 1}
+												</span>
+												<div className="flex-1">{s}</div>
+												<button
+													type="button"
+													onClick={() => removeStep(i)}
+													className="p-0.5 rounded hover:bg-slate-100"
+													aria-label={`Remove step ${i + 1}`}
+													title={`Remove step ${i + 1}`}
+												>
+													<X className="w-3.5 h-3.5" />
+												</button>
+											</li>
+										))}
+									</ol>
+								</motion.div>
+							)}
+						</AnimatePresence>
+
+						{/* Save */}
 						<AnimatePresence initial={false}>
 							{ingredients.length > 0 && (
 								<motion.div
@@ -849,7 +1129,7 @@ export default function Activity03({
 					</motion.div>
 				</section>
 
-				{/* ===== Saved recipes (filtered by current pill) ===== */}
+				{/* ===== Saved recipes ===== */}
 				<section className="mx-auto max-w-3xl w-full">
 					<motion.div
 						className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm"
@@ -877,7 +1157,6 @@ export default function Activity03({
 									.map((r) => {
 										const isEditing = r.id === editingId;
 										const showSavedFlash = r.id === justSavedId;
-
 										return (
 											<li
 												key={r.id}
@@ -933,7 +1212,7 @@ export default function Activity03({
 
 														{/* ingredients list */}
 														<ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-slate-700">
-															{r.ingredients.map((it, i) => (
+															{(r.ingredients || []).map((it, i) => (
 																<li
 																	key={`${r.id}-${i}`}
 																	className="flex items-center gap-2"
@@ -945,10 +1224,45 @@ export default function Activity03({
 																		}}
 																		aria-hidden="true"
 																	/>
-																	{it}
+																	{formatIngredient(it)}
 																</li>
 															))}
 														</ul>
+
+														{/* directions steps */}
+														{(r.directions || []).length > 0 && (
+															<div className="mt-3">
+																<div
+																	className="text-xs font-semibold"
+																	style={{ color: accent }}
+																>
+																	Directions
+																</div>
+																<ol className="mt-1 grid gap-1 text-sm text-slate-700 list-none pl-0">
+																	{(r.directions || []).map((s, i) => (
+																		<li
+																			key={`${r.id}-step-${i}`}
+																			className="flex items-start gap-2"
+																		>
+																			<span
+																				className="inline-flex items-center justify-center mt-[2px] w-5 h-5 rounded-full text-[11px] font-semibold"
+																				style={{
+																					color: "#fff",
+																					backgroundColor: withAlpha(
+																						accent,
+																						"CC"
+																					),
+																				}}
+																				aria-hidden="true"
+																			>
+																				{i + 1}
+																			</span>
+																			<div className="flex-1">{s}</div>
+																		</li>
+																	))}
+																</ol>
+															</div>
+														)}
 
 														{/* tiny saved flash */}
 														<AnimatePresence>
@@ -983,30 +1297,81 @@ export default function Activity03({
 															/>
 														</div>
 
+														{/* Ingredients editor */}
 														<div>
 															<label className="block text-xs text-slate-600 mb-1">
 																Ingredients
 															</label>
-															<div className="flex items-center gap-2">
+
+															<div
+																className="relative rounded-lg border text-sm flex items-stretch"
+																style={{ borderColor: withAlpha(accent, "33") }}
+															>
 																<input
 																	type="text"
-																	value={editIng}
-																	onChange={(e) => setEditIng(e.target.value)}
+																	value={editIngItem}
+																	onChange={(e) =>
+																		setEditIngItem(e.target.value)
+																	}
 																	onKeyDown={(e) =>
 																		e.key === "Enter" &&
-																		canAddEditIngredient &&
+																		editIngItem.trim() &&
 																		addEditIngredient()
 																	}
-																	placeholder="Add an ingredient and press Enter"
-																	className="flex-1 rounded-lg border px-3 py-2 text-sm"
+																	placeholder="Ingredient (e.g., bannock flour)"
+																	className="flex-1 bg-transparent px-3 py-2 rounded-l-lg focus:outline-none"
+																/>
+																<span
+																	aria-hidden
+																	className="self-stretch"
 																	style={{
-																		borderColor: withAlpha(accent, "33"),
+																		width: 1,
+																		backgroundColor: withAlpha(accent, "22"),
 																	}}
 																/>
+																<input
+																	type="text"
+																	inputMode="decimal"
+																	value={editIngQty}
+																	onChange={(e) =>
+																		setEditIngQty(e.target.value)
+																	}
+																	placeholder="qty"
+																	className="w-20 text-center bg-white"
+																	style={{
+																		color: accent,
+																		backgroundColor: withAlpha(accent, "0F"),
+																		borderLeft: `1px solid ${withAlpha(
+																			accent,
+																			"22"
+																		)}`,
+																	}}
+																/>
+																<input
+																	type="text"
+																	value={editIngUnit}
+																	onChange={(e) =>
+																		setEditIngUnit(e.target.value)
+																	}
+																	list="unitOptions"
+																	placeholder="unit"
+																	className="w-24 text-center bg-white rounded-r-lg"
+																	style={{
+																		color: accent,
+																		backgroundColor: withAlpha(accent, "0F"),
+																		borderLeft: `1px solid ${withAlpha(
+																			accent,
+																			"22"
+																		)}`,
+																	}}
+																/>
+															</div>
+
+															<div className="mt-2">
 																<button
 																	type="button"
 																	onClick={addEditIngredient}
-																	disabled={!canAddEditIngredient}
+																	disabled={!editIngItem.trim()}
 																	className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-50"
 																	style={{
 																		borderColor: withAlpha(accent, "44"),
@@ -1023,25 +1388,112 @@ export default function Activity03({
 															<ul className="mt-2 flex flex-wrap gap-2">
 																{editIngredients.map((it, i) => (
 																	<li
-																		key={`${r.id}-edit-${i}`}
+																		key={`ing-${r.id}-edit-${i}`}
 																		className="inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs"
 																		style={{
 																			borderColor: withAlpha(accent, "33"),
 																		}}
 																	>
-																		<span>{it}</span>
+																		<span>{formatIngredient(it)}</span>
 																		<button
 																			type="button"
 																			onClick={() => removeEditIngredient(i)}
 																			className="p-0.5 rounded-full hover:bg-slate-100"
-																			aria-label={`Remove ${it}`}
-																			title={`Remove ${it}`}
+																			aria-label={`Remove ${formatIngredient(
+																				it
+																			)}`}
+																			title={`Remove ${formatIngredient(it)}`}
 																		>
 																			<X className="w-3.5 h-3.5" />
 																		</button>
 																	</li>
 																))}
 															</ul>
+														</div>
+
+														{/* Directions editor (steps) */}
+														<div>
+															<label className="block text-xs text-slate-600 mb-1">
+																Directions (steps)
+															</label>
+
+															<div
+																className="relative rounded-lg border text-sm flex items-stretch"
+																style={{ borderColor: withAlpha(accent, "33") }}
+															>
+																<input
+																	type="text"
+																	value={editStepText}
+																	onChange={(e) =>
+																		setEditStepText(e.target.value)
+																	}
+																	onKeyDown={(e) =>
+																		e.key === "Enter" &&
+																		editStepText.trim() &&
+																		addEditStep()
+																	}
+																	placeholder="Add a step and press Enter"
+																	className="flex-1 bg-transparent px-3 py-2 rounded-l-lg focus:outline-none"
+																/>
+																<span
+																	aria-hidden
+																	className="self-stretch"
+																	style={{
+																		width: 1,
+																		backgroundColor: withAlpha(accent, "22"),
+																	}}
+																/>
+																<button
+																	type="button"
+																	onClick={addEditStep}
+																	disabled={!editStepText.trim()}
+																	className="px-3 py-2 rounded-r-lg text-sm font-medium"
+																	style={{
+																		color: accent,
+																		backgroundColor: withAlpha(accent, "0F"),
+																		borderLeft: `1px solid ${withAlpha(
+																			accent,
+																			"22"
+																		)}`,
+																	}}
+																	title="Add step"
+																>
+																	Add
+																</button>
+															</div>
+
+															<ol className="mt-2 grid gap-1 text-sm text-slate-700 list-none pl-0">
+																{editSteps.map((s, i) => (
+																	<li
+																		key={`step-${r.id}-${i}`}
+																		className="flex items-start gap-2"
+																	>
+																		<span
+																			className="inline-flex items-center justify-center mt-[2px] w-5 h-5 rounded-full text-[11px] font-semibold"
+																			style={{
+																				color: "#fff",
+																				backgroundColor: withAlpha(
+																					accent,
+																					"CC"
+																				),
+																			}}
+																			aria-hidden="true"
+																		>
+																			{i + 1}
+																		</span>
+																		<div className="flex-1">{s}</div>
+																		<button
+																			type="button"
+																			onClick={() => removeEditStep(i)}
+																			className="p-0.5 rounded hover:bg-slate-100"
+																			aria-label={`Remove step ${i + 1}`}
+																			title={`Remove step ${i + 1}`}
+																		>
+																			<X className="w-3.5 h-3.5" />
+																		</button>
+																	</li>
+																))}
+															</ol>
 														</div>
 
 														<div className="pt-1 flex items-center justify-end gap-2">
@@ -1082,7 +1534,7 @@ export default function Activity03({
 					</motion.div>
 				</section>
 
-				{/* Bottom action bar: Mark Complete on left, Download DOCX on right */}
+				{/* Bottom action bar */}
 				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
@@ -1090,8 +1542,6 @@ export default function Activity03({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-
-					{/* Download all (.docx) sits to the RIGHT; greyed out when empty */}
 					<button
 						type="button"
 						onClick={downloadAllDocx}
@@ -1136,7 +1586,6 @@ function labelForGroup(id) {
 			return id;
 	}
 }
-
 function safe(s) {
 	return String(s)
 		.replace(/[^\w\-]+/g, "_")

@@ -1,6 +1,6 @@
 // src/pages/activities/Activity08.jsx
 import React, { useState, useEffect } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import {
 	HeartHandshake,
 	Link2,
@@ -454,7 +454,7 @@ export default function Activity08({
 						<AdvocatesTip
 							accent={accent}
 							title="Advocates to explore"
-							subtitle="Follow and learn from these voices"
+							subtitle="Click and learn from these voices"
 							items={[
 								"Dr. James Makokis",
 								"Jaris Swidrovich",
@@ -519,6 +519,8 @@ export default function Activity08({
 }
 
 /* Advocates list with pills, accent-aware */
+/* ==== ONLY THIS COMPONENT CHANGED ==== */
+/* Advocates list styled like other cards; chip popovers (no overlay) */
 function AdvocatesTip({
 	accent = "#E11D48",
 	icon: Icon = Rainbow,
@@ -526,25 +528,46 @@ function AdvocatesTip({
 	subtitle,
 	items = [],
 }) {
+	// map names → bios (your “additional information”)
+	const BIOS = {
+		"Dr. James Makokis": "Cree Two-Spirit doctor and speaker.",
+		"Jaris Swidrovich": "Two-Spirit Saulteaux pharmacist and educator.",
+		"Raven Davis":
+			"Two-Spirit, trans, disabled Anishinaabe artist and community organizer.",
+		"TJ Cuthand":
+			"Theo Jean Cuthand (TJ), Two-Spirit Plains Cree trans filmmaker, writer, and director.",
+		"Alexa Keleutak":
+			"Inuit, representing Inuit 2SLGBTQQIA+ perspectives in Quebec.",
+		"Chelsea Vowel":
+			"âpihtawikosisân — Métis writer, Cree language mentor, and public intellectual.",
+	};
+
+	// which chip is open (index), -1 = none
+	const [openIdx, setOpenIdx] = useState(-1);
+
+	const popVariants = {
+		initial: { opacity: 0, scale: 0.98, y: -4 },
+		animate: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.16 } },
+		exit: { opacity: 0, scale: 0.98, y: -4, transition: { duration: 0.12 } },
+	};
+
 	return (
 		<motion.section
-			className="w-full rounded-2xl border border-dashed p-4 shadow-sm"
+			className="w-full rounded-2xl border bg-white p-4 shadow-sm"
 			role="note"
 			aria-label={title}
-			style={{
-				borderColor: withAlpha(accent, "33"),
-				backgroundColor: withAlpha(accent, "14"),
-			}}
+			style={{ borderColor: withAlpha(accent, "33") }}
 			variants={{
 				hidden: { opacity: 0, y: 8, scale: 0.99 },
 				show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 			}}
 		>
+			{/* header matches card style: left badge + text */}
 			<header className="flex items-start gap-3">
 				<div
 					className="shrink-0 w-10 h-10 rounded-xl grid place-items-center border"
 					style={{
-						backgroundColor: "#fff",
+						backgroundColor: withAlpha(accent, "1A"),
 						color: accent,
 						borderColor: withAlpha(accent, "33"),
 					}}
@@ -559,25 +582,66 @@ function AdvocatesTip({
 				</div>
 			</header>
 
+			{/* chips */}
 			<ul className="mt-3 flex flex-wrap gap-2" aria-label={`${title} list`}>
-				{items.map((it) => (
-					<li key={it}>
-						<span
-							className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm shadow-sm"
-							style={{
-								borderColor: withAlpha(accent, "33"),
-								backgroundColor: "rgba(255,255,255,0.7)",
-								color: "#7f1d1d",
-							}}
-						>
-							<span
-								className="inline-block h-1.5 w-1.5 rounded-full"
-								style={{ backgroundColor: accent }}
-							/>
-							{it}
-						</span>
-					</li>
-				))}
+				{items.map((name, i) => {
+					const isOpen = openIdx === i;
+					return (
+						<li key={name} className="relative">
+							<button
+								type="button"
+								onClick={() => setOpenIdx(isOpen ? -1 : i)}
+								className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm shadow-sm hover:shadow transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+								style={{
+									borderColor: withAlpha(accent, isOpen ? "66" : "33"),
+									backgroundColor: isOpen ? withAlpha(accent, "0F") : "#fff",
+									color: "#334155",
+									outlineColor: accent,
+								}}
+								aria-expanded={isOpen}
+								aria-controls={`advocate-pop-${i}`}
+							>
+								<span
+									className="inline-block h-1.5 w-1.5 rounded-full"
+									style={{ backgroundColor: accent }}
+									aria-hidden="true"
+								/>
+								{name}
+							</button>
+
+							{/* tiny popover, anchored under chip; styled like mini card */}
+							<AnimatePresence>
+								{isOpen && (
+									<motion.div
+										id={`advocate-pop-${i}`}
+										role="dialog"
+										aria-label={`${name} quick info`}
+										className="absolute left-0 top-full z-10 mt-1 w-72 rounded-2xl border bg-white p-3 text-sm shadow-lg"
+										style={{ borderColor: withAlpha(accent, "33") }}
+										variants={popVariants}
+										initial="initial"
+										animate="animate"
+										exit="exit"
+									>
+										<div className="flex items-start gap-2">
+											<div
+												className="mt-0.5 h-2 w-2 rounded-full shrink-0"
+												style={{ backgroundColor: accent }}
+												aria-hidden="true"
+											/>
+											<div className="min-w-0">
+												<div className="font-medium text-slate-900">{name}</div>
+												<p className="text-slate-700 mt-0.5">
+													{BIOS[name] || "No details available."}
+												</p>
+											</div>
+										</div>
+									</motion.div>
+								)}
+							</AnimatePresence>
+						</li>
+					);
+				})}
 			</ul>
 		</motion.section>
 	);
