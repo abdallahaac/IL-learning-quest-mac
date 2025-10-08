@@ -5,15 +5,22 @@ import React, { useEffect, useMemo, useRef } from "react";
  * Seamless, in-place pattern morph:
  * dots ⇄ plus (rotates) ⇄ grid ⇄ asterisks ⇄ dots
  *
- * - Plus symbols spin exactly once during any morph
- *   that goes *to* or *from* "plus".
+ * Plus symbols spin exactly once during any morph that goes
+ * to or from "plus".
  */
 export default function PatternMorph({
 	pageIndex = 0,
-	sequence = ["dots", "plus", "grid", "plus"],
+	sequence = ["dots", "grid"],
 	bg = "#ffff",
 	ink = "rgba(0,0,0,0.10)",
 	duration = 800,
+
+	/* === Dog-ear options (top-right) === */
+	showFold = true,
+	foldSize = 900, // CSS px — auto-scales with DPR
+	foldFill = "rgba(255,255,255,0.94)",
+	foldStroke = "rgba(0,0,0,0.06)",
+	foldShadow = "rgba(0,0,0,0)",
 }) {
 	const canvasRef = useRef(null);
 	const rafRef = useRef(0);
@@ -83,11 +90,12 @@ export default function PatternMorph({
 		const W = c.width;
 		const H = c.height;
 
+		// Paper base
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		ctx.fillStyle = bg;
 		ctx.fillRect(0, 0, W, H);
 
-		// One shared lattice for all shapes
+		// Lattice for all shapes
 		const cell = 32 * dpr;
 		const cx0 = Math.round((W % cell) / 2);
 		const cy0 = Math.round((H % cell) / 2);
@@ -104,7 +112,7 @@ export default function PatternMorph({
 		const lw = 1.2 * dpr;
 		const lineAlpha = 0.9;
 
-		// --- GRID first (underlays)
+		// GRID first (underlays)
 		if (w.grid > 0) {
 			ctx.save();
 			ctx.globalAlpha = w.grid * lineAlpha;
@@ -125,11 +133,10 @@ export default function PatternMorph({
 			ctx.restore();
 		}
 
-		// --- Rotation angle for PLUS during morphs involving "plus"
-		// Spins exactly once (2π) across the tween.
+		// Rotation angle for PLUS (spin once)
 		const plusAngle = from === "plus" || to === "plus" ? 2 * Math.PI * t : 0;
 
-		// --- Glyphs on the lattice
+		// Glyphs on the lattice
 		ctx.lineCap = "round";
 		ctx.lineWidth = lw;
 
@@ -148,7 +155,7 @@ export default function PatternMorph({
 				if (w.plus > 0 && arm > 0.01) {
 					ctx.save();
 					ctx.translate(x, y);
-					ctx.rotate(plusAngle); // <-- rotation here (in place)
+					ctx.rotate(plusAngle);
 					ctx.globalAlpha = clamp01(w.plus) * lineAlpha;
 					ctx.strokeStyle = ink;
 					// vertical
@@ -179,7 +186,21 @@ export default function PatternMorph({
 			}
 		}
 
+		// Reset alpha for overlays
 		ctx.globalAlpha = 1;
+
+		// --- Dog-eared fold overlay (drawn last, above pattern) ---
+		if (showFold) {
+			drawDogEarFold(ctx, {
+				W,
+				H,
+				dpr,
+				size: foldSize * dpr,
+				fill: foldFill,
+				stroke: foldStroke,
+				shadow: foldShadow,
+			});
+		}
 	}
 
 	return (
@@ -191,8 +212,70 @@ export default function PatternMorph({
 	);
 }
 
-/* ---------------- helpers ---------------- */
+/* --------- dog-ear helper --------- */
+function drawDogEarFold(ctx, { W, H, dpr, size, fill, stroke, shadow }) {
+	const s = Math.min(size, Math.min(W, H) * 0.25);
+	if (s <= 0) return;
 
+	// Fold triangle points (top-right corner)
+	// Points: A = (W, 0), B = (W, s), C = (W - s, 0)
+	ctx.save();
+
+	// Main folded paper
+	ctx.fillStyle = fill;
+	ctx.strokeStyle = stroke;
+	ctx.lineWidth = 1 * dpr;
+	ctx.beginPath();
+	ctx.moveTo(W, 0);
+	ctx.lineTo(W, s);
+	ctx.lineTo(W - s, 0);
+	ctx.closePath();
+	ctx.fill();
+	ctx.stroke();
+
+	// Soft shadow along the diagonal fold (C -> B)
+	let grad = ctx.createLinearGradient(W - s, 0, W, s);
+	grad.addColorStop(0, "rgba(0,0,0,0.06)");
+	grad.addColorStop(1, "rgba(0,0,0,0)");
+	ctx.fillStyle = grad;
+	ctx.beginPath();
+	ctx.moveTo(W - s, 0);
+	ctx.lineTo(W, s);
+	ctx.lineTo(W, s + 3 * dpr);
+	ctx.lineTo(W - s - 3 * dpr, 0);
+	ctx.closePath();
+	ctx.fill();
+
+	// Slight cast shadow onto the page
+	grad = ctx.createLinearGradient(W - s, 0, W, s);
+	grad.addColorStop(0, shadow);
+	grad.addColorStop(1, "rgba(0,0,0,0)");
+	ctx.fillStyle = grad;
+	ctx.beginPath();
+	ctx.moveTo(W - s + 1 * dpr, 1 * dpr);
+	ctx.lineTo(W, s + 1 * dpr);
+	ctx.lineTo(W, s + 8 * dpr);
+	ctx.lineTo(W - s - 6 * dpr, 0);
+	ctx.closePath();
+	ctx.fill();
+
+	// Tiny highlight along the outer edges for thickness
+	ctx.strokeStyle = "rgba(255,255,255,0.5)";
+	ctx.lineWidth = 1 * dpr;
+	ctx.beginPath(); // along top edge (C -> A)
+	ctx.moveTo(W - s + 0.5 * dpr, 0.5 * dpr);
+	ctx.lineTo(W - 0.5 * dpr, 0.5 * dpr);
+	ctx.stroke();
+
+	ctx.beginPath(); // along right edge (A -> B)
+	ctx.moveTo(W - 0.5 * dpr, 0.5 * dpr);
+	ctx.lineTo(W - 0.5 * dpr, s - 0.5 * dpr);
+	ctx.stroke();
+
+	ctx.restore();
+}
+
+/* --------- original helpers --------- */
 function easeInOutCubic(t) {
 	return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }

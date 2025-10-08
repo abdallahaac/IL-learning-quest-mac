@@ -19,6 +19,7 @@ import ActivityPage from "./pages/ActivityPage.jsx";
 import PatternMorph from "./components/PatternMorph.jsx";
 import useResizeObserver from "./hooks/useResizeObserver.jsx";
 import ConclusionSection from "./pages/ConclusionSection.jsx";
+import PageFlipOverlay from "./components/PageFlipOverlay.jsx";
 
 import { HEADER_FIXED_H } from "./constants/storage.js";
 import { accentForActivityIndex } from "./constants/accents.js";
@@ -103,6 +104,16 @@ export default function AppShell() {
 			return { ...s, pageIndex: prevIndex, visited };
 		});
 	};
+
+	// inside AppShell component, near other hooks:
+	const prevIndexRef = React.useRef(route.pageIndex);
+	const flipDirection = React.useMemo(
+		() => (state.pageIndex > prevIndexRef.current ? "next" : "prev"),
+		[state.pageIndex]
+	);
+	React.useEffect(() => {
+		prevIndexRef.current = state.pageIndex;
+	}, [state.pageIndex]);
 
 	// Derived indices & progress
 	const idxIntro = idxByType(pages, "intro");
@@ -204,10 +215,7 @@ export default function AppShell() {
 				"--footer-h": `${footerHeight}px`,
 			}}
 		>
-			<PatternMorph
-				pageIndex={state.pageIndex}
-				sequence={["dots", "plus", "grid", "plus"]}
-			/>
+			<PatternMorph pageIndex={state.pageIndex} sequence={["dots", "grid"]} />
 
 			<Header
 				containerRef={headerRef}
@@ -232,6 +240,8 @@ export default function AppShell() {
 				>
 					<main className="flex-1 relative min-h-0">
 						<div style={{ zIndex: 10 }}>
+							{/* Page-flip overlay (plays on page change) */}
+
 							<TransitionView screenKey={`page-${state.pageIndex}`}>
 								{currentPage.type === "cover" && (
 									<CoverPage

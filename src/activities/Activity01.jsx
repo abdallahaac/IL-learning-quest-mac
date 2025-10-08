@@ -290,7 +290,7 @@ export default function Activity01({
 									<Music4 className="w-5 h-5" aria-hidden="true" />
 								</div>
 								<div className="font-medium text-slate-900 group-hover:underline">
-									Selection of influential Indigenous musicians in Canada
+									Selection of Indigenous musicians in Canada
 								</div>
 							</div>
 							<div
