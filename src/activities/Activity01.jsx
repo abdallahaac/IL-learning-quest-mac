@@ -11,6 +11,8 @@ import NoteComposer, {
 } from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
+// at top
+import ScribbleUnderline from "../components/ScribbleUnderline.jsx";
 
 // helper: add alpha to a hex color (#RRGGBB + "AA")
 function withAlpha(hex, alphaHex) {
@@ -182,9 +184,26 @@ export default function Activity01({
 							className="inline-flex items-center justify-center gap-3"
 							ref={titleRowRef}
 						>
-							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
-								Explore an Indigenous Artist
-							</h1>
+							<div className="relative inline-block">
+								<h1
+									className="text-4xl font-bold text-slate-900 leading-tight"
+									ref={titleRowRef} // ← you can also keep a separate ref just for h1 if you prefer
+								>
+									Explore an Indigenous Artist
+								</h1>
+
+								{/* Scribbly underline (marker) */}
+								<ScribbleUnderline
+									anchorRef={titleRowRef}
+									color={accent} // matches page accent
+									thickness={5} // looks marker-y; tweak as you like
+									jitter={0} // wobble amount
+									inset={-67} // distance below the text
+									duration={0.9}
+									delay={0.15}
+								/>
+							</div>
+
 							<Palette
 								className="w-8 h-8 align-middle"
 								aria-hidden="true"

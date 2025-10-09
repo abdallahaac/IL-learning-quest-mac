@@ -69,10 +69,10 @@ export default function Footer({
 	return (
 		<footer
 			ref={containerRef}
-			className="fixed bottom-0 left-0 w-full z-50 bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border-t border-gray-200 shadow-sm"
+			className="sticky bottom-0 left-0 w-full z-50 bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border-t border-gray-200 shadow-sm pointer-events-none"
 			role="contentinfo"
 		>
-			<div className="relative max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between">
+			<div className="relative max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between pointer-events-auto">
 				{/* (Keeping this non-button text as-is for contrast) */}
 				<span className="text-sm text-gray-600">
 					Page {pageIndex + 1} / {totalPages}

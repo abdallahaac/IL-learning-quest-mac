@@ -50,17 +50,17 @@ export default function Header({
 		<div
 			ref={containerRef}
 			role="banner"
-			className="fixed inset-x-0 top-0 z-[80] bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border-b border-slate-200 shadow-sm"
+			className="sticky inset-x-0 top-0 z-[80] bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border-b border-slate-200 shadow-sm pointer-events-none"
 			style={{ paddingTop: "max(0px, env(safe-area-inset-top))" }}
 		>
 			<div
 				className="
-      relative max-w-8xl mx-auto w-full
-      px-6 sm:px-8
-      h-[88px]                 // ← keep a hard height
-      grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto]
-      items-center
-    "
+          relative max-w-8xl mx-auto w-full
+          px-6 sm:px-8
+          h-[88px]
+          grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto]
+          items-center
+          pointer-events-auto"
 			>
 				{/* Left: Title — clamp to single line so it can't grow the header */}
 				<div className="min-w-0 ml-20">
@@ -89,18 +89,15 @@ export default function Header({
 				{/* Right cluster */}
 				<div className="justify-self-end w-full max-w-[460px]">
 					<div className="flex items-center justify-between gap-3">
-						{/* Home / TOC pill — force same height as activity chips */}
-						{/* Home / TOC pill — consistent sizing & shape everywhere */}
+						{/* Home / TOC pill — consistent sizing & shape */}
 						{onContents && (
 							<button
 								type="button"
 								onClick={onContents}
 								className={
 									primaryBtnClassOverride
-										? // Use Tailwind sky color but keep identical base sizing/shape
-										  `inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 rounded-full text-sm md:text-base font-medium text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition bg-sky-600 hover:bg-sky-700 focus:ring-sky-400`
-										: // Dynamic accent path: same base classes; color via inline style
-										  `inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 rounded-full text-sm md:text-base font-medium text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition`
+										? `inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 rounded-full text-sm md:text-base font-medium text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition bg-sky-600 hover:bg-sky-700 focus:ring-sky-400`
+										: `inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 rounded-full text-sm md:text-base font-medium text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition`
 								}
 								style={
 									primaryBtnClassOverride

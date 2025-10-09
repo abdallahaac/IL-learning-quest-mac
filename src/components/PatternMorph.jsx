@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 
 /**
  * Seamless, in-place pattern morph:
- * dots ⇄ plus (rotates) ⇄ grid ⇄ asterisks ⇄ dots
+ * dots ⇄ plus (rotates) ⇄ grid ⇄ asterisks ⇄ lines ⇄ dots
  *
  * Plus symbols spin exactly once during any morph that goes
  * to or from "plus".
@@ -103,7 +103,7 @@ export default function PatternMorph({
 		const t = easeInOutCubic(tRef.current);
 		const from = fromRef.current;
 		const to = toRef.current;
-		const w = weights(from, to, t); // {dot, plus, grid, ast}
+		const w = weights(from, to, t); // {dot, plus, grid, ast, lines}
 
 		// Per-primitive sizing from weights
 		const dotR = mix(0, 2.0 * dpr, w.dot);
@@ -112,7 +112,22 @@ export default function PatternMorph({
 		const lw = 1.2 * dpr;
 		const lineAlpha = 0.9;
 
-		// GRID first (underlays)
+		// HORIZONTAL LINES (underlay)
+		if (w.lines > 0) {
+			ctx.save();
+			ctx.globalAlpha = w.lines * lineAlpha;
+			ctx.strokeStyle = ink;
+			ctx.lineWidth = lw;
+			for (let y = cy0; y <= H; y += cell) {
+				ctx.beginPath();
+				ctx.moveTo(0, y);
+				ctx.lineTo(W, y);
+				ctx.stroke();
+			}
+			ctx.restore();
+		}
+
+		// GRID (underlay)
 		if (w.grid > 0) {
 			ctx.save();
 			ctx.globalAlpha = w.grid * lineAlpha;
@@ -217,8 +232,6 @@ function drawDogEarFold(ctx, { W, H, dpr, size, fill, stroke, shadow }) {
 	const s = Math.min(size, Math.min(W, H) * 0.25);
 	if (s <= 0) return;
 
-	// Fold triangle points (top-right corner)
-	// Points: A = (W, 0), B = (W, s), C = (W - s, 0)
 	ctx.save();
 
 	// Main folded paper
@@ -283,7 +296,7 @@ const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const mix = (a, b, t) => a + (b - a) * clamp01(t);
 
 function weights(from, to, t) {
-	const zero = { dot: 0, plus: 0, grid: 0, ast: 0 };
+	const zero = { dot: 0, plus: 0, grid: 0, ast: 0, lines: 0 };
 	const A = { ...zero, ...unit(from) };
 	const B = { ...zero, ...unit(to) };
 	return {
@@ -291,6 +304,7 @@ function weights(from, to, t) {
 		plus: mix(A.plus, B.plus, t),
 		grid: mix(A.grid, B.grid, t),
 		ast: mix(A.ast, B.ast, t),
+		lines: mix(A.lines, B.lines, t),
 	};
 }
 function unit(kind) {
@@ -303,6 +317,8 @@ function unit(kind) {
 			return { grid: 1 };
 		case "asterisks":
 			return { ast: 1 };
+		case "lines": // NEW: horizontal notebook lines
+			return { lines: 1 };
 		default:
 			return { dot: 1 };
 	}

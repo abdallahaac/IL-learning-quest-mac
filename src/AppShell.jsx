@@ -34,6 +34,9 @@ import {
 import { downloadAllReflections } from "./exports/downloadReflections.js";
 
 export default function AppShell() {
+	// in AppShell.jsx (inside the component)
+	const scrollRef = React.useRef(null);
+
 	const { getSuspendData, setSuspendData, scorm } = useScorm();
 	const pages = React.useMemo(() => buildPages(), []);
 	const totalPages = pages.length;
@@ -215,7 +218,10 @@ export default function AppShell() {
 				"--footer-h": `${footerHeight}px`,
 			}}
 		>
-			<PatternMorph pageIndex={state.pageIndex} sequence={["dots", "grid"]} />
+			<PatternMorph
+				pageIndex={state.pageIndex}
+				sequence={["dots", "asterisks", "grid"]}
+			/>
 
 			<Header
 				containerRef={headerRef}
@@ -235,13 +241,22 @@ export default function AppShell() {
 
 			<div className="flex-1 relative min-h-0">
 				<div
-					className="flex h-full flex-col overflow-y-auto min-h-0"
-					style={{ paddingTop: "var(--header-h)", scrollbarGutter: "stable" }}
+					ref={scrollRef}
+					className="relative flex h-full flex-col overflow-y-auto min-h-0"
+					style={{
+						paddingBottom: "var(--footer-h)", // ← keeps content & scrollbar clear of footer
+					}}
 				>
+					{/* keep PatternMorph INSIDE the scroller so it scrolls with content */}
+					<PatternMorph
+						pageIndex={state.pageIndex}
+						sequence={["dots", "grid"]}
+						containerRef={scrollRef}
+					/>
+
 					<main className="flex-1 relative min-h-0">
 						<div style={{ zIndex: 10 }}>
 							{/* Page-flip overlay (plays on page change) */}
-
 							<TransitionView screenKey={`page-${state.pageIndex}`}>
 								{currentPage.type === "cover" && (
 									<CoverPage
