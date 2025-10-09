@@ -191,17 +191,6 @@ export default function Activity01({
 								>
 									Explore an Indigenous Artist
 								</h1>
-
-								{/* Scribbly underline (marker) */}
-								<ScribbleUnderline
-									anchorRef={titleRowRef}
-									color={accent} // matches page accent
-									thickness={5} // looks marker-y; tweak as you like
-									jitter={0} // wobble amount
-									inset={-67} // distance below the text
-									duration={0.9}
-									delay={0.15}
-								/>
 							</div>
 
 							<Palette
