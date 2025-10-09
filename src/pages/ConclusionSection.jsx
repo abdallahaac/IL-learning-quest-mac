@@ -1,13 +1,38 @@
 // src/pages/ConclusionSection.jsx
-import React from "react";
+import React, { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2, HeartHandshake } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFlagCheckered } from "@fortawesome/free-solid-svg-icons";
-import { faMessage } from "@fortawesome/free-regular-svg-icons"; // ⬅️ outlined chat bubble
+import { faMessage } from "@fortawesome/free-regular-svg-icons"; // outlined chat bubble
 
-/* helper: #RRGGBB + "AA" → #RRGGBBAA */
+/* helpers */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
+const normalizeHex = (h) => {
+	if (!h) return null;
+	let s = String(h).trim();
+	if (s[0] !== "#") s = `#${s}`;
+	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
+};
+const hexToRgb = (hex) => {
+	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
+	if (!m) return { r: 0, g: 0, b: 0 };
+	return {
+		r: parseInt(m[1], 16),
+		g: parseInt(m[2], 16),
+		b: parseInt(m[3], 16),
+	};
+};
+const shadeHex = (hex, amt /* -1..1 */) => {
+	const { r, g, b } = hexToRgb(hex);
+	const t = amt < 0 ? 0 : 255;
+	const p = Math.abs(amt);
+	const nr = Math.round((t - r) * p + r);
+	const ng = Math.round((t - g) * p + g);
+	const nb = Math.round((t - b) * p + b);
+	const to2 = (n) => n.toString(16).padStart(2, "0");
+	return `#${to2(nr)}${to2(ng)}${to2(nb)}`;
+};
 
 export default function ConclusionSection({
 	content = {},
@@ -172,53 +197,9 @@ export default function ConclusionSection({
 					</section>
 				)}
 
-				{/* █████ Feedback — same layout, just bigger █████ */}
-				<div className="py-6 flex justify-center">
-					<div className="inline-flex items-center gap-4 sm:gap-5">
-						{/* Larger outlined circular icon (not a link) */}
-						<span
-							className="inline-flex items-center justify-center rounded-full"
-							style={{
-								width: 72, // was 56
-								height: 72, // was 56
-								backgroundColor: "#ffffff",
-								border: `3px solid ${accent}`, // thicker outline
-								color: accent,
-								boxShadow: "0 6px 18px rgba(2,6,23,0.14)", // beefier shadow
-							}}
-							aria-hidden="true"
-							title="Feedback"
-						>
-							<FontAwesomeIcon icon={faMessage} className="text-[28px]" />
-							{/* was 22px */}
-						</span>
-
-						{/* Larger outlined pill link */}
-						<a
-							href="https://airtable.com/appiWB5orohCHzA35/shrfyFm9N7HuQBhe8"
-							target="_blank"
-							rel="noopener noreferrer"
-							className={`inline-flex items-center rounded-2xl px-4 sm:px-5 py-2.5 text-[17px] font-semibold ${ringAccent}`}
-							style={{
-								backgroundColor: "#ffffff",
-								color: accent,
-								border: `2.5px solid ${accent}`, // slightly thicker
-								outlineColor: accent,
-								boxShadow: "0 6px 18px rgba(2,6,23,0.10)",
-							}}
-							onMouseEnter={(e) =>
-								(e.currentTarget.style.backgroundColor = withAlpha(
-									accent,
-									"08"
-								))
-							}
-							onMouseLeave={(e) =>
-								(e.currentTarget.style.backgroundColor = "#ffffff")
-							}
-						>
-							Feedback
-						</a>
-					</div>
+				{/* █████ Feedback — single pill, WHITE background, darker on hover, more circular █████ */}
+				<div className="py-8 flex justify-center">
+					<FeedbackPill accent={accent} />
 				</div>
 			</div>
 		</motion.div>
@@ -275,5 +256,73 @@ function ClosingCallout({ text, accent }) {
 				</div>
 			</div>
 		</section>
+	);
+}
+
+/* --- WHITE pill with darker hover, extra roundness --- */
+function FeedbackPill({ accent = "#8B5CF6" }) {
+	const [hover, setHover] = useState(false);
+	const [active, setActive] = useState(false);
+
+	const accentHex = normalizeHex(accent) || "#8B5CF6";
+	const accentDark = shadeHex(accentHex, -0.18); // darker for hover
+	const accentDarker = shadeHex(accentHex, -0.28); // darker for active
+
+	const borderColor = active
+		? accentDarker
+		: hover
+		? accentDark
+		: withAlpha(accentHex, "55");
+	const iconBorder = active ? accentDarker : hover ? accentDark : accentHex;
+
+	return (
+		<a
+			href="https://airtable.com/appiWB5orohCHzA35/shrfyFm9N7HuQBhe8"
+			target="_blank"
+			rel="noopener noreferrer"
+			className="
+        group inline-flex items-center gap-4
+        rounded-full            /* ⟵ more circular */
+        px-7 sm:px-8 py-4
+        text-[18px] font-semibold
+        transition-all duration-200 ease-out
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+      "
+			style={{
+				backgroundColor: "#FFFFFF", // ⟵ stays white always
+				color: accentHex,
+				border: `3px solid ${borderColor}`, // ⟵ darkens on hover/active
+				boxShadow: hover
+					? "0 10px 26px rgba(2,6,23,0.14)"
+					: "0 8px 22px rgba(2,6,23,0.10)",
+				transform: active ? "translateY(1px)" : "translateY(0)",
+			}}
+			onMouseEnter={() => setHover(true)}
+			onMouseLeave={() => {
+				setHover(false);
+				setActive(false);
+			}}
+			onMouseDown={() => setActive(true)}
+			onMouseUp={() => setActive(false)}
+			aria-label="Open feedback form"
+			title="Feedback"
+		>
+			{/* circular icon badge inside the same pill */}
+			<span
+				className="grid place-items-center rounded-full shrink-0 transition-all duration-200"
+				style={{
+					width: 52, // bigger
+					height: 52, // bigger
+					backgroundColor: "#FFFFFF", // stays white too
+					border: `3px solid ${iconBorder}`, // darkens on hover/active
+					color: active ? accentDarker : hover ? accentDark : accentHex,
+				}}
+				aria-hidden="true"
+			>
+				<FontAwesomeIcon className="text-[22px]" icon={faMessage} />
+			</span>
+
+			<span className="whitespace-nowrap text-2xl">Feedback</span>
+		</a>
 	);
 }
