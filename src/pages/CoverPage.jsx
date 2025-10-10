@@ -7,109 +7,113 @@ import React, {
 	useState,
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import IntroOverlay from "../components/Intro/IntroOverlay";
-// import HighlightBleed from "../components/HighlightBleed.jsx"; // optional
-
-// ✅ Correct path to your SCORM context (matches AppShell.jsx usage)
+import SplashMarkerIntro from "../components/SplashMarkerIntro.jsx";
 import { useScorm } from "../contexts/ScormContext.jsx";
+import CspsLogo from "../components/logos/cspslogo.jsx";
+import ParcsCanadaLogo from "../components/logos/parcsCanadaLogo.jsx";
 
 export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 	const { title = "", paragraphs = [] } = content || {};
 	const reduceMotion = useReducedMotion();
 
-	const INTRO_OPTS = {
-		lines: ["Learning Quest ", " on Indigenous Cultures "],
-		width: 1100,
-		height: 360,
-		fontSizeTop: 80,
-		fontSizeBottom: 88,
-		gap: 52,
-		writeTop: 1.0,
-		writeBottom: 1.1,
-		highlight: 0.7,
-		holdSeconds: 0.25,
-		fadeSeconds: 0.55,
-		textFill: "#0f172a",
-		highlight1: "#00000001",
-		highlight2: "#0b74f5ff",
-	};
+	// --- Robust gating: reload OR first mount of Cover per session ---
+	const SESSION_KEY = "coverSplashSeen";
+	const firstMountRef = useRef(true);
 
-	const shouldPlayIntro = useMemo(() => {
-		if (reduceMotion) return false;
+	const wasReload = useMemo(() => {
 		try {
-			return !sessionStorage.getItem("introSeen");
+			const nav = performance.getEntriesByType("navigation")[0];
+			if (nav?.type) return nav.type === "reload";
+			// Fallback (deprecated)
+			// eslint-disable-next-line deprecation/deprecation
+			return performance.navigation?.type === 1; // 1 == reload
 		} catch {
-			return true;
+			return false;
 		}
-	}, [reduceMotion]);
+	}, []);
 
-	const [introDone, setIntroDone] = useState(!shouldPlayIntro);
-	const [introActive, setIntroActive] = useState(shouldPlayIntro);
+	const shouldPlaySplash = useMemo(() => {
+		if (reduceMotion) return false;
+		if (wasReload) return true;
+		try {
+			const seen = sessionStorage.getItem(SESSION_KEY);
+			return firstMountRef.current && !seen;
+		} catch {
+			return firstMountRef.current;
+		}
+	}, [reduceMotion, wasReload]);
 
-	// trigger ink sweep after content shows (one-shot)
-	const [heroHighlightTrigger, setHeroHighlightTrigger] = useState(null);
-	const hasHighlighted = useRef(false);
+	const [splashDone, setSplashDone] = useState(!shouldPlaySplash);
+	const [splashActive, setSplashActive] = useState(shouldPlaySplash);
+
+	// mark first mount complete
+	useEffect(() => {
+		firstMountRef.current = false;
+	}, []);
 
 	useEffect(() => {
-		onIntroActiveChange?.(introActive);
-	}, [introActive, onIntroActiveChange]);
+		onIntroActiveChange?.(splashActive);
+	}, [splashActive, onIntroActiveChange]);
 
+	// Lock scroll while splash is visible
 	useLayoutEffect(() => {
-		if (!introActive) return;
+		if (!splashActive) return;
 		const prev = document.body.style.overflow;
 		document.body.style.overflow = "hidden";
 		return () => {
 			document.body.style.overflow = prev;
 		};
-	}, [introActive]);
+	}, [splashActive]);
 
-	useEffect(() => {
-		if (!shouldPlayIntro) return;
-		const total =
-			INTRO_OPTS.writeTop +
-			INTRO_OPTS.writeBottom +
-			INTRO_OPTS.highlight +
-			INTRO_OPTS.holdSeconds +
-			INTRO_OPTS.fadeSeconds +
-			0.25;
-		const kill = setTimeout(() => {
-			setIntroDone(true);
-			setIntroActive(false);
-			try {
-				sessionStorage.setItem("introSeen", "1");
-			} catch {}
-		}, total * 1000);
-		return () => clearTimeout(kill);
-	}, [shouldPlayIntro]);
-
-	const handleExitComplete = () => {
-		setIntroActive(false);
+	// TEMP: match splash bg while splash is active, then restore immediately after
+	useLayoutEffect(() => {
+		if (!shouldPlaySplash || !splashActive) return;
+		const prevBodyBg = document.body.style.backgroundColor;
+		const prevHtmlBg = document.documentElement.style.backgroundColor;
 		try {
-			sessionStorage.setItem("introSeen", "1");
+			document.body.style.backgroundColor = "#4b3a69";
+			document.documentElement.style.backgroundColor = "#4b3a69";
+		} catch {}
+		// cleanup runs as soon as splashActive flips to false (i.e., splash ends)
+		return () => {
+			try {
+				document.body.style.backgroundColor = prevBodyBg;
+				document.documentElement.style.backgroundColor = prevHtmlBg;
+			} catch {}
+		};
+	}, [shouldPlaySplash, splashActive]);
+
+	const handleSplashDone = () => {
+		setSplashDone(true);
+		setSplashActive(false); // triggers cleanup above to restore background
+		try {
+			sessionStorage.setItem(SESSION_KEY, "1");
 		} catch {}
 	};
 
-	// ink highlight trigger after page visible
-	useEffect(() => {
-		if (!introDone || hasHighlighted.current) return;
-		const t = setTimeout(() => {
-			hasHighlighted.current = true;
-			setHeroHighlightTrigger(Date.now());
-		}, 2000);
-		return () => clearTimeout(t);
-	}, [introDone]);
-
 	return (
 		<div className="relative z-0 flex-1 flex flex-col items-center justify-center text-center px-4 py-20">
-			{shouldPlayIntro && (
-				<IntroOverlay
-					onGate={() => setIntroDone(true)}
-					onExitComplete={handleExitComplete}
-					options={INTRO_OPTS}
+			{/* Splash intro (reload or first mount in this session) */}
+			{shouldPlaySplash && (
+				<SplashMarkerIntro
+					logos={[
+						{ el: CspsLogo, height: 204 },
+						{ el: ParcsCanadaLogo, height: 150 },
+					]}
+					bg="#4b3a69"
+					dotColor="rgba(255,255,255,0.28)"
+					dotSize={4}
+					dotGap={24}
+					dotsRevealTotalMs={1000}
+					dotAnimMs={100}
+					logosDelayAfterDotsMs={500}
+					durationMs={3600}
+					onDone={handleSplashDone}
 				/>
 			)}
 
-			{introDone && (
+			{/* Cover content fades in after splash completes (or immediately if no splash) */}
+			{splashDone && (
 				<motion.main
 					initial={{ opacity: 0, y: 10 }}
 					animate={{ opacity: 1, y: 0 }}
@@ -121,7 +125,6 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 						paragraphs={paragraphs}
 						onStart={onStart}
 						reduced={reduceMotion}
-						heroHighlightTrigger={heroHighlightTrigger}
 					/>
 				</motion.main>
 			)}
@@ -130,14 +133,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 }
 
 /* --- Body --- */
-function CoverBody({
-	title,
-	paragraphs,
-	onStart,
-	reduced,
-	heroHighlightTrigger, // reserved if you animate highlights later
-}) {
-	// Context may expose different shapes; be defensive
+function CoverBody({ title, paragraphs, onStart, reduced }) {
 	const scormCtx = (typeof useScorm === "function" ? useScorm() : null) || {};
 	const {
 		scorm,
@@ -150,7 +146,6 @@ function CoverBody({
 		() => extractFirstName(ctxLearnerName) || "Learner"
 	);
 
-	// Try to read name directly from SCORM if context didn't provide it
 	useEffect(() => {
 		setConnected(!!ctxConnected);
 		const fromCtx = extractFirstName(ctxLearnerName);
@@ -158,8 +153,6 @@ function CoverBody({
 			setFirstName(fromCtx);
 			return;
 		}
-
-		// Attempt SCORM get() safely
 		try {
 			const raw =
 				scorm?.get?.("cmi.core.student_name") ||
@@ -170,9 +163,7 @@ function CoverBody({
 				setFirstName(extracted);
 				setConnected(true);
 			}
-		} catch {
-			// ignore — fallback stays "Learner"
-		}
+		} catch {}
 	}, [ctxConnected, ctxLearnerName, scorm]);
 
 	const DUR = 0.4;
@@ -207,7 +198,6 @@ function CoverBody({
 
 	return (
 		<div className="max-w-4xl mx-auto">
-			{/* 👋 Personalized Welcome — now always blue like the CTA */}
 			<motion.div
 				custom={idxKicker}
 				variants={item}
@@ -251,7 +241,6 @@ function CoverBody({
 				className="mx-auto h-0.5 w-24 bg-gray-900/80 rounded-full"
 			/>
 
-			{/* ✅ Both paragraphs use the same font & size */}
 			<div className="mt-6 space-y-4 max-w-3xl mx-auto">
 				{(paragraphs.length ? paragraphs : [""]).map((p, i) => (
 					<motion.p
@@ -288,8 +277,6 @@ function CoverBody({
 /* --- Helpers --- */
 function splitTitle(t) {
 	if (!t) return ["", ""];
-
-	// Prefer splitting before "on Indigenous Cultures"
 	const re = /\s+on\s+Indigenous\s+Cultures/i;
 	const m = t.match(re);
 	if (m && m.index != null) {
@@ -298,7 +285,6 @@ function splitTitle(t) {
 		const after = t.slice(idx).trimStart();
 		return [before, after];
 	}
-
 	if (t.length < 26) return [t, ""];
 	const mid = Math.floor(t.length / 2);
 	const left = t.lastIndexOf(" ", mid);
@@ -313,17 +299,14 @@ function splitTitle(t) {
 			: Math.abs(mid - left) < Math.abs(right - mid)
 			? left
 			: right;
-
 	return [t.slice(0, idx), t.slice(idx + 1)];
 }
 
 function extractFirstName(raw) {
 	if (!raw || typeof raw !== "string") return "";
-	// SCORM often returns "Last, First"
 	if (raw.includes(",")) {
 		const parts = raw.split(",");
 		return (parts[1] || "").trim() || (parts[0] || "").trim();
 	}
-	// Otherwise take first token
 	return raw.trim().split(/\s+/)[0] || "";
 }

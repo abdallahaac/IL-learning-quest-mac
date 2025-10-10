@@ -10,7 +10,8 @@ import Footer from "./components/Footer.jsx";
 import TransitionView from "./components/TransitionView.jsx";
 
 import IntroPage from "./components/IntroPage.jsx";
-import CoverPage from "./pages/CoverPage.jsx";
+// ⛔ We won’t use CoverPage visually anymore; splash replaces it
+// import CoverPage from "./pages/CoverPage.jsx";
 import ContentsPage from "./pages/ContentsPage.jsx";
 import PreparationPage from "./pages/PreparationPage.jsx";
 import SectionPage from "./pages/SectionPage.jsx";
@@ -20,6 +21,9 @@ import ActivityPage from "./pages/ActivityPage.jsx";
 import PatternMorph from "./components/PatternMorph.jsx";
 import useResizeObserver from "./hooks/useResizeObserver.jsx";
 import ConclusionSection from "./pages/ConclusionSection.jsx";
+import PageFlipOverlay from "./components/PageFlipOverlay.jsx";
+
+import SplashIntroOverlay from "./components/SplashIntroOverlay.jsx";
 
 import { HEADER_FIXED_H } from "./constants/storage.js";
 import { accentForActivityIndex } from "./constants/accents.js";
@@ -67,7 +71,7 @@ export default function AppShell() {
 		totalPages,
 	});
 
-	// Navigation helpers
+	// Navigation helpers (unchanged)
 	const gotoPage = (idx) => {
 		const clamped = Math.min(Math.max(idx, 0), totalPages - 1);
 		push(clamped);
@@ -77,7 +81,6 @@ export default function AppShell() {
 			return { ...s, pageIndex: clamped, visited };
 		});
 	};
-
 	const next = () => {
 		setState((s) => {
 			const atLast = s.pageIndex >= totalPages - 1;
@@ -98,7 +101,6 @@ export default function AppShell() {
 			return { ...s, pageIndex: nextIndex, visited };
 		});
 	};
-
 	const prev = () => {
 		setState((s) => {
 			const prevIndex = Math.max(0, s.pageIndex - 1);
@@ -109,7 +111,17 @@ export default function AppShell() {
 		});
 	};
 
-	// Derived indices & progress
+	// page-flip dir (unchanged)
+	const prevIndexRef = React.useRef(route.pageIndex);
+	const flipDirection = React.useMemo(
+		() => (state.pageIndex > prevIndexRef.current ? "next" : "prev"),
+		[state.pageIndex]
+	);
+	React.useEffect(() => {
+		prevIndexRef.current = state.pageIndex;
+	}, [state.pageIndex]);
+
+	// Derived indices
 	const idxIntro = idxByType(pages, "intro");
 	const idxPrep = idxByType(pages, "preparation");
 	const idxTeam = idxByType(pages, "team");
@@ -180,7 +192,6 @@ export default function AppShell() {
 		}
 	};
 
-	// Next label
 	const getNextLabel = () => {
 		const i = state.pageIndex;
 		const atLast = i >= totalPages - 1;
@@ -194,6 +205,16 @@ export default function AppShell() {
 		return nextPage?.content?.title || "Next";
 	};
 
+	// === Splash instead of cover page ==================================
+	// Show splash only if the current page is the "cover" page.
+	const showSplash = currentPage.type === "cover";
+
+	// When the splash ends, jump to INTRO page (so user lands on intro).
+	const handleSplashDone = React.useCallback(() => {
+		const introIdx = idxIntro ?? 0;
+		gotoPage(introIdx);
+	}, [idxIntro]);
+
 	return (
 		<div
 			className={`app-shell relative h-screen flex flex-col ${
@@ -206,7 +227,7 @@ export default function AppShell() {
 				"--footer-h": `${footerHeight}px`,
 			}}
 		>
-			{/* Always-on background pattern behind everything */}
+			{/* Always-on pattern (so the dots look exactly the same before/after) */}
 			<PatternMorph
 				pageIndex={state.pageIndex}
 				sequence={["dots", "asterisks", "grid"]}
@@ -234,16 +255,18 @@ export default function AppShell() {
 					className="relative flex h-full flex-col overflow-y-auto min-h-0"
 					style={{ paddingBottom: "var(--footer-h)" }}
 				>
+					{/* Keep a second PatternMorph inside scroller if you want it to scroll with content */}
+					<PatternMorph
+						pageIndex={state.pageIndex}
+						sequence={["dots", "grid"]}
+						containerRef={scrollRef}
+					/>
+
 					<main className="flex-1 relative min-h-0">
 						<div style={{ zIndex: 10 }}>
 							<TransitionView screenKey={`page-${state.pageIndex}`}>
-								{currentPage.type === "cover" && (
-									<CoverPage
-										content={currentPage.content}
-										onStart={() => gotoPage(1)}
-										onIntroActiveChange={() => {}}
-									/>
-								)}
+								{/* ⛔ Replace CoverPage with nothing: splash handles it */}
+								{currentPage.type === "cover" && null}
 
 								{currentPage.type === "contents" && (
 									<ContentsPage
@@ -373,6 +396,18 @@ export default function AppShell() {
 					containerRef={footerRef}
 				/>
 			</div>
+
+			{/* Purple splash overlay that fades away to INTRO.
+          PatternMorph stays visible behind it the whole time. */}
+			<SplashIntroOverlay
+				show={showSplash}
+				onDone={handleSplashDone}
+				durationMs={1600} // how long to hold the purple screen
+				fadeOutMs={450} // fade duration
+				bg="#4b3a69" // keep your purple
+				allowSkip={true} // click/keydown to skip
+				// center={<YourLogosHere />} // optional
+			/>
 		</div>
 	);
 }
