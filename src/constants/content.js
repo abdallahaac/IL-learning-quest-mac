@@ -234,12 +234,11 @@ export const INTRO_INFO_CONTENT_FR = {
 		{
 			heading: "Fonctionnement",
 			items: [
-				"1. Rassemblez votre équipe :\n•\tSi votre équipe de travail ne peut pas participer à la quête d’apprentissage, formez votre propre équipe ou trouvez-vous un ou une partenaire d’étude.",
-				"2. Déterminez en équipe les paramètres de la quête. Voici quelques points de départ pour vous orienter :\n•\tAllez-vous vous concentrer sur des nations et communautés particulières ou allez-vous plutôt adopter une approche régionale et chercher à apprendre quelque chose au sujet des peuples autochtones de chaque région du pays?\n•\tAllez-vous étudier à la fois les Premières Nations, de même que les peuples inuits et métis?",
-				"3. Donnez-vous du temps pour avancer dans votre quête :\n•\tEncouragez vos collègues, publiez des mises à jour et envoyez-leur des ressources dans Teams.\n•\tSi des sujets secondaires piquent votre curiosité, explorez-les!",
-				"4. Prévoyez une rencontre d’équipe pour discuter de vos expériences :\n•\tÉtablissez des protocoles pour créer un espace sécuritaire. De quoi les gens ont-ils besoin pour se sentir respectés, écoutés et soutenus, et ainsi être en mesure de s’exprimer librement pendant la rencontre?\n•\tQue retenez-vous de l’expérience?",
-				"5. Résumez vos apprentissages et poursuivez votre quête :\n•\tPubliez vos ressources en ligne sur la « murale » Les meilleurs médias par les voix autochtones, créée par des membres de l’équipe de Parcs Canada.\n•\tPoursuivez votre parcours d’apprentissage toute l’année durant.\n•\tFaites partie du changement en participant activement aux efforts de réconciliation!",
-				"L’outil de travail interactif Le sentier de la réconciliation propose des ressources pratiques et des idées sur la manière de participer activement au processus de réconciliation.",
+				"Rassemblez votre équipe :\n•\tSi votre équipe de travail ne peut pas participer à la quête d’apprentissage, formez votre propre équipe ou trouvez-vous un ou une partenaire d’étude.",
+				"Déterminez en équipe les paramètres de la quête. Voici quelques points de départ pour vous orienter :\n•\tAllez-vous vous concentrer sur des nations et communautés particulières ou allez-vous plutôt adopter une approche régionale et chercher à apprendre quelque chose au sujet des peuples autochtones de chaque région du pays?\n•\tAllez-vous étudier à la fois les Premières Nations, de même que les peuples inuits et métis?",
+				"Donnez-vous du temps pour avancer dans votre quête :\n•\tEncouragez vos collègues, publiez des mises à jour et envoyez-leur des ressources dans Teams.\n•\tSi des sujets secondaires piquent votre curiosité, explorez-les!",
+				"Prévoyez une rencontre d’équipe pour discuter de vos expériences :\n•\tÉtablissez des protocoles pour créer un espace sécuritaire. De quoi les gens ont-ils besoin pour se sentir respectés, écoutés et soutenus, et ainsi être en mesure de s’exprimer librement pendant la rencontre?\n•\tQue retenez-vous de l’expérience?",
+				"Résumez vos apprentissages et poursuivez votre quête :\n•\tPubliez vos ressources en ligne sur la « murale » Les meilleurs médias par les voix autochtones, créée par des membres de l’équipe de Parcs Canada.\n•\tPoursuivez votre parcours d’apprentissage toute l’année durant.\n•\tFaites partie du changement en participant activement aux efforts de réconciliation!",
 			],
 		},
 	],
@@ -426,7 +425,7 @@ export const UI_STRINGS = {
 		},
 		toc: {
 			__lang: "fr",
-			title: "Table des matières",
+			title: "Accueil",
 			sectionsAriaLabel: "Sections",
 			ariaCourseProgress: "Progression du cours",
 			srHelp:
@@ -479,18 +478,27 @@ export const ACTIVITIES_CONTENT = {
 			id: "a1",
 			number: 1,
 			title: "Découvrez un artiste autochtone",
-			tip: "Décrivez la manière dont vous vous identifiez à cette personne. <br/>Comment vous inspire-t-elle?",
+			// clean plaintext fallback for exports
+			tip: "Découvrez les œuvres d’une ou un artiste autochtone qui vous parle. Décrivez la manière dont vous vous identifiez à cette personne. Comment vous inspire-t-elle?",
+			// HTML version rendered by the component
+			cdata: {
+				instructionsHtml: `
+        <p>Décrivez la manière dont vous vous identifiez à cette personne.</p>
+        <p><strong>Comment vous inspire-t-elle&nbsp;?</strong></p>
+
+      `,
+			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
-					label: "Selection of Indigenous artists in Canada",
-					url: "https://www.thecanadianencyclopedia.ca/en/article/important-indigenous-artists",
+					label: "Sélection d’artistes autochtones au Canada",
+					url: "https://thecanadianencyclopedia.ca/fr/article/artistes-autochtones-importants",
 					icon: "image",
 				},
 				{
-					label: "Selection of Indigenous musicians in Canada",
-					url: "https://www.thecanadianencyclopedia.ca/en/article/influential-indigenous-musicians",
+					label: "Sélection de musiciens autochtones au Canada",
+					url: "https://thecanadianencyclopedia.ca/fr/article/musiciens-autochtones-influents",
 					icon: "music",
 				},
 			],
@@ -501,20 +509,62 @@ export const ACTIVITIES_CONTENT = {
 			id: "a2",
 			number: 2,
 			title: "Indigenous Medicinal Plants",
+			// clean plaintext fallback
 			tip: "Discover Indigenous medicinal uses for plants in your area. Describe what you learned.",
+			// HTML version rendered in the component (keeps the same break structure)
+			cdata: {
+				instructionsHtml: `
+          <p>Discover Indigenous medicinal uses for plants in your area.</p>
+          <p><strong>Describe what you learned.</strong></p>
+        `,
+			},
 			notePlaceholder: "Plants, uses, teachings you discovered…",
 			resourcesHeading: "Resources",
-			links: [],
+			links: [
+				{
+					label: "Métis traditional uses for plants (PDF)",
+					url: "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf",
+					icon: "image",
+				},
+				{
+					label:
+						"Traditional plant foods of Indigenous Peoples in Canada (book)",
+					url: "https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content",
+					icon: "image",
+				},
+			],
 		},
 		fr: {
 			id: "a2",
 			number: 2,
-			title:
-				"Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.",
-			tip: "Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.\nDécrivez vos apprentissages.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tListe des utilisations traditionnelles des plantes chez les Métis (en anglais)\n•\tLivre sur les aliments végétaux traditionnels chez les peuples autochtones du Canada (en anglais)",
+			// title changed per your request
+			title: "Plantes médicinales autochtones",
+			// same length as EN; clean plaintext fallback
+			tip: "Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région. Décrivez vos apprentissages.",
+			// same two-paragraph HTML as EN, in French, preserving the line break
+			cdata: {
+				instructionsHtml: `
+          <p>Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.</p>
+          <p><strong>Décrivez vos apprentissages.</strong></p>
+        `,
+			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
-			links: [],
+			// temporarily reuse the EN links; labels in French if you want, URLs are the EN resources
+			links: [
+				{
+					label:
+						"Liste des utilisations traditionnelles des plantes chez les Métis (PDF)",
+					url: "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf",
+					icon: "image",
+				},
+				{
+					label:
+						"Livre sur les aliments végétaux traditionnels chez les peuples autochtones du Canada",
+					url: "https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content",
+					icon: "image",
+				},
+			],
 		},
 	},
 	a3: {
