@@ -1,4 +1,3 @@
-// src/AppShell.jsx
 import React from "react";
 import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
@@ -47,7 +46,8 @@ import {
 	TEAM_CONTENT_FR,
 	CONCLUSION_CONTENT_FR,
 	RESOURCES_CONTENT_FR,
-	UI_STRINGS, // <-- central UI labels
+	UI_STRINGS,
+	ACTIVITIES_CONTENT,
 } from "./constants/content.js";
 
 const SPLASH_SEEN_KEY = "__APP_SPLASH_SEEN_ONCE__";
@@ -86,17 +86,14 @@ function maybeResetSplashFlagFromQuery() {
 	} catch {}
 }
 
-// Smooth scroll-to-top
 function scrollContainerToTop(el, { reduced }) {
 	if (!el) return;
 	const atTop = (el.scrollTop || 0) <= 1;
 	if (atTop) return;
-
 	const canSmooth =
 		!reduced &&
 		typeof el.scrollTo === "function" &&
 		"scrollBehavior" in document.documentElement.style;
-
 	try {
 		if (canSmooth) el.scrollTo({ top: 0, behavior: "smooth" });
 		else el.scrollTop = 0;
@@ -105,7 +102,7 @@ function scrollContainerToTop(el, { reduced }) {
 	}
 }
 
-// super tiny i18n selector
+// Language detection
 function detectLang() {
 	try {
 		const qs = new URLSearchParams(window.location.search);
@@ -118,7 +115,7 @@ function detectLang() {
 	return "en";
 }
 
-// map page types to their EN/FR content blobs
+// Static page content map
 const CONTENT_BY_TYPE = {
 	cover: { en: COVER_CONTENT, fr: COVER_CONTENT_FR },
 	intro: { en: INTRO_INFO_CONTENT, fr: INTRO_INFO_CONTENT_FR },
@@ -126,8 +123,14 @@ const CONTENT_BY_TYPE = {
 	team: { en: TEAM_CONTENT, fr: TEAM_CONTENT_FR },
 	conclusion: { en: CONCLUSION_CONTENT, fr: CONCLUSION_CONTENT_FR },
 	resources: { en: RESOURCES_CONTENT, fr: RESOURCES_CONTENT_FR },
-	// activities left as-is unless you wire bilingual payloads there too
 };
+
+// Return localized activity payload from constants by id with EN fallback
+function getActivityContent(id, lang) {
+	const pack = ACTIVITIES_CONTENT?.[id];
+	if (!pack) return null;
+	return lang === "fr" ? pack.fr || pack.en : pack.en;
+}
 
 export default function AppShell() {
 	const scrollRef = React.useRef(null);
@@ -142,10 +145,8 @@ export default function AppShell() {
 		}
 	}, []);
 
-	// SCORM
 	const { getSuspendData, setSuspendData, scorm } = useScorm();
 
-	// Autoplay unlock
 	const [userInteracted, setUserInteracted] = React.useState(false);
 	React.useEffect(() => {
 		if (userInteracted) return;
@@ -177,7 +178,6 @@ export default function AppShell() {
 		}
 	};
 
-	// Pages + routing
 	const pages = React.useMemo(() => buildPages(), []);
 	const totalPages = pages.length;
 	const activityPages = React.useMemo(
@@ -193,7 +193,6 @@ export default function AppShell() {
 	);
 	const [route, push] = useHashRoute();
 
-	// Persisted state
 	const { state, setState, setNote, toggleComplete } = useQuestState({
 		scorm: {
 			getSuspendData,
@@ -205,7 +204,6 @@ export default function AppShell() {
 		totalPages,
 	});
 
-	// One-time splash
 	const [showSplash, setShowSplash] = React.useState(() => {
 		try {
 			maybeResetSplashFlagFromQuery();
@@ -268,7 +266,6 @@ export default function AppShell() {
 		});
 	};
 
-	// Derived indices & progress
 	const idxIntro = idxByType(pages, "intro");
 	const idxPrep = idxByType(pages, "preparation");
 	const idxTeam = idxByType(pages, "team");
@@ -292,7 +289,6 @@ export default function AppShell() {
 		idxResources,
 	});
 
-	// language and localized site title + labels
 	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
 	const STR = UI_STRINGS[lang];
 	const siteTitle =
@@ -313,7 +309,6 @@ export default function AppShell() {
 		accent: accentForActivityIndex(i),
 	}));
 
-	// Current page and accent
 	const currentPage = pages[state.pageIndex] ?? pages[0];
 	const accentForThisPage = accentForPage(currentPage);
 
@@ -356,15 +351,21 @@ export default function AppShell() {
 		return nextPage?.content?.title || STR.footer.next;
 	};
 
-	// swap in localized content for non-activity pages
+	// Localize non-activity pages
 	const localizedContent = React.useMemo(() => {
 		const type = currentPage?.type;
 		const map = CONTENT_BY_TYPE[type];
-		if (!map) return currentPage?.content; // activities or unknown sections
+		if (!map) return currentPage?.content;
 		return lang === "fr" ? map.fr : map.en;
 	}, [currentPage, lang]);
 
-	// Scroll-to-top on page change
+	// Localize activity content from constants by id; fallback to EN
+	const localizedActivityContent = React.useMemo(() => {
+		if (currentPage?.type !== "activity") return null;
+		const id = currentPage?.content?.id; // "a1".."a10"
+		return getActivityContent(id, lang) || currentPage.content;
+	}, [currentPage, lang]);
+
 	React.useEffect(() => {
 		scrollContainerToTop(scrollRef.current, { reduced: reducedMotion });
 	}, [state.pageIndex, reducedMotion]);
@@ -436,7 +437,6 @@ export default function AppShell() {
 							? "inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 bg-sky-600 text-sm md:text-base font-medium text-white rounded-full shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors"
 							: null
 					}
-					// labels
 					homeLabel={STR.header.home}
 				/>
 
@@ -522,13 +522,27 @@ export default function AppShell() {
 
 									{currentPage.type === "activity" && (
 										<ActivityPage
-											// activities stay as-is unless you wire FR there too
-											content={currentPage.content}
-											notes={state.notes[currentPage.content.id]}
-											completed={!!state.completed[currentPage.content.id]}
-											onNotes={(v) => setNote(currentPage.content.id, v)}
+											content={localizedActivityContent ?? currentPage.content}
+											notes={
+												state.notes[
+													(localizedActivityContent ?? currentPage.content).id
+												]
+											}
+											completed={
+												!!state.completed[
+													(localizedActivityContent ?? currentPage.content).id
+												]
+											}
+											onNotes={(v) =>
+												setNote(
+													(localizedActivityContent ?? currentPage.content).id,
+													v
+												)
+											}
 											onToggleComplete={() =>
-												toggleComplete(currentPage.content.id)
+												toggleComplete(
+													(localizedActivityContent ?? currentPage.content).id
+												)
 											}
 											activityIndex={currentPage.activityIndex}
 										/>
@@ -587,7 +601,6 @@ export default function AppShell() {
 								: null
 						}
 						containerRef={footerRef}
-						// labels
 						backLabel={STR.footer.back}
 						finishLabel={STR.footer.finish}
 					/>

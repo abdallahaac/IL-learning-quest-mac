@@ -1,5 +1,7 @@
 // src/constants/content.js
 
+// ===================== EN CONTENT =====================
+
 export const COVER_CONTENT = {
 	title: "Learning Quest on Indigenous Cultures",
 	paragraphs: [
@@ -63,7 +65,6 @@ export const INTRO_INFO_CONTENT = {
 			},
 		],
 	},
-	// UI labels for IntroPage live with the content (EN)
 	ui: {
 		sectionTitle: "Introduction",
 		whatTitle: "What is the Learning Quest on Indigenous Cultures?",
@@ -91,7 +92,6 @@ export const INTRO_INFO_CONTENT = {
 	},
 };
 
-// EN
 export const PREPARATION_CONTENT = {
 	title: "Preparation",
 	paragraphs: [
@@ -112,9 +112,6 @@ export const PREPARATION_CONTENT = {
 	},
 };
 
-// FR
-
-// src/data/content.js
 export const TEAM_CONTENT = {
 	title: "Team Reflection",
 	steps: [
@@ -220,29 +217,29 @@ export const SVG_PATH_D =
 export const COVER_CONTENT_FR = {
 	title: "Quête d’apprentissage sur les cultures autochtones",
 	paragraphs: [
-		"Développez vos connaissances sur les réalités autochtones et élargissez vos compétences et capacités culturelles. Cette quête propose une série de 10 activités engageantes pour favoriser la curiosité, la réflexion et l’apprentissage continu.",
-		"Au terme de cette quête, vous aurez approfondi votre compréhension des perspectives, des histoires et des contributions des peuples autochtones et serez mieux outillé pour soutenir la réconciliation et un milieu de travail plus inclusif.",
+		"Venez entreprendre un parcours de découverte et d’apprentissage composé de dix activités stimulantes conçues pour renforcer votre connaissance des réalités autochtones et ainsi accroître vos compétences culturelles. Chaque activité vous invitera à l’exploration, à la réflexion et à l’approfondissement de votre compréhension des perspectives, histoires et contributions des peuples autochtones.",
+		"Au terme de cette quête, vous aurez acquis des connaissances et des compétences précieuses pour mieux soutenir les efforts de réconciliation et favoriser un milieu de travail inclusif.",
 	],
 };
 
 export const INTRO_INFO_CONTENT_FR = {
 	title: "Introduction",
 	paragraphs: [
-		"La Quête d’apprentissage a été conçue pour susciter la joie et la curiosité des fonctionnaires tout en soutenant leur cheminement vers une alliance significative. Élaborée par des créatrices et créateurs s’identifiant comme Autochtones, elle favorise l’apprentissage par le partage d’expériences et l’échange de ressources.",
-		"Il ne s’agit pas d’un test de connaissances, mais d’une pratique qui s’inscrit dans la durée. C’est une invitation à explorer les perspectives autochtones avec ouverture et intention dans la vie de tous les jours.",
-		"La Quête d’apprentissage sur les cultures autochtones est une activité d’équipe flexible qui vous aide à en apprendre davantage sur les histoires, cultures et perspectives autochtones. Au fil de 10 activités, vous explorerez, réfléchirez et passerez à l’action pour renforcer votre conscience culturelle et soutenir la réconciliation.",
-		"Vous pouvez faire la quête seul ou en équipe. Le travail d’équipe permet des conversations plus riches et un apprentissage partagé. Chaque activité vous invite à réfléchir de manière critique, à poser des questions et à relier vos apprentissages à votre vie personnelle et professionnelle.",
-		"La quête est personnalisable et peut se dérouler à votre rythme sur plusieurs semaines. Des rencontres d’équipe régulières permettent de partager vos constats, discuter des défis et soutenir les parcours d’apprentissage de chacun.",
+		"La quête d’apprentissage a été créée pour susciter joie et curiosité chez les fonctionnaires, tout en les aidant à devenir des personnes alliées fidèles à la cause et aux réalités des peuples autochtones. Conçue par des Autochtones, elle stimule l’apprentissage par des mises en commun qui permettent aux participantes et participants de nouer des liens autour d’intérêts communs et du partage de ressources. Il ne s’agit pas d’un test de connaissance, mais plutôt d’une pratique à long terme – une invitation à découvrir les perspectives autochtones au quotidien, en faisant preuve d’ouverture et de volonté.",
+		"La quête d’apprentissage sur les cultures autochtones est une activité d’équipe souple conçue pour vous aider à en apprendre plus sur les histoires, cultures et perspectives autochtones. Dix activités stimulantes vous inviteront à l’exploration, à la réflexion et à l’action pour que vous puissiez renforcer vos connaissances culturelles et soutenir les efforts de réconciliation.",
+		"Vous pouvez mener la quête en solo ou en équipe, sachant que la collaboration favorise les discussions poussées et permet de mettre en commun les apprentissages. Chaque activité vous invitera à penser de façon critique, à poser des questions et à faire des liens entre vos apprentissages et votre vie personnelle et professionnelle.",
+		"La quête est personnalisable, et vous pouvez la mener à votre rythme sur plusieurs semaines. Des rencontres de suivi régulières permettront aux membres de l’équipe de présenter leurs perspectives, de discuter des enjeux et de s’entraider.",
 	],
 	bullets: [
 		{
-			heading: "Comment ça fonctionne?",
+			heading: "Fonctionnement",
 			items: [
-				"Réunissez votre équipe. Si votre équipe de travail ne peut pas participer, formez une équipe informelle ou trouvez un partenaire comme compagnon d’étude.",
-				"En équipe, déterminez les paramètres de la quête : vous concentrerez-vous sur des nations et communautés précises, ou adopterez-vous une approche régionale pour apprendre quelque chose sur les peuples autochtones de chaque région du pays? Souhaitez-vous explorer les trois peuples distincts : Premières Nations, Inuits et Métis?",
-				"Accordez-vous du temps pour travailler sur la quête : encouragez vos collègues, publiez des mises à jour et partagez des ressources dans votre clavardage d’équipe. Si un sujet vous intéresse au-delà des questions de la quête, lancez-vous.",
-				"Organisez une rencontre d’équipe pour discuter de vos expériences : établissez des protocoles pour un espace sûr. De quoi chacun a-t-il besoin pour se sentir respecté, écouté et soutenu? Quel est le principal élément à retenir de l’expérience?",
-				"Récapitulez… et poursuivez la quête : partagez vos ressources sur le tableau des meilleurs médias par des voix autochtones, poursuivez l’apprentissage toute l’année et contribuez activement à la réconciliation. Le guide interactif « Parcours de réconciliation » offre des idées concrètes.",
+				"1. Rassemblez votre équipe :\n•\tSi votre équipe de travail ne peut pas participer à la quête d’apprentissage, formez votre propre équipe ou trouvez-vous un ou une partenaire d’étude.",
+				"2. Déterminez en équipe les paramètres de la quête. Voici quelques points de départ pour vous orienter :\n•\tAllez-vous vous concentrer sur des nations et communautés particulières ou allez-vous plutôt adopter une approche régionale et chercher à apprendre quelque chose au sujet des peuples autochtones de chaque région du pays?\n•\tAllez-vous étudier à la fois les Premières Nations, de même que les peuples inuits et métis?",
+				"3. Donnez-vous du temps pour avancer dans votre quête :\n•\tEncouragez vos collègues, publiez des mises à jour et envoyez-leur des ressources dans Teams.\n•\tSi des sujets secondaires piquent votre curiosité, explorez-les!",
+				"4. Prévoyez une rencontre d’équipe pour discuter de vos expériences :\n•\tÉtablissez des protocoles pour créer un espace sécuritaire. De quoi les gens ont-ils besoin pour se sentir respectés, écoutés et soutenus, et ainsi être en mesure de s’exprimer librement pendant la rencontre?\n•\tQue retenez-vous de l’expérience?",
+				"5. Résumez vos apprentissages et poursuivez votre quête :\n•\tPubliez vos ressources en ligne sur la « murale » Les meilleurs médias par les voix autochtones, créée par des membres de l’équipe de Parcs Canada.\n•\tPoursuivez votre parcours d’apprentissage toute l’année durant.\n•\tFaites partie du changement en participant activement aux efforts de réconciliation!",
+				"L’outil de travail interactif Le sentier de la réconciliation propose des ressources pratiques et des idées sur la manière de participer activement au processus de réconciliation.",
 			],
 		},
 	],
@@ -250,41 +247,20 @@ export const INTRO_INFO_CONTENT_FR = {
 		steps: [
 			{
 				bullets: [
-					"Si votre équipe ne peut participer, formez une équipe informelle ou trouvez un compagnon d’étude.",
-				],
-			},
-			{
-				bullets: [
-					"Décidez si vous vous concentrez sur des nations/communautés spécifiques ou si vous adoptez une approche régionale.",
-					"Envisagez d’explorer les trois peuples distincts : Premières Nations, Inuits et Métis.",
-				],
-			},
-			{
-				bullets: [
-					"Encouragez les collègues, publiez des mises à jour et partagez des ressources dans le clavardage d’équipe.",
-					"Si un sujet vous intéresse au-delà des questions de la quête, explorez-le.",
-				],
-			},
-			{
-				bullets: [
-					"Établissez des protocoles pour un espace sûr afin que tous se sentent respectés et soutenus.",
-					"Nommez votre principale conclusion ou apprentissage.",
-				],
-			},
-			{
-				bullets: [
-					"Partagez vos ressources sur le tableau « Meilleurs médias par des voix autochtones ». ",
-					"Poursuivez votre apprentissage toute l’année.",
-					"Contribuez activement à la réconciliation (voir l’outil « Parcours de réconciliation »).",
+					"Étapes et activités de la quête",
+					"Préparation",
+					"Réunion d’équipe : étapes et questions potentielles",
+					"Question de réflexion facultative",
+					"Conclusion",
+					"Ressources",
 				],
 			},
 		],
 	},
-	// UI labels for IntroPage live with the content (FR)
 	ui: {
 		sectionTitle: "Introduction",
 		whatTitle:
-			"Qu’est-ce que la Quête d’apprentissage sur les cultures autochtones?",
+			"Qu’est-ce que la quête d’apprentissage sur les cultures autochtones?",
 		quickSummaryAria: "Résumé rapide",
 		summary: {
 			format: { dt: "Format", dd: "10 activités • à votre rythme" },
@@ -295,11 +271,11 @@ export const INTRO_INFO_CONTENT_FR = {
 			},
 		},
 		steps: {
-			gatherTeam: "Réunissez votre équipe",
-			setParams: "Définissez vos paramètres",
-			giveTime: "Accordez-vous du temps",
-			meetReflect: "Rencontrez-vous et réfléchissez",
-			wrapKeep: "Concluez et poursuivez la quête",
+			gatherTeam: "Rassemblez votre équipe",
+			setParams: "Déterminez les paramètres",
+			giveTime: "Donnez-vous du temps",
+			meetReflect: "Préparez une rencontre d’équipe",
+			wrapKeep: "Résumez et poursuivez",
 		},
 		tip: {
 			label: "Conseil",
@@ -315,13 +291,13 @@ export const INTRO_INFO_CONTENT_FR = {
 export const PREPARATION_CONTENT_FR = {
 	title: "Préparation",
 	paragraphs: [
-		"Complétez les tâches et activités qui suivent et utilisez l’espace Notes pour garder une trace de votre parcours d’apprentissage. Vous pouvez aussi adapter les activités selon les paramètres fixés par votre équipe et prévoir à l’avance le temps à accorder à chaque activité.",
-		"Ne vous sentez pas obligé de tout faire en un temps limité. Ne réalisez que les activités avec lesquelles vous êtes à l’aise, tout en acceptant d’être mis au défi au fur et à mesure que vous apprenez, grandissez et renforcez votre capacité culturelle.",
-		"Besoin d’un point de départ? Consultez le tableau des meilleurs médias par des voix autochtones.",
+		"Accomplissez les tâches et les activités ci-dessous, et notez l’avancement de votre parcours d’apprentissage dans les zones prévues à cette fin. Vous pouvez également personnaliser les activités en fonction des paramètres de la quête établis précédemment. Prédéterminez la durée de chaque activité.",
+		"Il n’est toutefois pas obligatoire de mener toutes les activités dans un délai précis. Vous n’avez pas non plus à accomplir les activités qui vous mettent mal à l’aise. Mais préparez-vous à relever des défis au fur et à mesure de vos apprentissages, de votre croissance et du renforcement de vos compétences culturelles.",
+		"Vous ne savez pas par où commencer? Consultez Les meilleurs médias par les voix autochtones.",
 	],
 	ui: {
 		sectionTitle: "Préparation",
-		howTitle: "Comment fonctionne la Quête d’apprentissage?",
+		howTitle: "Fonctionnement",
 		instructions:
 			"Cliquez sur une carte pour l’inverser et lire l’étape. Une coche verte apparaîtra après avoir consulté une carte.",
 		stepLabel: "Étape",
@@ -333,82 +309,81 @@ export const PREPARATION_CONTENT_FR = {
 };
 
 export const TEAM_CONTENT_FR = {
-	title: "Discussion d’équipe",
+	title: "Réunion d’équipe : étapes et questions potentielles",
 	steps: [
 		{
-			heading: "Instaurer un dialogue respectueux",
+			heading: "Donner le ton pour un dialogue respectueux",
 			items: [
-				"Commencez chaque rencontre en rappelant les ententes ou valeurs communes du groupe (respect, ouverture, confidentialité).",
-				"Invitez les membres à partager comment ils se sentent par rapport à leur parcours d’apprentissage jusqu’ici.",
+				"•\tCommencez chaque rencontre en passant en revue les ententes ou les valeurs de l’équipe, comme le respect, l’ouverture d’esprit et la confidentialité.",
+				"•\tInvitez les membres de l’équipe à faire part de leurs impressions jusqu’ici.",
 			],
 		},
 		{
-			heading: "Partager les apprentissages et réflexions",
+			heading: "Échanger sur vos apprentissages et réflexions",
 			items: [
-				"Demandez à chacun de présenter les points saillants d’une ou plusieurs activités réalisées.",
-				"Encouragez le partage de surprises, de remises en question et d’impressions durables.",
-				"Utilisez des amorces ouvertes : qu’est-ce qui a changé votre perspective? Comment cet apprentissage s’est-il relié à votre vie personnelle ou professionnelle? Quelles questions demeurent?",
+				"•\tDemandez à chaque membre de l’équipe de présenter les faits saillants d’au moins une activité qu’il ou elle a accomplie.",
+				"•\tEncouragez chaque personne à parler de ce qui l’a surprise, de ce qui a remis en question ses façons de voir les choses ou de ce qui l’a particulièrement marquée.",
+				"•\tPosez des questions ouvertes :\no\tQuel apprentissage a modifié votre perspective?\no\tDe quelle manière l’activité était-elle liée à votre vie personnelle ou professionnelle?\no\tQuelles questions vous posez-vous encore?",
 			],
 		},
 		{
-			heading: "Relier l’apprentissage au travail",
+			heading:
+				"Établir des liens entre vos apprentissages et votre milieu de travail",
 			items: [
-				"Discutez de la manière dont les apprentissages se rapportent au travail de votre équipe et à la fonction publique en général.",
-				"Demandez-vous : comment ces connaissances peuvent-elles favoriser de meilleures relations avec les communautés autochtones? Quels changements, petits ou grands, peuvent soutenir la réconciliation au quotidien?",
+				"•\tDiscutez de la manière dont les apprentissages faits durant la quête se rapportent au travail de votre équipe et à la fonction publique dans son ensemble.",
+				"•\tPosez les questions suivantes :\no\tComment ce savoir peut-il renforcer les relations avec les communautés autochtones?\no\tQuels changements – grands ou petits – peut-on apporter pour soutenir les efforts de réconciliation au quotidien?",
 			],
 		},
 		{
 			heading: "Prendre un engagement",
 			items: [
-				"Invitez chaque personne à nommer une action à poser pour poursuivre l’apprentissage ou contribuer à la réconciliation.",
-				"Par exemple : utiliser des ressources autochtones, intégrer des perspectives autochtones au travail ou poursuivre sa formation personnelle.",
+				"•\tInvitez chaque membre de l’équipe à cibler une mesure à prendre pour poursuivre ses apprentissages ou contribuer aux efforts de réconciliation :\no\tIl pourrait notamment s’agir d’utiliser des ressources autochtones, de tenir compte des perspectives autochtones pour effectuer un travail, ou de poursuivre sa formation personnelle.",
 			],
 		},
 		{
-			heading: "Maintenir la conversation",
+			heading: "Continuer la conversation",
 			items: [
-				"Planifiez des suivis ou rencontres informelles pour poursuivre l’échange.",
-				"Encouragez le partage de ressources, réflexions et questions dans le clavardage d’équipe.",
+				"•\tPlanifiez d’autres rencontres de suivi ou réunions informelles pour continuer la conversation.",
+				"•\tEncouragez les membres de l’équipe à publier des ressources, des réflexions ou des questions dans Teams.",
 			],
 		},
 	],
 	reflectionPrompt:
-		"D’après ce que j’ai appris jusqu’ici, une chose que je veux garder dans mon rôle est…",
+		"« Compte tenu de ce que j’ai appris jusqu’à présent, une chose que je souhaite mettre en pratique au travail, c’est… »",
 };
 
 export const CONCLUSION_CONTENT_FR = {
 	title: "Conclusion",
 	paragraphs: [
-		"Au terme de la Quête d’apprentissage sur les cultures autochtones, prenez un moment pour reconnaître les apprentissages, les réflexions et les conversations partagées. Chaque activité a été l’occasion d’explorer de nouvelles perspectives, de remettre en question des idées et de grandir ensemble.",
-		"La quête se veut flexible et personnelle. Que vous ayez tout complété ou seulement une partie, l’essentiel est la conscience et la compréhension développées en cours de route.",
-		"Les discussions d’équipe ont donné vie à l’apprentissage grâce au dialogue ouvert, aux idées partagées et aux questions réfléchies. Ce n’est qu’un début.",
-		"Réfléchissez à la manière de transposer ces apprentissages dans votre travail quotidien. Quelles actions poserez-vous? Quels engagements prendrez-vous? La réconciliation est un parcours continu. Merci d’avoir franchi ces étapes avec ouverture, respect et intention.",
+		"Prenez un moment au terme de votre quête d’apprentissage sur les cultures autochtones pour récapituler en équipe vos apprentissages, vos réflexions et vos discussions. Chaque activité vous a donné l’occasion de découvrir de nouvelles perspectives, de remettre en question vos hypothèses et de grandir ensemble.",
+		"Cette quête a été conçue pour s’adapter à vos réalités. Que vous ayez mené toutes les activités ou seulement quelques-unes d’entre elles, le plus important, c’est le savoir que vous avez acquis en chemin.",
+		"Par le dialogue ouvert, l’échange de points de vue et les questions réfléchies, les discussions d’équipe ont fait fleurir vos apprentissages. Ce n’est là que le début.",
+		"Pensez maintenant aux différentes façons d’intégrer ces apprentissages dans votre travail quotidien. Quelles mesures et quels engagements prendrez-vous? La réconciliation n’a pas de fin. Merci de participer à ces efforts importants avec ouverture, respect et volonté.",
 	],
 };
 
 export const RESOURCES_CONTENT_FR = {
 	title: "Ressources",
 	items: [
-		"Tableau « Meilleurs médias par des voix autochtones » (créé par des membres de l’équipe de Parcs Canada).",
-		"Parcours de réconciliation : guide interactif de l’École de la fonction publique du Canada.",
-		"Sensibilisation aux réalités autochtones, sécurité culturelle et renforcement des capacités : page GCpédia (ECCC).",
-		"Conservation through Reconciliation Partnership : liste de lecture, série Virtual Campfire, IPCA Knowledge Basket.",
-		"Striking Balance : Réserve de biosphère Ts’á Túé (film sur la conservation autochtone).",
-		"Fondamentaux des principes de PCAP/OCAP® : formation du Centre de gouvernance de l’information des Premières Nations.",
-		"Valeurs sociétales inuites : ressource du gouvernement du Nunavut.",
-		"Pratiques de gouvernance métisses : ressource BCcampus (Indigenous Digital Literacies).",
-		"Éducation du public : ressources sur les droits, traités et revendications territoriales.",
-		"4 Seasons of Reconciliation : formation (Outdoor Learning School and Store).",
+		"•\tLes meilleurs médias par les voix autochtones, « murale » créée par les membres de l’équipe de Parcs Canada",
+		"•\tLe sentier de la réconciliation, outil de travail interactif conçu par l’École de la fonction publique du Canada",
+		"•\tSensibilisation aux cultures autochtones, sécurité culturelle et renforcement des capacités autochtones, page GCpédia créée par Environnement et Changement climatique Canada",
+		"•\tRessources du Conservation Through Reconciliation Partnership (en anglais) :\no\tListe de lecture sur la conservation par les Autochtones\no\tSérie de webinaires au coin du feu\no\tPanier de savoir sur les aires protégées et de conservation autochtones",
+		"•\tStriking Balance : réserve de biosphère Tsá Tué, film sur la conservation autochtone (en anglais)",
+		"•\tFondamentaux des principes de PCAP (propriété, contrôle, accès et possession), formation donnée par le Centre de gouvernance de l’information des Premières Nations",
+		"•\tValeurs sociétales inuites, ressource du gouvernement du Nunavut",
+		"•\tPratiques de gouvernance métisses, ressource de BCcampus en accès ouvert faisant partie de la littératie numérique autochtone (en anglais)",
+		"•\tÉducation du public, ressources sur les affaires juridiques, comme les droits, les traités et les revendications territoriales (en anglais)",
+		"•\tApprentissage autochtone en 4 saisons, formation offerte par l’Outdoor Learning School and Store (en anglais)",
 	],
 };
 
-// Optional: activity sheet pointer (contact + nudge)
 export const INTRO_MISC_FR = {
 	contact: "autochtones-indigenous@pc.gc.ca",
 	note: "Envoyez-nous un court message pour partager votre expérience. Restez curieux, poursuivez l’apprentissage et contribuez à la réconciliation toute l’année.",
 };
 
-// UI_STRINGS remains for global UI chrome and TOC; IntroPage no longer reads from it.
+// UI_STRINGS (global chrome)
 export const UI_STRINGS = {
 	en: {
 		header: { home: "Home" },
@@ -426,7 +401,6 @@ export const UI_STRINGS = {
 			srHelp:
 				"Use Tab to move between items. Arrow keys also move between icons. Press Enter or Space to open a section.",
 			moveHint: "Use arrow keys to move • Enter to open",
-			// section labels used by tocItems.js
 			intro: "Introduction",
 			preparation: "Preparation",
 			activities: "Activities",
@@ -434,7 +408,6 @@ export const UI_STRINGS = {
 			reflection: "Reflection",
 			conclusion: "Conclusion",
 			resources: "Resources",
-			// chips / aria
 			completed: "Completed",
 			visited: "Visited",
 			visitedChip: "Visited",
@@ -453,21 +426,19 @@ export const UI_STRINGS = {
 		},
 		toc: {
 			__lang: "fr",
-			title: "Accueil",
+			title: "Table des matières",
 			sectionsAriaLabel: "Sections",
 			ariaCourseProgress: "Progression du cours",
 			srHelp:
 				"Utilisez Tab pour vous déplacer entre les éléments. Les flèches déplacent aussi entre les icônes. Appuyez sur Entrée ou Espace pour ouvrir une section.",
 			moveHint: "Flèches pour naviguer • Entrée pour ouvrir",
-			// section labels used by tocItems.js
 			intro: "Introduction",
 			preparation: "Préparation",
 			activities: "Activités",
-			teamReflection: "Discussion d’équipe",
-			reflection: "Réflexion",
+			teamReflection: "Réunion d’équipe",
+			reflection: "Question de réflexion facultative",
 			conclusion: "Conclusion",
 			resources: "Ressources",
-			// chips / aria
 			completed: "Terminé",
 			visited: "Visité",
 			visitedChip: "Visité",
@@ -475,5 +446,261 @@ export const UI_STRINGS = {
 			ariaAllActivitiesCompleted: "Toutes les activités sont terminées",
 			ariaAllActivitiesVisited: "Toutes les activités ont été visitées",
 		},
+	},
+};
+
+// ===================== ACTIVITIES (EN/FR) =====================
+// Keys match your quest ids: "a1"..."a10"
+// Tip is the instruction block; links are optional. If FR is missing, app will fall back to EN.
+
+export const ACTIVITIES_CONTENT = {
+	a1: {
+		en: {
+			id: "a1",
+			number: 1,
+			title: "Explore an Indigenous Artist",
+			tip: "Explore works by an Indigenous artist that speak to you. Describe how you relate to this artist. How does this artist inspire you?",
+			notePlaceholder: "Your reflections on the artist…",
+			resourcesHeading: "Resources",
+			links: [
+				{
+					label: "Selection of Indigenous artists in Canada",
+					url: "https://www.thecanadianencyclopedia.ca/en/article/important-indigenous-artists",
+					icon: "image",
+				},
+				{
+					label: "Selection of Indigenous musicians in Canada",
+					url: "https://www.thecanadianencyclopedia.ca/en/article/influential-indigenous-musicians",
+					icon: "music",
+				},
+			],
+		},
+		fr: {
+			id: "a1",
+			number: 1,
+			title: "Découvrez un artiste autochtone",
+			tip: "Décrivez la manière dont vous vous identifiez à cette personne. <br/>Comment vous inspire-t-elle?",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [
+				{
+					label: "Selection of Indigenous artists in Canada",
+					url: "https://www.thecanadianencyclopedia.ca/en/article/important-indigenous-artists",
+					icon: "image",
+				},
+				{
+					label: "Selection of Indigenous musicians in Canada",
+					url: "https://www.thecanadianencyclopedia.ca/en/article/influential-indigenous-musicians",
+					icon: "music",
+				},
+			],
+		},
+	},
+	a2: {
+		en: {
+			id: "a2",
+			number: 2,
+			title: "Indigenous Medicinal Plants",
+			tip: "Discover Indigenous medicinal uses for plants in your area. Describe what you learned.",
+			notePlaceholder: "Plants, uses, teachings you discovered…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a2",
+			number: 2,
+			title:
+				"Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.",
+			tip: "Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.\nDécrivez vos apprentissages.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tListe des utilisations traditionnelles des plantes chez les Métis (en anglais)\n•\tLivre sur les aliments végétaux traditionnels chez les peuples autochtones du Canada (en anglais)",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+	a3: {
+		en: {
+			id: "a3",
+			number: 3,
+			title: "Make a Traditional Recipe",
+			tip: "Try making a traditional First Nations, Inuit or Métis recipe. Share your experience.",
+			notePlaceholder: "Recipe, process, who you shared it with…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a3",
+			number: 3,
+			title:
+				"Essayez une recette traditionnelle des Premières Nations, ou des peuples inuits ou métis",
+			tip: "Essayez une recette traditionnelle des Premières Nations, ou des peuples inuits ou métis\nFaites part de votre expérience ou organisez un repas-partage.\nVous ne savez pas par où commencer? Consultez la ressource suivante :\n•\tRecettes autochtones (en anglais)",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+	a4: {
+		en: {
+			id: "a4",
+			number: 4,
+			title: "Indigenous Peoples Outside Canada",
+			tip: "Discover facts about an Indigenous population outside Canada. What stood out to you?",
+			notePlaceholder: "Which community? What you learned…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a4",
+			number: 4,
+			title:
+				"Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.",
+			tip: "Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.\nDécrivez vos apprentissages.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tCarte des peuples autochtones dans le monde (en anglais)\n•\tLes peuples autochtones du monde (en anglais)",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+	a5: {
+		en: {
+			id: "a5",
+			number: 5,
+			title: "Film, TV, or Podcast",
+			tip: "Watch an Indigenous film or TV show, or listen to an Indigenous-focused podcast. What did you learn?",
+			notePlaceholder: "Title, creator(s), insights…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a5",
+			number: 5,
+			title:
+				"Écoutez un film ou une série télévisée autochtone, ou bien un balado sur les Autochtones.",
+			tip: "Écoutez un film ou une série télévisée autochtone, ou bien un balado sur les Autochtones.\nQu’avez-vous appris?\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tCinéma autochtone de l’Office national du film\n•\tHistoires autochtones de CBC Gem (en anglais)",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+	a6: {
+		en: {
+			id: "a6",
+			number: 6,
+			title: "Read a Book",
+			tip: "Read a book by a First Nations, Inuit, or Métis author. What did you think?",
+			notePlaceholder: "Author, title, key takeaways…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a6",
+			number: 6,
+			title:
+				"Lisez un livre d’un auteur ou autrice des Premières Nations, ou des peuples inuits ou métis",
+			tip: "Lisez un livre d’un auteur ou autrice des Premières Nations, ou des peuples inuits ou métis \nFaites part de vos impressions.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\t#LecturesAutochtones\n•\tDemandez des suggestions à votre bibliothécaire.",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+	a7: {
+		en: {
+			id: "a7",
+			number: 7,
+			title: "Learn Three Words",
+			tip: "Learn to say three words in an Indigenous language. Share them with your team and use them often.",
+			notePlaceholder: "Words/phrases and where they’re used…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a7",
+			number: 7,
+			title: "Apprenez à prononcer trois mots dans une langue autochtone.",
+			tip: "Apprenez à prononcer trois mots dans une langue autochtone.\nPrésentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tFirstVoices (en anglais)\n•\tGlossaire inuktut (en anglais)\n•\tRessources numériques du Michif Language Revitalization Circle (en anglais)\n•\tRessources du Louis Riel Institute pour apprendre les langues métisses (en anglais)",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+	a8: {
+		en: {
+			id: "a8",
+			number: 8,
+			title: "Two-Spirit & Indigiqueer Communities",
+			tip: "Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous 2SLGBTQQIA+ communities and their histories.",
+			notePlaceholder: "Voices you followed; what you learned…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a8",
+			number: 8,
+			title:
+				"Enrichissez votre compréhension des communautés de personnes aux deux esprits, autochtones queers et autochtones 2ELGBTQQIA+, et de leurs histoires.",
+			tip: "Enrichissez votre compréhension des communautés de personnes aux deux esprits, autochtones queers et autochtones 2ELGBTQQIA+, et de leurs histoires.\nDécouvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.\nFaites part de vos apprentissages aux membres de votre équipe.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tRessource de savoir autochtone et de leadership bispirituel (en anglais)\n•\tBibliothèque bispirituelle (en anglais)\n•\tDeux esprits, une voix (en anglais)\nDéfenseur·es autochtones 2ELGBTQQIA+ connu·es :\n•\tJames Makokis, médecin et conférencier cri bispirituel\n•\tJaris Swidrovich, pharmacien et éducateur saulteux bispirituel\n•\tRaven Davis, artiste anishinaabe bispirituel·le, trans et en situation de handicap, et organisateur·trice communautaire.\n•\tTheo Jean Cuthand (TJ Cuthand), cinéaste, scénariste et réalisateur bispirituel cri des plaines transgenre\n•\tAlexa Keleutak, Inuite, représentante des Inuits 2ELGBTQQIA+ au Québec\n•\tChelsea Vowel (âpihtawikosisân), écrivaine métisse, mentor de la langue crie et intellectuelle publique",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+	a9: {
+		en: {
+			id: "a9",
+			number: 9,
+			title: "Indigenous-Focused News Story",
+			tip: "Uncover a news story with an Indigenous focus and reflect on its scope. What challenges or biases are visible?",
+			notePlaceholder: "Story link, your reflections…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a9",
+			number: 9,
+			title:
+				"Découvrez un reportage axé sur les réalités autochtones et réfléchissez à la portée du récit.",
+			tip: "Découvrez un reportage axé sur les réalités autochtones et réfléchissez à la portée du récit.\nFaites part de vos remarques et perspectives sur ce que vous avez appris, comme les difficultés que doit affronter la population ou les préjugés que le reportage fait ressortir.\nVous ne savez pas par où commencer? Explorez ces radiodiffuseurs et distributeurs de nouvelles autochtones :\n•\tAPTN (en anglais)\n•\tThe Turtle Island News (en anglais)\n•\tKukukwes.com (en anglais)\n•\tIndigiNews (en anglais)\n•\tThe Ha-Shilth-Sa (en anglais)\n•\tWindspeaker.com (en anglais)",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+	a10: {
+		en: {
+			id: "a10",
+			number: 10,
+			title: "Indigenous-Owned Business",
+			tip: "Explore a First Nations, Inuit or Métis-owned business (in person or online). What products or services spoke to you and why?",
+			notePlaceholder: "Business, offerings, how you’ll support…",
+			resourcesHeading: "Resources",
+			links: [],
+		},
+		fr: {
+			id: "a10",
+			number: 10,
+			title:
+				"Découvrez, en personne ou en ligne, une entreprise ou un magasin appartenant à une personne inuite, métisse ou des Premières Nations.",
+			tip: "Découvrez, en personne ou en ligne, une entreprise ou un magasin appartenant à une personne inuite, métisse ou des Premières Nations.\nQuels produits ou services ont attiré votre attention? Pourquoi?\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tMagasins des Premières Nations (en anglais)\n•\t17 entreprises canadiennes appartenant à des Autochtones (2025) (en anglais)\n•\tRépertoire des entreprises autochtones – recherche détaillée",
+			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			resourcesHeading: "Ressources",
+			links: [],
+		},
+	},
+};
+
+export const ACTIVITY_UI = {
+	en: {
+		label: "Activity",
+		instructions: "Instructions",
+		openLink: "Open link",
+		downloadDoc: "Download (.doc)",
+		tipAria: "Activity tip",
+		iconTitle: "Activity icon",
+	},
+	fr: {
+		label: "Activité",
+		instructions: "Consignes",
+		openLink: "Ouvrir le lien",
+		downloadDoc: "Télécharger (.doc)",
+		tipAria: "Conseil d’activité",
+		iconTitle: "Icône d’activité",
 	},
 };

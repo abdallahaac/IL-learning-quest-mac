@@ -30,7 +30,7 @@ function SrOnly({ children }) {
 	);
 }
 
-/** FlipCard with scroll-safe interaction */
+/** FlipCard with scroll-safe, WCAG-friendly interaction (no custom scrollbar) */
 function FlipCard({
 	step,
 	backText,
@@ -41,12 +41,18 @@ function FlipCard({
 }) {
 	const [flipped, setFlipped] = useState(false);
 	const [reduceMotion, setReduceMotion] = useState(false);
+	const [srStatus, setSrStatus] = useState(""); // aria-live updates
 	const uid = useId();
 	const frontId = `${uid}-front`;
 	const backId = `${uid}-back`;
+	const scrollId = `${uid}-scroll`;
+	const liveId = `${uid}-live`;
 	const DRAG_TOLERANCE = 6;
+
 	const startPos = useRef({ x: 0, y: 0 });
 	const moved = useRef(false);
+	const scrollRef = useRef(null);
+	const btnRef = useRef(null);
 
 	useEffect(() => {
 		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -56,17 +62,33 @@ function FlipCard({
 		return () => mq.removeEventListener?.("change", onChange);
 	}, []);
 
-	// Mark visited when flipped first time
+	// Mark visited when flipped first time + announce state for SR
 	useEffect(() => {
 		if (flipped && !isVisited) onVisited?.();
+		setSrStatus(
+			flipped
+				? STR.sr?.cardOpen || "Card opened. Content is now visible."
+				: STR.sr?.cardClosed || "Card closed. Front is now visible."
+		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [flipped]);
+
+	// When flipped, move focus into the scroll area for keyboard scrolling
+	useEffect(() => {
+		if (flipped && scrollRef.current) {
+			const active = document.activeElement;
+			if (!scrollRef.current.contains(active)) {
+				scrollRef.current.focus({ preventScroll: true });
+			}
+		}
 	}, [flipped]);
 
 	const baseClasses = [
 		"group relative w-full",
-		"h-56 sm:h-64 lg:h-72",
+		"h-82 sm:h-80 lg:h-96",
 		"rounded-xl shadow-sm border transition-transform duration-500 will-change-transform",
-		"focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+		"focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+		"focus-visible:ring-offset-white focus-visible:ring-violet-600",
 		flipped && !reduceMotion ? "[transform:rotateY(180deg)]" : "",
 		"p-0",
 	].join(" ");
@@ -105,8 +127,97 @@ function FlipCard({
 		}, 0);
 	};
 
+	// Wheel: route to inner scroller when it can actually scroll; otherwise allow page to move.
+	const routeWheelToInner = (e) => {
+		const el = scrollRef.current;
+		if (!el) return;
+		const delta = e.deltaY;
+		const atTop = el.scrollTop <= 0;
+		const atBottom =
+			Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
+
+		const scrollingUp = delta < 0;
+		const scrollingDown = delta > 0;
+
+		const canScrollUp = !atTop && scrollingUp;
+		const canScrollDown = !atBottom && scrollingDown;
+
+		if (canScrollUp || canScrollDown) {
+			e.preventDefault();
+			el.scrollTop += delta;
+		}
+		// If we’re at a boundary and the user keeps pushing past it, let the page scroll. No traps.
+	};
+
+	// Keyboard on the button: flip only when the button itself has focus
+	const handleButtonKeyDown = (e) => {
+		if (e.currentTarget !== e.target) return;
+		if (["Enter", " "].includes(e.key)) {
+			e.preventDefault();
+			setFlipped((v) => !v);
+		}
+		if (e.key.toLowerCase() === "f") {
+			e.preventDefault();
+			setFlipped((v) => !v);
+		}
+	};
+
+	// Keyboard inside the scroll area: Space/PageUp/PageDown do expected scroll
+	const handleScrollAreaKeyDown = (e) => {
+		const el = scrollRef.current;
+		if (!el) return;
+		const page = Math.max(24, Math.floor(el.clientHeight * 0.9));
+		switch (e.key) {
+			case " ":
+			case "PageDown":
+				e.preventDefault();
+				el.scrollTop = Math.min(el.scrollTop + page, el.scrollHeight);
+				break;
+			case "PageUp":
+				e.preventDefault();
+				el.scrollTop = Math.max(el.scrollTop - page, 0);
+				break;
+			default:
+				// ArrowUp/Down, Home/End work natively
+				break;
+		}
+	};
+
+	// Touch: allow inner scroll, block body only when inner can scroll in that direction
+	const swallowTouchMove = (e) => {
+		const el = scrollRef.current;
+		if (!el) return;
+
+		const touch = e.touches?.[0];
+		if (!touch) return;
+
+		const prev = el.__lastTouchY ?? touch.clientY;
+		const dy = prev - touch.clientY; // positive = scroll down
+		el.__lastTouchY = touch.clientY;
+
+		const atTop = el.scrollTop <= 0;
+		const atBottom =
+			Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
+
+		const scrollingUp = dy < 0;
+		const scrollingDown = dy > 0;
+
+		const canScrollUp = !atTop && scrollingUp;
+		const canScrollDown = !atBottom && scrollingDown;
+
+		if (canScrollUp || canScrollDown) {
+			if (e.cancelable) e.preventDefault();
+			el.scrollTop += dy;
+		}
+		// else, let it bubble to the page so users aren’t trapped.
+	};
+	const clearLastTouch = () => {
+		if (scrollRef.current) delete scrollRef.current.__lastTouchY;
+	};
+
 	return (
 		<li className="relative">
+			{/* Non-flipping badge */}
 			{isVisited && (
 				<span
 					className="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full grid place-items-center text-white"
@@ -122,28 +233,22 @@ function FlipCard({
 
 			<div className="relative isolate [perspective:1000px]">
 				<button
+					ref={btnRef}
 					type="button"
 					className={`${baseClasses} ${cardBorder} ${cardBg}`}
 					aria-pressed={flipped}
+					aria-expanded={flipped}
+					aria-controls={backId}
 					aria-describedby={flipped ? backId : frontId}
 					onClick={tryFlip}
-					onKeyDown={(e) => {
-						if (e.currentTarget !== e.target) return;
-						if (["Enter", " "].includes(e.key)) {
-							e.preventDefault();
-							setFlipped((v) => !v);
-						}
-						if (e.key.toLowerCase() === "f") {
-							e.preventDefault();
-							setFlipped((v) => !v);
-						}
-					}}
+					onKeyDown={handleButtonKeyDown}
 					onMouseDown={handlePointerDown}
 					onMouseMove={handlePointerMove}
 					onMouseUp={handlePointerUp}
 					onTouchStart={handlePointerDown}
 					onTouchMove={handlePointerMove}
 					onTouchEnd={handlePointerUp}
+					onWheel={routeWheelToInner}
 					style={{
 						transformStyle: "preserve-3d",
 						boxShadow: "0 1px 0 rgba(255,255,255,.6) inset",
@@ -175,25 +280,35 @@ function FlipCard({
 							"grid place-items-center px-5 py-6",
 						].join(" ")}
 						style={{ backfaceVisibility: "hidden" }}
+						role="group"
+						aria-label={`${STR.stepLabel} ${step} ${STR.howTitle}`}
+						onTouchMove={swallowTouchMove}
+						onTouchEnd={clearLastTouch}
+						onTouchCancel={clearLastTouch}
 					>
+						{/* Focusable scroll area */}
 						<div
-							className="max-h-full w-full overflow-auto"
+							id={scrollId}
+							ref={scrollRef}
+							className="max-h-full w-full overflow-auto outline-none focus-visible:ring-2 focus-visible:ring-violet-600 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-lg"
 							data-scroll-area="true"
+							tabIndex={0}
+							role="region"
+							aria-roledescription="Scrollable card content"
+							aria-label={STR.sr.readMore || "Scrollable description"}
+							onKeyDown={handleScrollAreaKeyDown}
 							onClick={(e) => e.stopPropagation()}
 							onMouseDown={(e) => e.stopPropagation()}
 							onTouchStart={(e) => e.stopPropagation()}
 						>
-							<p
-								className="leading-relaxed text-gray-800 text-center"
-								style={{ fontSize: "15px" }}
-							>
+							<p className="leading-relaxed text-gray-900 text-center text-[15px]">
 								{backText}
 							</p>
 						</div>
 						<p className="sr-only">{STR.sr.flipBack}</p>
 					</div>
 
-					{/* Sizer */}
+					{/* Sizer for consistent dimensions */}
 					<div className="opacity-0 h-full w-full px-5 py-6">
 						<h4 className="text-2xl font-bold">
 							{STR.stepLabel} {step}
@@ -201,6 +316,11 @@ function FlipCard({
 						<p className="mt-2 text-sm">{backText}</p>
 					</div>
 				</button>
+
+				{/* Live region to announce open/close state */}
+				<div id={liveId} aria-live="polite" className="sr-only">
+					{srStatus}
+				</div>
 			</div>
 		</li>
 	);
@@ -218,6 +338,10 @@ export default function PreparationPage({ content, onStartActivities }) {
 		sr: {
 			flip: "Press Enter or Space to flip and read the description.",
 			flipBack: "Press Enter, Space, or F to flip back.",
+			readMore:
+				"Scrollable card content. Use arrow keys or Page Up/Down to read.",
+			cardOpen: "Card opened. Use Page Down or arrow keys to scroll.",
+			cardClosed: "Card closed.",
 		},
 	};
 
@@ -274,6 +398,7 @@ export default function PreparationPage({ content, onStartActivities }) {
 
 	return (
 		<div className="relative bg-transparent min-h-[100svh]">
+			{/* subtle gradient background */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 z-0 pointer-events-none"
@@ -287,6 +412,7 @@ export default function PreparationPage({ content, onStartActivities }) {
 			/>
 
 			<div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-8">
+				{/* Header */}
 				<motion.section
 					{...fadeUp}
 					transition={fastEase}
@@ -310,6 +436,7 @@ export default function PreparationPage({ content, onStartActivities }) {
 					)}
 				</motion.section>
 
+				{/* How it works */}
 				<motion.section
 					{...fadeUp}
 					transition={fastEase}
@@ -326,6 +453,10 @@ export default function PreparationPage({ content, onStartActivities }) {
 					</h3>
 
 					<p className="mt-2 text-slate-700">{STR.instructions}</p>
+					<SrOnly>
+						{STR.sr.readMore ||
+							"Cards open with Enter or Space. When opened, use arrow keys or Page Up/Down to scroll the content."}
+					</SrOnly>
 
 					<ol className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
 						{items.map((it, i) => (

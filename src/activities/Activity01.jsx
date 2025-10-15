@@ -1,3 +1,4 @@
+// src/pages/Activity01.jsx
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -11,8 +12,8 @@ import NoteComposer, {
 } from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
-// at top
 import ScribbleUnderline from "../components/ScribbleUnderline.jsx";
+import { ACTIVITY_UI } from "../constants/content.js";
 
 // helper: add alpha to a hex color (#RRGGBB + "AA")
 function withAlpha(hex, alphaHex) {
@@ -20,16 +21,72 @@ function withAlpha(hex, alphaHex) {
 	return `${hex}${alphaHex}`;
 }
 
+const ICONS = { image: ImageIcon, music: Music4 };
+
+// tiny HTML-to-text fallback for .doc intro
+function stripHtml(html = "") {
+	return String(html)
+		.replace(/<[^>]*>/g, "")
+		.replace(/\s+\n/g, "\n")
+		.trim();
+}
+
+// normalize resources from QuestData (strings) or richer link objects
+function normalizeResources(content) {
+	if (Array.isArray(content?.links) && content.links.length) {
+		return { linkItems: content.links, stringItems: [] };
+	}
+	const stringItems = Array.isArray(content?.resources)
+		? content.resources
+		: [];
+	return { linkItems: [], stringItems };
+}
+
+// tiny i18n selector (same behavior as AppShell)
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
 export default function Activity01({
-	content,
+	content, // from ACTIVITIES_CONTENT[...] or legacy QuestData
 	notes,
 	completed,
 	onNotes,
 	onToggleComplete,
 	accent = "#4380d6",
 }) {
+	// language + localized UI labels
+	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
+	const L = ACTIVITY_UI[lang] || ACTIVITY_UI.en;
+
+	// Prefer richer content (from ACTIVITIES_CONTENT) when present
+	const cdata = content?.cdata || {};
+	const title = cdata.title || content?.title || "Activity";
+	const instructionsHtml =
+		cdata.instructionsHtml ||
+		(content?.prompt ? `<p>${content.prompt}</p>` : "");
+	const tipText =
+		content?.tip || content?.prompt || stripHtml(instructionsHtml) || "";
+
 	const placeholder =
-		content?.notePlaceholder || "Your reflections on the artist…";
+		content?.notePlaceholder || cdata.notePlaceholder || "Your reflections…";
+
+	// activity number: use provided, else parse from id like "a1"
+	const activityNumber =
+		Number.isFinite(content?.number) && content?.number > 0
+			? content.number
+			: parseInt(String(content?.id || "").replace(/\D/g, ""), 10) || 1;
+
+	const { linkItems, stringItems } = normalizeResources(content);
+	const hasRealLinks = linkItems.length > 0;
 
 	// keep local for responsiveness; sync when prop changes
 	const [localNotes, setLocalNotes] = useState(notes ?? "");
@@ -41,21 +98,6 @@ export default function Activity01({
 		setLocalNotes(v);
 		onNotes?.(v);
 	};
-
-	const pageLinks = [
-		{
-			label: "List of important Indigenous artists in Canada",
-			url: "https://www.thecanadianencyclopedia.ca/en/article/important-indigenous-artists",
-		},
-		{
-			label: "List of influential Indigenous musicians in Canada",
-			url: "https://www.thecanadianencyclopedia.ca/en/article/influential-indigenous-musicians",
-		},
-	];
-
-	// Tip text to include in the Word doc
-	const tipText =
-		"Explore works by an Indigenous artist that speak to you. Describe how you relate to this artist. How does this artist inspire you?";
 
 	const reduceMotion = useReducedMotion();
 
@@ -90,14 +132,12 @@ export default function Activity01({
 
 	// shared classes
 	const linkCardBase =
-		"group block max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
-		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer " +
-		"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+		"group block max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+	const staticCardBase =
+		"max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm";
 	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
 	const linkFooterBase =
 		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
-
-	const activityNumber = 1;
 
 	// === Measure title row so the instructions start exactly at H1's left ===
 	const titleRowRef = useRef(null);
@@ -108,7 +148,6 @@ export default function Activity01({
 		if (!el) return;
 		const update = () => setTitleRowWidth(el.getBoundingClientRect().width);
 		update();
-
 		const ro = new ResizeObserver(update);
 		ro.observe(el);
 		window.addEventListener("resize", update);
@@ -121,21 +160,28 @@ export default function Activity01({
 	// ✅ compute from freshest value
 	const started = hasActivityStarted(localNotes ?? notes, "notes");
 
+	// Localized heading for resources in export
+	const exportLinksHeading =
+		content?.resourcesHeading || (lang === "fr" ? "Ressources" : "Resources");
+
 	// ---- Decoupled download handler (uses current notes + page metadata) ----
 	const handleDownload = () => {
 		const html =
 			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+		const includeLinks = hasRealLinks;
 		downloadNotesAsWord({
 			html,
-			downloadFileName: `Activity-${content?.id || "01"}-Reflection.doc`,
-			docTitle: content?.title || "Explore an Indigenous Artist",
+			downloadFileName: `Activity-${
+				content?.id || String(activityNumber).padStart(2, "0")
+			}-Reflection.doc`,
+			docTitle: title,
 			docSubtitle: content?.subtitle,
 			activityNumber,
-			docIntro: `Explore works by an Indigenous artist that speak to you.\nHow do you relate to this artist?\nHow do they inspire you?`,
-			includeLinks: true,
-			linksHeading: "Resources",
-			pageLinks,
-			headingColor: accent, // match page accent for exported headings
+			docIntro: tipText,
+			includeLinks,
+			linksHeading: exportLinksHeading,
+			pageLinks: linkItems,
+			headingColor: accent,
 			accent,
 		});
 	};
@@ -171,12 +217,12 @@ export default function Activity01({
 					animate="show"
 				>
 					<div className="mx-auto space-y-4 sm:space-y-5">
-						{/* Activity number */}
+						{/* Activity number (localized) */}
 						<p
 							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
 						>
-							Activity {activityNumber}
+							{`${L.label} ${activityNumber}`}
 						</p>
 
 						{/* Title row */}
@@ -185,11 +231,8 @@ export default function Activity01({
 							ref={titleRowRef}
 						>
 							<div className="relative inline-block">
-								<h1
-									className="text-4xl font-bold text-slate-900 leading-tight"
-									ref={titleRowRef} // ← you can also keep a separate ref just for h1 if you prefer
-								>
-									Explore an Indigenous Artist
+								<h1 className="text-4xl font-bold text-slate-900 leading-tight">
+									{title}
 								</h1>
 							</div>
 
@@ -197,16 +240,15 @@ export default function Activity01({
 								className="w-8 h-8 align-middle"
 								aria-hidden="true"
 								style={{ color: accent }}
-								title="Activity icon"
+								title={L.iconTitle}
 							/>
 						</div>
 
 						{/* Instructions */}
 						<aside
 							role="note"
-							aria-label="Activity tip"
-							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm
-                 px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
+							aria-label={L.tipAria}
+							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
 							style={{ borderColor: withAlpha(accent, "33") }}
 						>
 							<div className="flex flex-col items-center gap-3 text-center">
@@ -218,135 +260,143 @@ export default function Activity01({
 									}}
 									aria-hidden="true"
 								>
-									Instructions
+									{L.instructions}
 								</div>
-								<p
-									className="text-slate-800 max-w-2xl"
-									style={{ color: accent }}
-								>
-									Explore works by an Indigenous artist that speak to you.{" "}
-									<br />
-									<strong>
-										Describe how you relate to this artist. How does this artist
-										inspire you?
-									</strong>
-								</p>
+
+								{instructionsHtml ? (
+									<div
+										className="text-slate-800 max-w-2xl"
+										style={{ color: accent }}
+										dangerouslySetInnerHTML={{ __html: instructionsHtml }}
+									/>
+								) : (
+									<p
+										className="text-slate-800 max-w-2xl"
+										style={{ color: accent }}
+									>
+										{tipText}
+									</p>
+								)}
 							</div>
 						</aside>
 					</div>
 				</motion.header>
 
-				{/* Links grid */}
-				<motion.section
-					className="flex justify-center"
-					variants={gridStagger}
-					initial="hidden"
-					animate="show"
-				>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center">
-						<motion.a
-							href="https://www.thecanadianencyclopedia.ca/en/article/important-indigenous-artists"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							variants={cardPop}
-							title="Open: List of important Indigenous artists in Canada (new tab)"
-							aria-label="Open list of important Indigenous artists in Canada in a new tab"
-						>
-							<div className="flex items-center gap-3">
-								<div
-									className={badgeBase}
-									style={{
-										backgroundColor: withAlpha(accent, "1A"),
-										color: accent,
-									}}
-								>
-									<ImageIcon className="w-5 h-5" aria-hidden="true" />
-								</div>
-								<div className="font-medium text-slate-900 group-hover:underline">
-									Selection of Indigenous artists in Canada
-								</div>
-							</div>
-							<div
-								className={`${linkFooterBase} text-slate-800`}
-								style={{ color: "#4380d6" }}
-							>
-								<ExternalLink className="w-4 h-4" aria-hidden="true" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
+				{/* Resources grid */}
+				{(hasRealLinks || stringItems.length > 0) && (
+					<motion.section
+						className="flex justify-center"
+						variants={gridStagger}
+						initial="hidden"
+						animate="show"
+					>
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center">
+							{hasRealLinks
+								? linkItems.map((lnk, i) => {
+										const Icon = ICONS[lnk.icon] ?? ImageIcon;
+										return (
+											<motion.a
+												key={`${lnk.url || lnk.label}-${i}`}
+												href={lnk.url}
+												target="_blank"
+												rel="noreferrer"
+												className={linkCardBase}
+												style={{ outlineColor: accent }}
+												variants={cardPop}
+												title={`${L.openLink}: ${lnk.label}`}
+												aria-label={`${L.openLink} ${lnk.label}`}
+											>
+												<div className="flex items-center gap-3">
+													<div
+														className={badgeBase}
+														style={{
+															backgroundColor: withAlpha(accent, "1A"),
+															color: accent,
+														}}
+													>
+														<Icon className="w-5 h-5" aria-hidden="true" />
+													</div>
+													<div className="font-medium text-slate-900 group-hover:underline">
+														{lnk.label}
+													</div>
+												</div>
+												<div
+													className={`${linkFooterBase} text-slate-800`}
+													style={{ color: "#4380d6" }}
+												>
+													<ExternalLink
+														className="w-4 h-4"
+														aria-hidden="true"
+													/>
+													<span>{L.openLink}</span>
+												</div>
+											</motion.a>
+										);
+								  })
+								: stringItems.map((label, i) => (
+										<motion.div
+											key={`${label}-${i}`}
+											className={staticCardBase}
+											style={{ borderColor: withAlpha(accent, "22") }}
+											variants={cardPop}
+										>
+											<div className="flex items-center gap-3">
+												<div
+													className={badgeBase}
+													style={{
+														backgroundColor: withAlpha(accent, "1A"),
+														color: accent,
+													}}
+												>
+													<ImageIcon className="w-5 h-5" aria-hidden="true" />
+												</div>
+												<div className="font-medium text-slate-900">
+													{label}
+												</div>
+											</div>
+										</motion.div>
+								  ))}
+						</div>
+					</motion.section>
+				)}
 
-						<motion.a
-							href="https://www.thecanadianencyclopedia.ca/en/article/influential-indigenous-musicians"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							variants={cardPop}
-							title="Open: List of influential Indigenous musicians in Canada (new tab)"
-							aria-label="Open list of influential Indigenous musicians in Canada in a new tab"
-						>
-							<div className="flex items-center gap-4">
-								<div
-									className={badgeBase}
-									style={{
-										backgroundColor: withAlpha(accent, "1A"),
-										color: accent,
-									}}
-								>
-									<Music4 className="w-5 h-5" aria-hidden="true" />
-								</div>
-								<div className="font-medium text-slate-900 group-hover:underline">
-									Selection of Indigenous musicians in Canada
-								</div>
-							</div>
-							<div
-								className={`${linkFooterBase} text-slate-800`}
-								style={{ color: "#4380d6" }}
-							>
-								<ExternalLink className="w-4 h-4" aria-hidden="true" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
-					</div>
-				</motion.section>
-
-				{/* Notes (Download button hidden inside composer; we'll show one below) */}
+				{/* Notes */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
 					placeholder={placeholder}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
-					accent="#4380d6"
-					downloadFileName={`Activity-${content?.id || "01"}-Reflection.doc`}
-					docTitle={content?.title || "Explore an Indigenous Artist"}
+					accent={accent}
+					downloadFileName={`Activity-${
+						content?.id || String(activityNumber).padStart(2, "0")
+					}-Reflection.doc`}
+					docTitle={title}
 					docSubtitle={content?.subtitle}
-					activityNumber={1}
-					docIntro={`Explore works by an Indigenous artist that speak to you.\nHow do you relate to this artist?\nHow do they inspire you?`}
-					includeLinks
-					linksHeading="Resources"
-					pageLinks={pageLinks}
-					showDownloadButton={false} // 👈 hide internal button
+					activityNumber={activityNumber}
+					docIntro={tipText}
+					includeLinks={hasRealLinks}
+					linksHeading={exportLinksHeading}
+					pageLinks={linkItems}
+					showDownloadButton={false}
 				/>
 
-				{/* Bottom action row: external Download next to Complete */}
+				{/* Bottom action row */}
 				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
 						completed={!!completed}
 						onToggle={onToggleComplete}
-						accent="#10B981" // or use activity accent
+						accent="#10B981"
 					/>
 					<button
 						type="button"
 						onClick={handleDownload}
 						className="px-4 py-2 rounded-lg text-white"
 						style={{ backgroundColor: accent }}
-						title="Download your reflections as a Word-compatible .doc file"
+						title={L.downloadDoc}
 					>
-						Download (.doc)
+						{L.downloadDoc}
 					</button>
 				</div>
 			</div>
