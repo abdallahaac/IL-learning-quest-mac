@@ -131,8 +131,9 @@ export default function Activity02({
 		"group block max-w-lg w-full rounded-2xl border border-gray-200 bg-white p-6 sm:p-7 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 
 	const staticCardBase =
-		"max-w-lg w-full  border border-gray-200 bg-white p-6 sm:p-7 shadow-sm";
+		"max-w-lg w-full border border-gray-200 bg-white p-6 sm:p-7 shadow-sm";
 
+	// fixed-size badge that never squashes
 	const badgeBase =
 		"flex-none shrink-0 w-10 h-10 min-w-[40px] min-h-[40px] aspect-square rounded-xl grid place-items-center";
 
@@ -265,20 +266,6 @@ export default function Activity02({
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center">
 							{hasRealLinks
 								? linkItems.map((lnk, i) => {
-										const visibleLabel = (
-											<>
-												{lnk.label}
-												{enOnlySuffix && (
-													<span
-														// requested color for the suffix
-														style={{ color: EMERALD_700 }}
-														className="ml-1"
-													>
-														{enOnlySuffix}
-													</span>
-												)}
-											</>
-										);
 										const labelForAria = `${lnk.label}${enOnlySuffix}`;
 										return (
 											<motion.a
@@ -300,14 +287,30 @@ export default function Activity02({
 															color: accent,
 														}}
 													>
-														<Leaf className="w-5 h-5" aria-hidden="true" />
+														<Leaf
+															className="w-5 h-5 shrink-0"
+															aria-hidden="true"
+														/>
 													</div>
-													<div className="font-medium text-gray-800 group-hover:underline">
-														{visibleLabel}
+
+													{/* Only the main label underlines on hover; suffix never does */}
+													<div className="font-medium text-gray-800">
+														<span className="group-hover:underline">
+															{lnk.label}
+														</span>
+														{enOnlySuffix && (
+															<span
+																className="ml-1 no-underline"
+																style={{ color: EMERALD_700 }}
+															>
+																{enOnlySuffix}
+															</span>
+														)}
 													</div>
 												</div>
+
 												<div
-													className="mt-2 flex items-center justify-center gap-1 text-xs font-medium"
+													className={linkFooterBase}
 													style={{ color: accent }}
 												>
 													<ExternalLink
@@ -334,7 +337,10 @@ export default function Activity02({
 														color: accent,
 													}}
 												>
-													<Leaf className="w-5 h-5" aria-hidden="true" />
+													<Leaf
+														className="w-5 h-5 shrink-0"
+														aria-hidden="true"
+													/>
 												</div>
 												<div className="font-medium text-slate-900">
 													{label}
