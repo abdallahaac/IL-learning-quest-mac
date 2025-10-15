@@ -92,7 +92,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 	};
 
 	return (
-		<div className="relative z-0 flex-1 flex flex-col items-center justify-center text-center px-4 py-10 ">
+		<section className="relative z-0 flex-1">
 			{/* Splash intro (reload or first mount in this session) */}
 			{shouldPlaySplash && (
 				<SplashMarkerIntro
@@ -112,7 +112,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 				/>
 			)}
 
-			{/* Cover content fades in after splash completes (or immediately if no splash) */}
+			{/* Cover content: truly centered within remaining viewport (after header/footer) */}
 			{splashDone && (
 				<motion.main
 					initial={{ opacity: 0, y: 10 }}
@@ -120,15 +120,25 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 					transition={{ duration: 0.45, ease: "easeOut" }}
 					className="relative z-10 w-full will-change-[transform,opacity]"
 				>
-					<CoverBody
-						title={title}
-						paragraphs={paragraphs}
-						onStart={onStart}
-						reduced={reduceMotion}
-					/>
+					<div
+						className="grid place-items-center px-4"
+						style={{
+							// Use modern viewport units. Swap 100svh -> 100dvh if you prefer dynamic.
+							minHeight: "calc(100svh - var(--header-h) - var(--footer-h))",
+						}}
+					>
+						<div className="w-full max-w-4xl text-center">
+							<CoverBody
+								title={title}
+								paragraphs={paragraphs}
+								onStart={onStart}
+								reduced={reduceMotion}
+							/>
+						</div>
+					</div>
 				</motion.main>
 			)}
-		</div>
+		</section>
 	);
 }
 
