@@ -205,17 +205,17 @@ export default function PatternMorph({
 		ctx.globalAlpha = 1;
 
 		// --- Dog-eared fold overlay (drawn last, above pattern) ---
-		if (showFold) {
-			drawDogEarFold(ctx, {
-				W,
-				H,
-				dpr,
-				size: foldSize * dpr,
-				fill: foldFill,
-				stroke: foldStroke,
-				shadow: foldShadow,
-			});
-		}
+		// if (showFold) {
+		// 	drawDogEarFold(ctx, {
+		// 		W,
+		// 		H,
+		// 		dpr,
+		// 		size: foldSize * dpr,
+		// 		fill: foldFill,
+		// 		stroke: foldStroke,
+		// 		shadow: foldShadow,
+		// 	});
+		// }
 	}
 
 	return (

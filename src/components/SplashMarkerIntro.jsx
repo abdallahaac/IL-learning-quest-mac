@@ -16,6 +16,30 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
  *  - animated collaboration caption
  *  - auto close or user skip
  */
+
+// TEMP SWITCH: flip to false to re-enable the splash.
+// You can also disable via ?noSplash, localStorage.noSplash="1", or VITE_DISABLE_SPLASH=1.
+const TEMP_DISABLE_SPLASH = true;
+
+function splashIsDisabled() {
+	// Hard kill-switch first
+	if (TEMP_DISABLE_SPLASH) return true;
+
+	// Other quick ways to disable without touching code again
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.has("noSplash")) return true;
+	} catch {}
+	try {
+		if (localStorage.getItem("noSplash") === "1") return true;
+	} catch {}
+	try {
+		if (String(import.meta.env?.VITE_DISABLE_SPLASH || "").trim() === "1")
+			return true;
+	} catch {}
+	return false;
+}
+
 export default function SplashMarkerIntro({
 	logos, // [left, right] each can be url string, component, or { el|src, height?, width?, className?, style? }
 
@@ -46,6 +70,18 @@ export default function SplashMarkerIntro({
 	logoHeight = 100,
 }) {
 	const reduce = useReducedMotion();
+
+	// --- Momentary disable: short-circuit the whole thing and immediately "finish"
+	const disabled = useMemo(() => splashIsDisabled(), []);
+	useEffect(() => {
+		if (disabled) {
+			try {
+				onDone?.();
+			} catch {}
+		}
+	}, [disabled, onDone]);
+	if (disabled) return null;
+
 	const [show, setShow] = useState(true);
 	const [ready, setReady] = useState(reduce);
 	const [grid, setGrid] = useState({ rows: 0, cols: 0 });

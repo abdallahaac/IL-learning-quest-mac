@@ -92,7 +92,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 	};
 
 	return (
-		<div className="relative z-0 flex-1 flex flex-col items-center justify-center text-center px-4 py-20">
+		<div className="relative z-0 flex-1 flex flex-col items-center justify-center text-center px-4 py-10 ">
 			{/* Splash intro (reload or first mount in this session) */}
 			{shouldPlaySplash && (
 				<SplashMarkerIntro
