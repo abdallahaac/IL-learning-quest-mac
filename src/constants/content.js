@@ -1,3 +1,5 @@
+// src/constants/content.js
+
 export const COVER_CONTENT = {
 	title: "Learning Quest on Indigenous Cultures",
 	paragraphs: [
@@ -7,7 +9,7 @@ export const COVER_CONTENT = {
 };
 
 export const INTRO_INFO_CONTENT = {
-	title: "Introduction ",
+	title: "Introduction",
 	paragraphs: [
 		"The Learning Quest was created to spark joy and curiosity in public servants while supporting their journey toward meaningful allyship. Developed by Indigenous-identifying creators, it encourages learning through shared experiences, helping participants connect through common interests and resource sharing.",
 		"Rather than being a test of knowledge, the Learning Quest is a lifelong practice—an invitation to explore Indigenous perspectives in everyday life with openness and intention.",
@@ -61,8 +63,35 @@ export const INTRO_INFO_CONTENT = {
 			},
 		],
 	},
+	// UI labels for IntroPage live with the content (EN)
+	ui: {
+		sectionTitle: "Introduction",
+		whatTitle: "What is the Learning Quest on Indigenous Cultures?",
+		quickSummaryAria: "Quick summary",
+		summary: {
+			format: { dt: "Format", dd: "10 activities • self-paced" },
+			collab: { dt: "Collaboration", dd: "Individual or team" },
+			goal: { dt: "Goal", dd: "Awareness & action for reconciliation" },
+		},
+		steps: {
+			gatherTeam: "Gather your team",
+			setParams: "Set your parameters",
+			giveTime: "Give yourself time",
+			meetReflect: "Meet & reflect",
+			wrapKeep: "Wrap up & keep questing",
+		},
+		tip: {
+			label: "Tip",
+			text: {
+				pre: "Use a",
+				highlight: "safe, respectful space",
+				post: "for team check-ins and keep learning by sharing resources together.",
+			},
+		},
+	},
 };
 
+// EN
 export const PREPARATION_CONTENT = {
 	title: "Preparation",
 	paragraphs: [
@@ -70,9 +99,21 @@ export const PREPARATION_CONTENT = {
 		"Don’t feel pressured to complete all the activities in a set period. You should only complete the ones you feel comfortable completing. But be prepared to be challenged as you learn, grow, and build your cultural capacity.",
 		"Need a starting point? Consult Best media by Indigenous voices.",
 	],
+	ui: {
+		sectionTitle: "Preparation",
+		howTitle: "How does the Learning Quest work?",
+		instructions:
+			"Click a card to flip it and read the step. A green check will appear after you’ve viewed a card.",
+		stepLabel: "Step",
+		sr: {
+			flip: "Press Enter or Space to flip and read the description.",
+			flipBack: "Press Enter, Space, or F to flip back.",
+		},
+	},
 };
 
-// src/data/content.js
+// FR
+
 // src/data/content.js
 export const TEAM_CONTENT = {
 	title: "Team Reflection",
@@ -143,6 +184,7 @@ export const RESOURCES_CONTENT = {
 		"4 Seasons of Indigenous Learning: training offered by Outdoor Learning School and Store",
 	],
 };
+
 // Animation timings used across the TOC
 export const TOC_ANIM = {
 	baseDuration: 3.6,
@@ -172,3 +214,266 @@ export const CARD_GAP_Y = 40;
 export const SVG_VIEWBOX = "0 0 1200 230";
 export const SVG_PATH_D =
 	"M0,165 C220,65 420,205 600,125 C780,45 980,205 1200,125";
+
+// ===================== FR CONTENT =====================
+
+export const COVER_CONTENT_FR = {
+	title: "Quête d’apprentissage sur les cultures autochtones",
+	paragraphs: [
+		"Développez vos connaissances sur les réalités autochtones et élargissez vos compétences et capacités culturelles. Cette quête propose une série de 10 activités engageantes pour favoriser la curiosité, la réflexion et l’apprentissage continu.",
+		"Au terme de cette quête, vous aurez approfondi votre compréhension des perspectives, des histoires et des contributions des peuples autochtones et serez mieux outillé pour soutenir la réconciliation et un milieu de travail plus inclusif.",
+	],
+};
+
+export const INTRO_INFO_CONTENT_FR = {
+	title: "Introduction",
+	paragraphs: [
+		"La Quête d’apprentissage a été conçue pour susciter la joie et la curiosité des fonctionnaires tout en soutenant leur cheminement vers une alliance significative. Élaborée par des créatrices et créateurs s’identifiant comme Autochtones, elle favorise l’apprentissage par le partage d’expériences et l’échange de ressources.",
+		"Il ne s’agit pas d’un test de connaissances, mais d’une pratique qui s’inscrit dans la durée. C’est une invitation à explorer les perspectives autochtones avec ouverture et intention dans la vie de tous les jours.",
+		"La Quête d’apprentissage sur les cultures autochtones est une activité d’équipe flexible qui vous aide à en apprendre davantage sur les histoires, cultures et perspectives autochtones. Au fil de 10 activités, vous explorerez, réfléchirez et passerez à l’action pour renforcer votre conscience culturelle et soutenir la réconciliation.",
+		"Vous pouvez faire la quête seul ou en équipe. Le travail d’équipe permet des conversations plus riches et un apprentissage partagé. Chaque activité vous invite à réfléchir de manière critique, à poser des questions et à relier vos apprentissages à votre vie personnelle et professionnelle.",
+		"La quête est personnalisable et peut se dérouler à votre rythme sur plusieurs semaines. Des rencontres d’équipe régulières permettent de partager vos constats, discuter des défis et soutenir les parcours d’apprentissage de chacun.",
+	],
+	bullets: [
+		{
+			heading: "Comment ça fonctionne?",
+			items: [
+				"Réunissez votre équipe. Si votre équipe de travail ne peut pas participer, formez une équipe informelle ou trouvez un partenaire comme compagnon d’étude.",
+				"En équipe, déterminez les paramètres de la quête : vous concentrerez-vous sur des nations et communautés précises, ou adopterez-vous une approche régionale pour apprendre quelque chose sur les peuples autochtones de chaque région du pays? Souhaitez-vous explorer les trois peuples distincts : Premières Nations, Inuits et Métis?",
+				"Accordez-vous du temps pour travailler sur la quête : encouragez vos collègues, publiez des mises à jour et partagez des ressources dans votre clavardage d’équipe. Si un sujet vous intéresse au-delà des questions de la quête, lancez-vous.",
+				"Organisez une rencontre d’équipe pour discuter de vos expériences : établissez des protocoles pour un espace sûr. De quoi chacun a-t-il besoin pour se sentir respecté, écouté et soutenu? Quel est le principal élément à retenir de l’expérience?",
+				"Récapitulez… et poursuivez la quête : partagez vos ressources sur le tableau des meilleurs médias par des voix autochtones, poursuivez l’apprentissage toute l’année et contribuez activement à la réconciliation. Le guide interactif « Parcours de réconciliation » offre des idées concrètes.",
+			],
+		},
+	],
+	details: {
+		steps: [
+			{
+				bullets: [
+					"Si votre équipe ne peut participer, formez une équipe informelle ou trouvez un compagnon d’étude.",
+				],
+			},
+			{
+				bullets: [
+					"Décidez si vous vous concentrez sur des nations/communautés spécifiques ou si vous adoptez une approche régionale.",
+					"Envisagez d’explorer les trois peuples distincts : Premières Nations, Inuits et Métis.",
+				],
+			},
+			{
+				bullets: [
+					"Encouragez les collègues, publiez des mises à jour et partagez des ressources dans le clavardage d’équipe.",
+					"Si un sujet vous intéresse au-delà des questions de la quête, explorez-le.",
+				],
+			},
+			{
+				bullets: [
+					"Établissez des protocoles pour un espace sûr afin que tous se sentent respectés et soutenus.",
+					"Nommez votre principale conclusion ou apprentissage.",
+				],
+			},
+			{
+				bullets: [
+					"Partagez vos ressources sur le tableau « Meilleurs médias par des voix autochtones ». ",
+					"Poursuivez votre apprentissage toute l’année.",
+					"Contribuez activement à la réconciliation (voir l’outil « Parcours de réconciliation »).",
+				],
+			},
+		],
+	},
+	// UI labels for IntroPage live with the content (FR)
+	ui: {
+		sectionTitle: "Introduction",
+		whatTitle:
+			"Qu’est-ce que la Quête d’apprentissage sur les cultures autochtones?",
+		quickSummaryAria: "Résumé rapide",
+		summary: {
+			format: { dt: "Format", dd: "10 activités • à votre rythme" },
+			collab: { dt: "Collaboration", dd: "Individuel ou en équipe" },
+			goal: {
+				dt: "Objectif",
+				dd: "Sensibilisation et action pour la réconciliation",
+			},
+		},
+		steps: {
+			gatherTeam: "Réunissez votre équipe",
+			setParams: "Définissez vos paramètres",
+			giveTime: "Accordez-vous du temps",
+			meetReflect: "Rencontrez-vous et réfléchissez",
+			wrapKeep: "Concluez et poursuivez la quête",
+		},
+		tip: {
+			label: "Conseil",
+			text: {
+				pre: "Utilisez un",
+				highlight: "espace sécuritaire et respectueux",
+				post: "pour vos rencontres d’équipe et poursuivez l’apprentissage en partageant des ressources.",
+			},
+		},
+	},
+};
+
+export const PREPARATION_CONTENT_FR = {
+	title: "Préparation",
+	paragraphs: [
+		"Complétez les tâches et activités qui suivent et utilisez l’espace Notes pour garder une trace de votre parcours d’apprentissage. Vous pouvez aussi adapter les activités selon les paramètres fixés par votre équipe et prévoir à l’avance le temps à accorder à chaque activité.",
+		"Ne vous sentez pas obligé de tout faire en un temps limité. Ne réalisez que les activités avec lesquelles vous êtes à l’aise, tout en acceptant d’être mis au défi au fur et à mesure que vous apprenez, grandissez et renforcez votre capacité culturelle.",
+		"Besoin d’un point de départ? Consultez le tableau des meilleurs médias par des voix autochtones.",
+	],
+	ui: {
+		sectionTitle: "Préparation",
+		howTitle: "Comment fonctionne la Quête d’apprentissage?",
+		instructions:
+			"Cliquez sur une carte pour l’inverser et lire l’étape. Une coche verte apparaîtra après avoir consulté une carte.",
+		stepLabel: "Étape",
+		sr: {
+			flip: "Appuyez sur Entrée ou Espace pour inverser la carte et lire la description.",
+			flipBack: "Appuyez sur Entrée, Espace ou F pour revenir.",
+		},
+	},
+};
+
+export const TEAM_CONTENT_FR = {
+	title: "Discussion d’équipe",
+	steps: [
+		{
+			heading: "Instaurer un dialogue respectueux",
+			items: [
+				"Commencez chaque rencontre en rappelant les ententes ou valeurs communes du groupe (respect, ouverture, confidentialité).",
+				"Invitez les membres à partager comment ils se sentent par rapport à leur parcours d’apprentissage jusqu’ici.",
+			],
+		},
+		{
+			heading: "Partager les apprentissages et réflexions",
+			items: [
+				"Demandez à chacun de présenter les points saillants d’une ou plusieurs activités réalisées.",
+				"Encouragez le partage de surprises, de remises en question et d’impressions durables.",
+				"Utilisez des amorces ouvertes : qu’est-ce qui a changé votre perspective? Comment cet apprentissage s’est-il relié à votre vie personnelle ou professionnelle? Quelles questions demeurent?",
+			],
+		},
+		{
+			heading: "Relier l’apprentissage au travail",
+			items: [
+				"Discutez de la manière dont les apprentissages se rapportent au travail de votre équipe et à la fonction publique en général.",
+				"Demandez-vous : comment ces connaissances peuvent-elles favoriser de meilleures relations avec les communautés autochtones? Quels changements, petits ou grands, peuvent soutenir la réconciliation au quotidien?",
+			],
+		},
+		{
+			heading: "Prendre un engagement",
+			items: [
+				"Invitez chaque personne à nommer une action à poser pour poursuivre l’apprentissage ou contribuer à la réconciliation.",
+				"Par exemple : utiliser des ressources autochtones, intégrer des perspectives autochtones au travail ou poursuivre sa formation personnelle.",
+			],
+		},
+		{
+			heading: "Maintenir la conversation",
+			items: [
+				"Planifiez des suivis ou rencontres informelles pour poursuivre l’échange.",
+				"Encouragez le partage de ressources, réflexions et questions dans le clavardage d’équipe.",
+			],
+		},
+	],
+	reflectionPrompt:
+		"D’après ce que j’ai appris jusqu’ici, une chose que je veux garder dans mon rôle est…",
+};
+
+export const CONCLUSION_CONTENT_FR = {
+	title: "Conclusion",
+	paragraphs: [
+		"Au terme de la Quête d’apprentissage sur les cultures autochtones, prenez un moment pour reconnaître les apprentissages, les réflexions et les conversations partagées. Chaque activité a été l’occasion d’explorer de nouvelles perspectives, de remettre en question des idées et de grandir ensemble.",
+		"La quête se veut flexible et personnelle. Que vous ayez tout complété ou seulement une partie, l’essentiel est la conscience et la compréhension développées en cours de route.",
+		"Les discussions d’équipe ont donné vie à l’apprentissage grâce au dialogue ouvert, aux idées partagées et aux questions réfléchies. Ce n’est qu’un début.",
+		"Réfléchissez à la manière de transposer ces apprentissages dans votre travail quotidien. Quelles actions poserez-vous? Quels engagements prendrez-vous? La réconciliation est un parcours continu. Merci d’avoir franchi ces étapes avec ouverture, respect et intention.",
+	],
+};
+
+export const RESOURCES_CONTENT_FR = {
+	title: "Ressources",
+	items: [
+		"Tableau « Meilleurs médias par des voix autochtones » (créé par des membres de l’équipe de Parcs Canada).",
+		"Parcours de réconciliation : guide interactif de l’École de la fonction publique du Canada.",
+		"Sensibilisation aux réalités autochtones, sécurité culturelle et renforcement des capacités : page GCpédia (ECCC).",
+		"Conservation through Reconciliation Partnership : liste de lecture, série Virtual Campfire, IPCA Knowledge Basket.",
+		"Striking Balance : Réserve de biosphère Ts’á Túé (film sur la conservation autochtone).",
+		"Fondamentaux des principes de PCAP/OCAP® : formation du Centre de gouvernance de l’information des Premières Nations.",
+		"Valeurs sociétales inuites : ressource du gouvernement du Nunavut.",
+		"Pratiques de gouvernance métisses : ressource BCcampus (Indigenous Digital Literacies).",
+		"Éducation du public : ressources sur les droits, traités et revendications territoriales.",
+		"4 Seasons of Reconciliation : formation (Outdoor Learning School and Store).",
+	],
+};
+
+// Optional: activity sheet pointer (contact + nudge)
+export const INTRO_MISC_FR = {
+	contact: "autochtones-indigenous@pc.gc.ca",
+	note: "Envoyez-nous un court message pour partager votre expérience. Restez curieux, poursuivez l’apprentissage et contribuez à la réconciliation toute l’année.",
+};
+
+// UI_STRINGS remains for global UI chrome and TOC; IntroPage no longer reads from it.
+export const UI_STRINGS = {
+	en: {
+		header: { home: "Home" },
+		footer: { back: "Back", next: "Next", finish: "Finish" },
+		cover: {
+			welcomeKicker: "Welcome {name}!",
+			welcomeFallbackName: "Learner",
+			cta: "Get Started",
+		},
+		toc: {
+			__lang: "en",
+			title: "Home",
+			sectionsAriaLabel: "Sections",
+			ariaCourseProgress: "Course progress",
+			srHelp:
+				"Use Tab to move between items. Arrow keys also move between icons. Press Enter or Space to open a section.",
+			moveHint: "Use arrow keys to move • Enter to open",
+			// section labels used by tocItems.js
+			intro: "Introduction",
+			preparation: "Preparation",
+			activities: "Activities",
+			teamReflection: "Team Reflection",
+			reflection: "Reflection",
+			conclusion: "Conclusion",
+			resources: "Resources",
+			// chips / aria
+			completed: "Completed",
+			visited: "Visited",
+			visitedChip: "Visited",
+			nodeVisitedSuffix: " (visited)",
+			ariaAllActivitiesCompleted: "All activities completed",
+			ariaAllActivitiesVisited: "All activities visited",
+		},
+	},
+	fr: {
+		header: { home: "Accueil" },
+		footer: { back: "Retour", next: "Suivant", finish: "Terminer" },
+		cover: {
+			welcomeKicker: "Bienvenue {name}!",
+			welcomeFallbackName: "Participant",
+			cta: "Commencer",
+		},
+		toc: {
+			__lang: "fr",
+			title: "Accueil",
+			sectionsAriaLabel: "Sections",
+			ariaCourseProgress: "Progression du cours",
+			srHelp:
+				"Utilisez Tab pour vous déplacer entre les éléments. Les flèches déplacent aussi entre les icônes. Appuyez sur Entrée ou Espace pour ouvrir une section.",
+			moveHint: "Flèches pour naviguer • Entrée pour ouvrir",
+			// section labels used by tocItems.js
+			intro: "Introduction",
+			preparation: "Préparation",
+			activities: "Activités",
+			teamReflection: "Discussion d’équipe",
+			reflection: "Réflexion",
+			conclusion: "Conclusion",
+			resources: "Ressources",
+			// chips / aria
+			completed: "Terminé",
+			visited: "Visité",
+			visitedChip: "Visité",
+			nodeVisitedSuffix: " (visité)",
+			ariaAllActivitiesCompleted: "Toutes les activités sont terminées",
+			ariaAllActivitiesVisited: "Toutes les activités ont été visitées",
+		},
+	},
+};

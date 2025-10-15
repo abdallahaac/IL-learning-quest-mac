@@ -1,5 +1,5 @@
+// src/components/Footer.jsx
 import React from "react";
-import ActivityDock from "./ActivityDock.jsx";
 
 /* utils */
 const normalizeHex = (h) => {
@@ -54,6 +54,9 @@ export default function Footer({
 	accent = "#67AAF9", // default accent
 	accentOverride = null, // kept for compatibility
 	nextBtnClassOverride = null, // optional Tailwind override for Next
+	// labels
+	backLabel = "Back",
+	finishLabel = "Finish",
 }) {
 	const isFirst = pageIndex === 0;
 	const isLast = pageIndex === totalPages - 1;
@@ -63,9 +66,6 @@ export default function Footer({
 	const hover = shadeHex(baseAccent, -0.08);
 	const active = shadeHex(baseAccent, -0.16);
 
-	// Always white text inside footer buttons per request
-	const textOnAccent = "#FFFFFF";
-
 	return (
 		<footer
 			ref={containerRef}
@@ -73,7 +73,6 @@ export default function Footer({
 			role="contentinfo"
 		>
 			<div className="relative max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between pointer-events-auto">
-				{/* (Keeping this non-button text as-is for contrast) */}
 				<span className="text-sm text-gray-600">
 					Page {pageIndex + 1} / {totalPages}
 				</span>
@@ -87,10 +86,9 @@ export default function Footer({
 						onClick={onPrev}
 						disabled={isFirst}
 					>
-						Back
+						{backLabel}
 					</button>
 
-					{/* Next — respects override on Cover/TOC; otherwise uses accent with white text */}
 					<button
 						type="button"
 						className={
@@ -124,10 +122,10 @@ export default function Footer({
 								e.currentTarget.style.backgroundColor = hover;
 						}}
 						onClick={onNext}
-						aria-label={isLast ? "Finish" : nextLabel}
-						title={isLast ? "Finish" : nextLabel}
+						aria-label={isLast ? finishLabel : nextLabel}
+						title={isLast ? finishLabel : nextLabel}
 					>
-						{isLast ? "Finish" : nextLabel}
+						{isLast ? finishLabel : nextLabel}
 					</button>
 				</div>
 			</div>

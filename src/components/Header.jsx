@@ -1,7 +1,7 @@
+// src/components/Header.jsx
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTableColumns, faHouse } from "@fortawesome/free-solid-svg-icons";
-
 import ActivityDock from "./ActivityDock.jsx";
 
 /* --- tiny color utils (for hover/active shades) --- */
@@ -41,6 +41,8 @@ export default function Header({
 	onJumpToPage,
 	accent = "#67AAF9",
 	primaryBtnClassOverride = null,
+	// labels
+	homeLabel = "Home",
 }) {
 	const accentHex = normalizeHex(accent) || "#67AAF9";
 	const hover = shadeHex(accentHex, -0.08);
@@ -62,7 +64,7 @@ export default function Header({
           items-center
           pointer-events-auto"
 			>
-				{/* Left: Title — clamp to single line so it can't grow the header */}
+				{/* Left: Title */}
 				<div className="min-w-0 ml-20">
 					{onHome ? (
 						<button
@@ -74,8 +76,8 @@ export default function Header({
 								(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
 							}
 							onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
-							aria-label="Go to home"
-							title="Home"
+							aria-label={homeLabel}
+							title={homeLabel}
 						>
 							{siteTitle}
 						</button>
@@ -89,7 +91,7 @@ export default function Header({
 				{/* Right cluster */}
 				<div className="justify-self-end w-full max-w-[460px]">
 					<div className="flex items-center justify-between gap-3">
-						{/* Home / TOC pill — consistent sizing & shape */}
+						{/* Home / TOC pill */}
 						{onContents && (
 							<button
 								type="button"
@@ -130,15 +132,17 @@ export default function Header({
 										: `0 0 0 2px ${accentHex}`)
 								}
 								onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
-								aria-label="Go to Table of Contents"
-								title="Table of Contents"
+								aria-label={homeLabel}
+								title={homeLabel}
 							>
 								<FontAwesomeIcon
 									className="w-5 h-5"
 									icon={faHouse}
 									aria-hidden="true"
 								/>
-								<span className="hidden sm:inline text-center">Home</span>
+								<span className="hidden sm:inline text-center">
+									{homeLabel}
+								</span>
 								<span className="sm:hidden">TOC</span>
 							</button>
 						)}

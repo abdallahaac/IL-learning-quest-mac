@@ -34,6 +34,22 @@ import {
 } from "./selectors/pageSelectors.js";
 import { downloadAllReflections } from "./exports/downloadReflections.js";
 
+import {
+	COVER_CONTENT,
+	INTRO_INFO_CONTENT,
+	PREPARATION_CONTENT,
+	TEAM_CONTENT,
+	CONCLUSION_CONTENT,
+	RESOURCES_CONTENT,
+	COVER_CONTENT_FR,
+	INTRO_INFO_CONTENT_FR,
+	PREPARATION_CONTENT_FR,
+	TEAM_CONTENT_FR,
+	CONCLUSION_CONTENT_FR,
+	RESOURCES_CONTENT_FR,
+	UI_STRINGS, // <-- central UI labels
+} from "./constants/content.js";
+
 const SPLASH_SEEN_KEY = "__APP_SPLASH_SEEN_ONCE__";
 
 function isSplashDisabled() {
@@ -44,10 +60,8 @@ function isSplashDisabled() {
 	} catch {}
 	return String(import.meta.env?.VITE_DISABLE_SPLASH || "").trim() === "1";
 }
-
 function hasSeenSplashOnce() {
 	try {
-		// Prefer session persistence for a single browser tab, but also fall back to local in case you want cross-tab persistence.
 		return (
 			sessionStorage.getItem(SPLASH_SEEN_KEY) === "1" ||
 			localStorage.getItem(SPLASH_SEEN_KEY) === "1"
@@ -56,20 +70,15 @@ function hasSeenSplashOnce() {
 		return false;
 	}
 }
-
 function markSplashSeen() {
 	try {
 		sessionStorage.setItem(SPLASH_SEEN_KEY, "1");
-		// Optional: persist across tabs/sessions too
 		localStorage.setItem(SPLASH_SEEN_KEY, "1");
 	} catch {}
 }
-
 function maybeResetSplashFlagFromQuery() {
 	try {
 		const qs = new URLSearchParams(window.location.search);
-		// Handy dev knobs:
-		// ?resetSplash=1 clears the flag; ?forceSplash=1 shows it regardless of prior flag (still respects reduced motion unless you also add &force=1 logic yourself).
 		if (qs.has("resetSplash")) {
 			sessionStorage.removeItem(SPLASH_SEEN_KEY);
 			localStorage.removeItem(SPLASH_SEEN_KEY);
@@ -77,8 +86,61 @@ function maybeResetSplashFlagFromQuery() {
 	} catch {}
 }
 
+// Smooth scroll-to-top
+function scrollContainerToTop(el, { reduced }) {
+	if (!el) return;
+	const atTop = (el.scrollTop || 0) <= 1;
+	if (atTop) return;
+
+	const canSmooth =
+		!reduced &&
+		typeof el.scrollTo === "function" &&
+		"scrollBehavior" in document.documentElement.style;
+
+	try {
+		if (canSmooth) el.scrollTo({ top: 0, behavior: "smooth" });
+		else el.scrollTop = 0;
+	} catch {
+		el.scrollTop = 0;
+	}
+}
+
+// super tiny i18n selector
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
+// map page types to their EN/FR content blobs
+const CONTENT_BY_TYPE = {
+	cover: { en: COVER_CONTENT, fr: COVER_CONTENT_FR },
+	intro: { en: INTRO_INFO_CONTENT, fr: INTRO_INFO_CONTENT_FR },
+	preparation: { en: PREPARATION_CONTENT, fr: PREPARATION_CONTENT_FR },
+	team: { en: TEAM_CONTENT, fr: TEAM_CONTENT_FR },
+	conclusion: { en: CONCLUSION_CONTENT, fr: CONCLUSION_CONTENT_FR },
+	resources: { en: RESOURCES_CONTENT, fr: RESOURCES_CONTENT_FR },
+	// activities left as-is unless you wire bilingual payloads there too
+};
+
 export default function AppShell() {
 	const scrollRef = React.useRef(null);
+	const reducedMotion = React.useMemo(() => {
+		try {
+			return (
+				window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ===
+				true
+			);
+		} catch {
+			return false;
+		}
+	}, []);
 
 	// SCORM
 	const { getSuspendData, setSuspendData, scorm } = useScorm();
@@ -143,14 +205,12 @@ export default function AppShell() {
 		totalPages,
 	});
 
-	// One-time splash: show only on the very first render (per tab/session), unless disabled or reduced motion.
-	// Also support ?forceSplash=1 for manual testing.
+	// One-time splash
 	const [showSplash, setShowSplash] = React.useState(() => {
 		try {
 			maybeResetSplashFlagFromQuery();
 			const qs = new URLSearchParams(window.location.search);
 			const force = qs.has("forceSplash");
-
 			if (isSplashDisabled() && !force) return false;
 
 			const reduced =
@@ -159,10 +219,8 @@ export default function AppShell() {
 			if (reduced && !force) return false;
 
 			if (!force && hasSeenSplashOnce()) return false;
-
 			return true;
 		} catch {
-			// Worst case, show it once.
 			return true;
 		}
 	});
@@ -234,20 +292,28 @@ export default function AppShell() {
 		idxResources,
 	});
 
-	const siteTitle = "Learning Quest on Indigenous Cultures";
+	// language and localized site title + labels
+	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
+	const STR = UI_STRINGS[lang];
+	const siteTitle =
+		lang === "fr"
+			? "Quête d’apprentissage sur les cultures autochtones"
+			: "Learning Quest on Indigenous Cultures";
+
 	const [headerRef] = useResizeObserver();
 	const [footerRef, footerSize] = useResizeObserver();
 	const footerHeight = footerSize.height || 0;
 
 	const activitySteps = activityPages.map(({ p, idx }, i) => ({
 		key: p.content.id,
-		label: `Activity ${i + 1}`,
+		label: lang === "fr" ? `Activité ${i + 1}` : `Activity ${i + 1}`,
 		index: idx,
 		completed: state.visited.has(idx),
 		visited: state.visited.has(idx),
 		accent: accentForActivityIndex(i),
 	}));
 
+	// Current page and accent
 	const currentPage = pages[state.pageIndex] ?? pages[0];
 	const accentForThisPage = accentForPage(currentPage);
 
@@ -279,33 +345,50 @@ export default function AppShell() {
 	const getNextLabel = () => {
 		const i = state.pageIndex;
 		const atLast = i >= totalPages - 1;
-		if (atLast) return "Finish";
+		if (atLast) return STR.footer.finish;
 		const nextPage = pages[i + 1];
-		if (currentPage.type === "preparation") return "Start Activities";
+		if (currentPage.type === "preparation")
+			return lang === "fr" ? "Commencer les activités" : "Start Activities";
 		if (nextPage?.type === "activity") {
 			const num = (nextPage.activityIndex ?? 0) + 1;
-			return `Activity ${num}`;
+			return lang === "fr" ? `Activité ${num}` : `Activity ${num}`;
 		}
-		return nextPage?.content?.title || "Next";
+		return nextPage?.content?.title || STR.footer.next;
 	};
 
-	// While splash is showing: mount PatternMorph underneath with a NORMAL z-index.
+	// swap in localized content for non-activity pages
+	const localizedContent = React.useMemo(() => {
+		const type = currentPage?.type;
+		const map = CONTENT_BY_TYPE[type];
+		if (!map) return currentPage?.content; // activities or unknown sections
+		return lang === "fr" ? map.fr : map.en;
+	}, [currentPage, lang]);
+
+	// Scroll-to-top on page change
+	React.useEffect(() => {
+		scrollContainerToTop(scrollRef.current, { reduced: reducedMotion });
+	}, [state.pageIndex, reducedMotion]);
+
+	React.useEffect(() => {
+		if (!showSplash) {
+			requestAnimationFrame(() => {
+				scrollContainerToTop(scrollRef.current, { reduced: reducedMotion });
+			});
+		}
+	}, [showSplash, reducedMotion]);
+
 	if (showSplash) {
 		return (
 			<div className="app-shell relative h-screen flex flex-col bg-white">
-				{/* Pattern background (visible because it's not negative z) */}
 				<div className="absolute inset-0 z-0 pointer-events-none">
 					<PatternMorph
 						pageIndex={0}
 						sequence={["dots", "asterisks", "grid"]}
 					/>
 				</div>
-
-				{/* Splash sits ABOVE everything */}
 				<div className="relative z-20">
 					<SplashPage
 						onDone={() => {
-							// Mark as seen so we never show it again after first render.
 							markSplashSeen();
 							setShowSplash(false);
 							try {
@@ -319,7 +402,6 @@ export default function AppShell() {
 		);
 	}
 
-	// Normal app chrome after splash
 	return (
 		<div
 			className={`app-shell relative h-screen flex flex-col bg-white ${
@@ -332,7 +414,6 @@ export default function AppShell() {
 				"--footer-h": `${footerHeight}px`,
 			}}
 		>
-			{/* Pattern is part of the stacking context with z-0 */}
 			<div className="absolute inset-0 z-0 pointer-events-none">
 				<PatternMorph
 					pageIndex={state.pageIndex}
@@ -340,7 +421,6 @@ export default function AppShell() {
 				/>
 			</div>
 
-			{/* Everything else sits above the pattern */}
 			<div className="relative z-10 flex min-h-0 flex-1 flex-col">
 				<Header
 					containerRef={headerRef}
@@ -356,6 +436,8 @@ export default function AppShell() {
 							? "inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 bg-sky-600 text-sm md:text-base font-medium text-white rounded-full shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors"
 							: null
 					}
+					// labels
+					homeLabel={STR.header.home}
 				/>
 
 				<div className="flex-1 relative min-h-0">
@@ -369,9 +451,10 @@ export default function AppShell() {
 								<TransitionView screenKey={`page-${state.pageIndex}`}>
 									{currentPage.type === "cover" && (
 										<CoverPage
-											content={currentPage.content}
+											content={localizedContent}
 											onStart={() => gotoPage(1)}
 											onIntroActiveChange={() => {}}
+											labels={STR.cover}
 										/>
 									)}
 
@@ -405,16 +488,17 @@ export default function AppShell() {
 											]}
 											reflectionsReady={allActivitiesCompleted && !reflectBusy}
 											onDownloadAllReflections={onDownloadAllReflections}
+											labels={UI_STRINGS[lang].toc}
 										/>
 									)}
 
 									{currentPage.type === "intro" && (
-										<IntroPage content={currentPage.content} />
+										<IntroPage content={localizedContent} />
 									)}
 
 									{currentPage.type === "preparation" && (
 										<PreparationPage
-											content={currentPage.content}
+											content={localizedContent}
 											onStartActivities={() =>
 												gotoPage(
 													idxFirstActivity >= 0
@@ -427,17 +511,18 @@ export default function AppShell() {
 
 									{currentPage.type === "conclusion" && (
 										<ConclusionSection
-											content={currentPage.content}
+											content={localizedContent}
 											accent="#D66843"
 										/>
 									)}
 
 									{currentPage.type === "resources" && (
-										<ResourcesPage content={currentPage.content} />
+										<ResourcesPage content={localizedContent} />
 									)}
 
 									{currentPage.type === "activity" && (
 										<ActivityPage
+											// activities stay as-is unless you wire FR there too
 											content={currentPage.content}
 											notes={state.notes[currentPage.content.id]}
 											completed={!!state.completed[currentPage.content.id]}
@@ -451,7 +536,7 @@ export default function AppShell() {
 
 									{currentPage.type === "team" && (
 										<TeamReflectionPage
-											content={currentPage.content}
+											content={localizedContent}
 											notes={state.notes["team"]}
 											onNotes={(v) => setNote("team", v)}
 										/>
@@ -459,7 +544,7 @@ export default function AppShell() {
 
 									{currentPage.type === "reflection" && (
 										<TeamReflectionPage
-											content={currentPage.content}
+											content={localizedContent}
 											notes={state.notes["reflect"]}
 											onNotes={(v) => setNote("reflect", v)}
 										/>
@@ -476,7 +561,9 @@ export default function AppShell() {
 										"team",
 										"reflection",
 									].includes(currentPage.type) && (
-										<SectionPage content={currentPage.content} />
+										<SectionPage
+											content={localizedContent ?? currentPage.content}
+										/>
 									)}
 								</TransitionView>
 							</div>
@@ -500,6 +587,9 @@ export default function AppShell() {
 								: null
 						}
 						containerRef={footerRef}
+						// labels
+						backLabel={STR.footer.back}
+						finishLabel={STR.footer.finish}
 					/>
 				</div>
 			</div>

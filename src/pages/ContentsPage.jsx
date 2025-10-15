@@ -1,3 +1,4 @@
+// src/pages/ContentsPage.jsx
 import React, { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,10 +15,25 @@ import {
 	NODE_RADIUS,
 	CARD_GAP_Y,
 	SVG_VIEWBOX,
+	UI_STRINGS,
 } from "../constants/content.js";
+
 import TocRail from "../components/toc/TocRail.jsx";
 import TocItem from "../components/toc/TocItem.jsx";
 import DownloadsPanel from "../components/toc/DownloadsPanel.jsx";
+
+// tiny helper to avoid threading lang everywhere if caller forgets
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
 
 export default function ContentsPage({
 	onNavigate,
@@ -32,10 +48,10 @@ export default function ContentsPage({
 		conclusionIndex: -1,
 		resourcesIndex: -1,
 	},
-	// visited for nodes (supervisor’s ask)
+	// visited for nodes
 	visitedIndices = [],
 
-	// Activities: we track visited (X/Total) and also completion state
+	// Activities
 	activitiesVisitedCount = 0,
 	activitiesTotal = 10,
 	allActivitiesCompleted = false,
@@ -52,7 +68,15 @@ export default function ContentsPage({
 	// Downloads
 	onDownloadAllReflections,
 	reflectionsReady = false,
+
+	// Optional labels injected by caller (AppShell). If missing, we auto-pick from UI_STRINGS.
+	labels,
 }) {
+	const lang =
+		(labels && (labels.__lang || null)) ||
+		(detectLang() === "fr" ? "fr" : "en");
+	const STR = labels || UI_STRINGS[lang]?.toc || UI_STRINGS.en.toc;
+
 	const visitedSet = useMemo(
 		() => new Set(visitedIndices || []),
 		[visitedIndices]
@@ -84,7 +108,7 @@ export default function ContentsPage({
 		items.length
 	);
 
-	// Progress gating (still gates by visited count before Activities)
+	// Progress gating
 	const { gatedAdjusted, gatedClamped, prevProgOffsetRef } = useGatedProgress({
 		prefersReduced,
 		progress,
@@ -125,7 +149,7 @@ export default function ContentsPage({
 								id="tocTitle"
 								className="text-xl sm:text-2xl md:text-3xl font-semibold text-slate-900"
 							>
-								Home{" "}
+								{STR.title}{" "}
 								<FontAwesomeIcon
 									icon={faHouse}
 									className="inline-block align-[-2px]"
@@ -138,7 +162,7 @@ export default function ContentsPage({
 					{/* accessible progressbar */}
 					<div
 						role="progressbar"
-						aria-label="Course progress"
+						aria-label={STR.ariaCourseProgress}
 						aria-valuemin={0}
 						aria-valuemax={100}
 						aria-valuenow={Math.round(
@@ -147,8 +171,7 @@ export default function ContentsPage({
 						className="sr-only"
 					/>
 					<p id="tocHelp" className="sr-only">
-						Use Tab to move between items. Arrow keys also move between icons.
-						Press Enter or Space to open a section.
+						{STR.srHelp}
 					</p>
 					<div
 						className="mx-auto mt-4 h-px w-3/4"
@@ -190,7 +213,11 @@ export default function ContentsPage({
 							/>
 						</svg>
 
-						<ul className="absolute inset-0" role="list" aria-label="Sections">
+						<ul
+							className="absolute inset-0"
+							role="list"
+							aria-label={STR.sectionsAriaLabel}
+						>
 							{items.map((it, i) => {
 								const pos = nodePos[i] || { x: 0, y: 0, deg: 0, t: 0 };
 								const isVisited = visitedSet.has(it.index);
@@ -219,7 +246,12 @@ export default function ContentsPage({
 									cardLeft = Math.min(Math.max(cardLeft, minCenter), maxCenter);
 								}
 
-								const isActivities = it.label === "Activities";
+								// identify Activities without relying on English label only
+								const isActivities =
+									it.key === "activities" ||
+									it.slug === "activities" ||
+									it.type === "activities" ||
+									it.label === STR.activities;
 
 								return (
 									<TocItem
@@ -228,10 +260,10 @@ export default function ContentsPage({
 										item={{
 											...it,
 											ariaActivities: allActivitiesCompleted
-												? "Activities (Completed)"
+												? `${STR.activities} (${STR.completed})`
 												: allActivitiesVisited
-												? "Activities (Visited)"
-												: `Activities (${activitiesVisitedCount}/${activitiesTotal})`,
+												? `${STR.activities} (${STR.visited})`
+												: `${STR.activities} (${activitiesVisitedCount}/${activitiesTotal})`,
 											activitiesVisitedCount,
 											activitiesTotal,
 											activitiesAllVisited: allActivitiesVisited,
@@ -246,6 +278,7 @@ export default function ContentsPage({
 										cardTop={cardTop}
 										cardWidth={cardWidth}
 										onClick={() => onNavigate?.(it.index)}
+										labels={STR}
 									/>
 								);
 							})}
@@ -264,7 +297,7 @@ export default function ContentsPage({
 							}}
 							aria-hidden="true"
 						>
-							Use arrow keys to move • Enter to open
+							{STR.moveHint}
 						</motion.div>
 					</div>
 				</div>

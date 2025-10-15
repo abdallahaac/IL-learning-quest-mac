@@ -1,3 +1,4 @@
+// src/components/toc/TocItem.jsx
 import React from "react";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -22,16 +23,12 @@ export default function TocItem({
 	cardWidth,
 	nodeColorHue,
 	onClick,
+	labels, // injected from ContentsPage (UI_STRINGS[lang].toc)
 }) {
+	const STR = labels;
 	const hue = nodeColorHue ?? item.hue ?? 210;
 	const nodeHex = hslToHex(hue, 64, 55);
 
-	// Activities logic:
-	// - Show checkmark if either all visited OR all completed.
-	// - Chip shows:
-	//   - "Completed" when all activities completed
-	//   - "Visited"   when all activities visited (but not all completed)
-	//   - "X/Total"   otherwise
 	const activitiesAllVisited = Boolean(item.activitiesAllVisited);
 	const activitiesAllCompleted = Boolean(item.allActivitiesCompleted);
 	const showActivitiesBadge =
@@ -66,14 +63,14 @@ export default function TocItem({
 				aria-label={
 					isActivities
 						? item.ariaActivities
-						: `${item.label}${isVisited ? " (visited)" : ""}`
+						: `${item.label}${isVisited ? ` ${STR.nodeVisitedSuffix}` : ""}`
 				}
 				title={
 					isActivities
 						? activitiesAllCompleted
-							? "All activities completed"
+							? STR.ariaAllActivitiesCompleted
 							: activitiesAllVisited
-							? "All activities visited"
+							? STR.ariaAllActivitiesVisited
 							: undefined
 						: undefined
 				}
@@ -104,9 +101,7 @@ export default function TocItem({
 						aria-hidden
 					/>
 
-					{/* Node check badge:
-              - non-Activities: when visited
-              - Activities: when all visited or all completed */}
+					{/* Node check badge */}
 					{((!isActivities && isVisited) || showActivitiesBadge) && (
 						<span
 							className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full grid place-items-center text-white"
@@ -183,13 +178,13 @@ export default function TocItem({
 											backgroundColor: "rgba(16,185,129,0.12)",
 											border: "1px solid rgba(16,185,129,0.25)",
 										}}
-										aria-label="All activities completed"
+										aria-label={STR.ariaAllActivitiesCompleted}
 									>
 										<FontAwesomeIcon
 											icon={faCircleCheck}
 											className="text-[10px]"
 										/>
-										Completed
+										{STR.completed}
 									</span>
 								) : activitiesAllVisited ? (
 									<span
@@ -198,13 +193,13 @@ export default function TocItem({
 											backgroundColor: "rgba(16,185,129,0.12)",
 											border: "1px solid rgba(16,185,129,0.25)",
 										}}
-										aria-label="All activities visited"
+										aria-label={STR.ariaAllActivitiesVisited}
 									>
 										<FontAwesomeIcon
 											icon={faCircleCheck}
 											className="text-[10px]"
 										/>
-										Visited
+										{STR.visited}
 									</span>
 								) : (
 									<span
@@ -233,7 +228,7 @@ export default function TocItem({
 											icon={faCircleCheck}
 											className="text-[10px]"
 										/>
-										Visited
+										{STR.visitedChip}
 									</span>
 								)
 							)}

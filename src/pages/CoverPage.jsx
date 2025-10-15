@@ -12,7 +12,12 @@ import { useScorm } from "../contexts/ScormContext.jsx";
 import CspsLogo from "../components/logos/cspslogo.jsx";
 import ParcsCanadaLogo from "../components/logos/parcsCanadaLogo.jsx";
 
-export default function CoverPage({ content, onStart, onIntroActiveChange }) {
+export default function CoverPage({
+	content,
+	onStart,
+	onIntroActiveChange,
+	labels,
+}) {
 	const { title = "", paragraphs = [] } = content || {};
 	const reduceMotion = useReducedMotion();
 
@@ -24,9 +29,8 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 		try {
 			const nav = performance.getEntriesByType("navigation")[0];
 			if (nav?.type) return nav.type === "reload";
-			// Fallback (deprecated)
 			// eslint-disable-next-line deprecation/deprecation
-			return performance.navigation?.type === 1; // 1 == reload
+			return performance.navigation?.type === 1;
 		} catch {
 			return false;
 		}
@@ -46,7 +50,6 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 	const [splashDone, setSplashDone] = useState(!shouldPlaySplash);
 	const [splashActive, setSplashActive] = useState(shouldPlaySplash);
 
-	// mark first mount complete
 	useEffect(() => {
 		firstMountRef.current = false;
 	}, []);
@@ -65,7 +68,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 		};
 	}, [splashActive]);
 
-	// TEMP: match splash bg while splash is active, then restore immediately after
+	// TEMP bg match
 	useLayoutEffect(() => {
 		if (!shouldPlaySplash || !splashActive) return;
 		const prevBodyBg = document.body.style.backgroundColor;
@@ -74,7 +77,6 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 			document.body.style.backgroundColor = "#4b3a69";
 			document.documentElement.style.backgroundColor = "#4b3a69";
 		} catch {}
-		// cleanup runs as soon as splashActive flips to false (i.e., splash ends)
 		return () => {
 			try {
 				document.body.style.backgroundColor = prevBodyBg;
@@ -85,7 +87,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 
 	const handleSplashDone = () => {
 		setSplashDone(true);
-		setSplashActive(false); // triggers cleanup above to restore background
+		setSplashActive(false);
 		try {
 			sessionStorage.setItem(SESSION_KEY, "1");
 		} catch {}
@@ -93,7 +95,6 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 
 	return (
 		<section className="relative z-0 flex-1">
-			{/* Splash intro (reload or first mount in this session) */}
 			{shouldPlaySplash && (
 				<SplashMarkerIntro
 					logos={[
@@ -112,7 +113,6 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 				/>
 			)}
 
-			{/* Cover content: truly centered within remaining viewport (after header/footer) */}
 			{splashDone && (
 				<motion.main
 					initial={{ opacity: 0, y: 10 }}
@@ -123,7 +123,6 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 					<div
 						className="grid place-items-center px-4"
 						style={{
-							// Use modern viewport units. Swap 100svh -> 100dvh if you prefer dynamic.
 							minHeight: "calc(100svh - var(--header-h) - var(--footer-h))",
 						}}
 					>
@@ -133,6 +132,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 								paragraphs={paragraphs}
 								onStart={onStart}
 								reduced={reduceMotion}
+								labels={labels}
 							/>
 						</div>
 					</div>
@@ -143,7 +143,7 @@ export default function CoverPage({ content, onStart, onIntroActiveChange }) {
 }
 
 /* --- Body --- */
-function CoverBody({ title, paragraphs, onStart, reduced }) {
+function CoverBody({ title, paragraphs, onStart, reduced, labels }) {
 	const scormCtx = (typeof useScorm === "function" ? useScorm() : null) || {};
 	const {
 		scorm,
@@ -151,9 +151,10 @@ function CoverBody({ title, paragraphs, onStart, reduced }) {
 		learnerName: ctxLearnerName,
 	} = scormCtx;
 
+	const fallback = labels?.welcomeFallbackName || "Learner";
 	const [connected, setConnected] = useState(!!ctxConnected);
 	const [firstName, setFirstName] = useState(
-		() => extractFirstName(ctxLearnerName) || "Learner"
+		() => extractFirstName(ctxLearnerName) || fallback
 	);
 
 	useEffect(() => {
@@ -174,7 +175,7 @@ function CoverBody({ title, paragraphs, onStart, reduced }) {
 				setConnected(true);
 			}
 		} catch {}
-	}, [ctxConnected, ctxLearnerName, scorm]);
+	}, [ctxConnected, ctxLearnerName, scorm, fallback]);
 
 	const DUR = 0.4;
 	const baseDelay = reduced ? 0 : 0.12;
@@ -206,6 +207,11 @@ function CoverBody({ title, paragraphs, onStart, reduced }) {
 		idxFirstPara = 4;
 	const idxCTA = idxFirstPara + Math.max(1, paragraphs.length || 1);
 
+	const kicker = (labels?.welcomeKicker || "Welcome {name}!").replace(
+		"{name}",
+		firstName || fallback
+	);
+
 	return (
 		<div className="max-w-4xl mx-auto">
 			<motion.div
@@ -216,7 +222,7 @@ function CoverBody({ title, paragraphs, onStart, reduced }) {
 				className="mb-6 text-2xl font-semibold text-sky-600"
 				aria-live="polite"
 			>
-				Welcome {firstName}!
+				{kicker}
 			</motion.div>
 
 			<h1 className="mb-2">
@@ -225,7 +231,7 @@ function CoverBody({ title, paragraphs, onStart, reduced }) {
 					variants={item}
 					initial="hidden"
 					animate="show"
-					className="block text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight"
+					className="block text-3xl sm:text-5xl font-bold text-gray-900 tracking-tight"
 				>
 					{line1}
 				</motion.span>
@@ -236,7 +242,7 @@ function CoverBody({ title, paragraphs, onStart, reduced }) {
 						variants={item}
 						initial="hidden"
 						animate="show"
-						className="block text-3xl sm:text-5xl font-extrabold text-gray-900 tracking-tight"
+						className="block text-3xl sm:text-5xl font-bold text-gray-900 tracking-tight"
 					>
 						{line2}
 					</motion.span>
@@ -277,7 +283,7 @@ function CoverBody({ title, paragraphs, onStart, reduced }) {
 					onClick={onStart}
 					className="px-8 py-3 bg-sky-600 text-white font-medium rounded-lg shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 transition-colors"
 				>
-					Get Started
+					{labels?.cta || "Get Started"}
 				</button>
 			</motion.div>
 		</div>

@@ -1,4 +1,3 @@
-// src/components/IntroPage.jsx
 import React from "react";
 import { motion } from "framer-motion";
 import { Users, Compass, Clock, CalendarCheck, RefreshCcw } from "lucide-react";
@@ -7,7 +6,7 @@ import { Users, Compass, Clock, CalendarCheck, RefreshCcw } from "lucide-react";
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 const ACCENT = "#4380d6";
 
-/* pill-header callout container (matches Instructions style) */
+/* pill-header callout container */
 function AccentBox({ label, children, accent = ACCENT }) {
 	return (
 		<section
@@ -30,7 +29,7 @@ function AccentBox({ label, children, accent = ACCENT }) {
 	);
 }
 
-/* summary chip where the label is a pill (same visual language as "Tip") */
+/* summary chip with pill label */
 function SummaryChip({ dt, dd, accent = ACCENT }) {
 	return (
 		<div
@@ -52,7 +51,10 @@ function SummaryChip({ dt, dd, accent = ACCENT }) {
 }
 
 export default function IntroPage({ content }) {
-	const title = content?.title || "Introduction";
+	// All labels come straight from the localized content blob.
+	const ui = content?.ui || {};
+	const title = content?.title || ui.sectionTitle || "Introduction";
+
 	const paragraphs = content?.paragraphs ?? [];
 	const items = content?.bullets?.[0]?.items ?? [];
 	const detailedSteps = content?.details?.steps ?? [];
@@ -60,35 +62,35 @@ export default function IntroPage({ content }) {
 	const steps = [
 		{
 			icon: Users,
-			title: "Gather your team",
+			title: ui.steps?.gatherTeam,
 			text: items[0],
 			bullets: detailedSteps[0]?.bullets,
 		},
 		{
 			icon: Compass,
-			title: "Set your parameters",
+			title: ui.steps?.setParams,
 			text: items[1],
 			bullets: detailedSteps[1]?.bullets,
 		},
 		{
 			icon: Clock,
-			title: "Give yourself time",
+			title: ui.steps?.giveTime,
 			text: items[2],
 			bullets: detailedSteps[2]?.bullets,
 		},
 		{
 			icon: CalendarCheck,
-			title: "Meet & reflect",
+			title: ui.steps?.meetReflect,
 			text: items[3],
 			bullets: detailedSteps[3]?.bullets,
 		},
 		{
 			icon: RefreshCcw,
-			title: "Wrap up & keep questing",
+			title: ui.steps?.wrapKeep,
 			text: items[4],
 			bullets: detailedSteps[4]?.bullets,
 		},
-	].filter(Boolean);
+	].filter((s) => s && s.title);
 
 	const introParas = paragraphs.slice(0, 2);
 	const whatParas = paragraphs.slice(2, 5);
@@ -125,14 +127,20 @@ export default function IntroPage({ content }) {
 						</p>
 					))}
 
-					{/* Quick summary — chips now use pill labels like "Tip" */}
+					{/* Quick summary */}
 					<dl
 						className="grid sm:grid-cols-3 gap-3 sm:gap-4"
-						aria-label="Quick summary"
+						aria-label={ui.quickSummaryAria || "Quick summary"}
 					>
-						<SummaryChip dt="Format" dd="10 activities • self-paced" />
-						<SummaryChip dt="Collaboration" dd="Individual or team" />
-						<SummaryChip dt="Goal" dd="Awareness & action for reconciliation" />
+						<SummaryChip
+							dt={ui.summary?.format?.dt}
+							dd={ui.summary?.format?.dd}
+						/>
+						<SummaryChip
+							dt={ui.summary?.collab?.dt}
+							dd={ui.summary?.collab?.dd}
+						/>
+						<SummaryChip dt={ui.summary?.goal?.dt} dd={ui.summary?.goal?.dd} />
 					</dl>
 				</motion.section>
 
@@ -151,7 +159,7 @@ export default function IntroPage({ content }) {
 						className="text-2xl font-bold"
 						style={{ color: ACCENT }}
 					>
-						What is the Learning Quest on Indigenous Cultures?
+						{ui.whatTitle}
 					</h3>
 
 					{whatParas.map((p, i) => (
@@ -161,16 +169,18 @@ export default function IntroPage({ content }) {
 					))}
 				</motion.section>
 
-				{/* Tip — same callout style with a pill header */}
-				<AccentBox label="Tip" accent={ACCENT}>
-					<p className="text-base sm:text-lg text-center text-slate-800">
-						Use a{" "}
-						<span className="font-medium" style={{ color: ACCENT }}>
-							safe, respectful space
-						</span>{" "}
-						for team check-ins and keep learning by sharing resources together.
-					</p>
-				</AccentBox>
+				{/* Tip */}
+				{ui.tip?.label && (
+					<AccentBox label={ui.tip.label} accent={ACCENT}>
+						<p className="text-base sm:text-lg text-center text-slate-800">
+							{ui.tip.text?.pre}{" "}
+							<span className="font-medium" style={{ color: ACCENT }}>
+								{ui.tip.text?.highlight}
+							</span>{" "}
+							{ui.tip.text?.post}
+						</p>
+					</AccentBox>
+				)}
 			</div>
 		</div>
 	);

@@ -1,9 +1,25 @@
 // src/pages/PreparationPage.jsx
-import React, { useEffect, useId, useState } from "react";
+import React, { useEffect, useId, useState, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
-import { INTRO_INFO_CONTENT } from "../constants/content.js";
+import {
+	INTRO_INFO_CONTENT,
+	INTRO_INFO_CONTENT_FR,
+} from "../constants/content.js";
+
+/** tiny lang helper (same behavior as elsewhere) */
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
 
 /** sr-only helper */
 function SrOnly({ children }) {
@@ -14,13 +30,23 @@ function SrOnly({ children }) {
 	);
 }
 
-/** FlipCard with non-flipping visited badge (badge is outside the rotating button) */
-function FlipCard({ step, backText, isVisited = false, onVisited, ACCENT }) {
+/** FlipCard with scroll-safe interaction */
+function FlipCard({
+	step,
+	backText,
+	isVisited = false,
+	onVisited,
+	ACCENT,
+	STR,
+}) {
 	const [flipped, setFlipped] = useState(false);
 	const [reduceMotion, setReduceMotion] = useState(false);
 	const uid = useId();
 	const frontId = `${uid}-front`;
 	const backId = `${uid}-back`;
+	const DRAG_TOLERANCE = 6;
+	const startPos = useRef({ x: 0, y: 0 });
+	const moved = useRef(false);
 
 	useEffect(() => {
 		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -30,7 +56,7 @@ function FlipCard({ step, backText, isVisited = false, onVisited, ACCENT }) {
 		return () => mq.removeEventListener?.("change", onChange);
 	}, []);
 
-	// Mark visited the first time it flips to the back
+	// Mark visited when flipped first time
 	useEffect(() => {
 		if (flipped && !isVisited) onVisited?.();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,9 +74,39 @@ function FlipCard({ step, backText, isVisited = false, onVisited, ACCENT }) {
 	const cardBorder = isVisited ? "border-slate-300" : "border-gray-200";
 	const cardBg = isVisited ? "bg-slate-50/95" : "bg-white/95";
 
+	const isFromScrollArea = (target) =>
+		target?.closest?.('[data-scroll-area="true"]');
+
+	const tryFlip = (e) => {
+		if (isFromScrollArea(e.target)) return;
+		if (moved.current) return;
+		setFlipped((v) => !v);
+	};
+
+	const handlePointerDown = (e) => {
+		if (isFromScrollArea(e.target)) return;
+		const pt = "touches" in e ? e.touches?.[0] : e;
+		startPos.current = { x: pt?.clientX ?? 0, y: pt?.clientY ?? 0 };
+		moved.current = false;
+	};
+
+	const handlePointerMove = (e) => {
+		if (!startPos.current) return;
+		const pt = "touches" in e ? e.touches?.[0] : e;
+		const dx = Math.abs((pt?.clientX ?? 0) - startPos.current.x);
+		const dy = Math.abs((pt?.clientY ?? 0) - startPos.current.y);
+		if (dx > DRAG_TOLERANCE || dy > DRAG_TOLERANCE) moved.current = true;
+	};
+
+	const handlePointerUp = () => {
+		setTimeout(() => {
+			moved.current = false;
+			startPos.current = { x: 0, y: 0 };
+		}, 0);
+	};
+
 	return (
 		<li className="relative">
-			{/* ✅ Non-flipping badge */}
 			{isVisited && (
 				<span
 					className="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full grid place-items-center text-white"
@@ -65,15 +121,15 @@ function FlipCard({ step, backText, isVisited = false, onVisited, ACCENT }) {
 			)}
 
 			<div className="relative isolate [perspective:1000px]">
-				{/* Rotating card */}
 				<button
 					type="button"
 					className={`${baseClasses} ${cardBorder} ${cardBg}`}
 					aria-pressed={flipped}
 					aria-describedby={flipped ? backId : frontId}
-					onClick={() => setFlipped((v) => !v)}
+					onClick={tryFlip}
 					onKeyDown={(e) => {
-						if (e.key === "Enter" || e.key === " ") {
+						if (e.currentTarget !== e.target) return;
+						if (["Enter", " "].includes(e.key)) {
 							e.preventDefault();
 							setFlipped((v) => !v);
 						}
@@ -82,6 +138,12 @@ function FlipCard({ step, backText, isVisited = false, onVisited, ACCENT }) {
 							setFlipped((v) => !v);
 						}
 					}}
+					onMouseDown={handlePointerDown}
+					onMouseMove={handlePointerMove}
+					onMouseUp={handlePointerUp}
+					onTouchStart={handlePointerDown}
+					onTouchMove={handlePointerMove}
+					onTouchEnd={handlePointerUp}
 					style={{
 						transformStyle: "preserve-3d",
 						boxShadow: "0 1px 0 rgba(255,255,255,.6) inset",
@@ -98,11 +160,9 @@ function FlipCard({ step, backText, isVisited = false, onVisited, ACCENT }) {
 							className="text-2xl sm:text-3xl font-bold tracking-tight select-none"
 							style={{ color: ACCENT }}
 						>
-							Step {step}
+							{STR.stepLabel} {step}
 						</h4>
-						<SrOnly>
-							Press Enter or Space to flip and read the description.
-						</SrOnly>
+						<SrOnly>{STR.sr.flip}</SrOnly>
 					</div>
 
 					{/* BACK */}
@@ -116,17 +176,28 @@ function FlipCard({ step, backText, isVisited = false, onVisited, ACCENT }) {
 						].join(" ")}
 						style={{ backfaceVisibility: "hidden" }}
 					>
-						<div className="max-h-full w-full overflow-auto">
-							<p className="text-md leading-relaxed text-gray-800 text-center">
+						<div
+							className="max-h-full w-full overflow-auto"
+							data-scroll-area="true"
+							onClick={(e) => e.stopPropagation()}
+							onMouseDown={(e) => e.stopPropagation()}
+							onTouchStart={(e) => e.stopPropagation()}
+						>
+							<p
+								className="leading-relaxed text-gray-800 text-center"
+								style={{ fontSize: "15px" }}
+							>
 								{backText}
 							</p>
 						</div>
-						<p className="sr-only">Press Enter, Space, or F to flip back.</p>
+						<p className="sr-only">{STR.sr.flipBack}</p>
 					</div>
 
 					{/* Sizer */}
 					<div className="opacity-0 h-full w-full px-5 py-6">
-						<h4 className="text-2xl font-bold">Step {step}</h4>
+						<h4 className="text-2xl font-bold">
+							{STR.stepLabel} {step}
+						</h4>
 						<p className="mt-2 text-sm">{backText}</p>
 					</div>
 				</button>
@@ -136,16 +207,29 @@ function FlipCard({ step, backText, isVisited = false, onVisited, ACCENT }) {
 }
 
 export default function PreparationPage({ content, onStartActivities }) {
-	// 💜 Purple accent
 	const ACCENT = "#7443d6";
 
-	const title = content?.title ?? "Preparation";
+	const STR = content?.ui ?? {
+		sectionTitle: content?.title ?? "Preparation",
+		howTitle: "How does the Learning Quest work?",
+		instructions:
+			"Click a card to flip it and read the step. A green check will appear after you’ve viewed a card.",
+		stepLabel: "Step",
+		sr: {
+			flip: "Press Enter or Space to flip and read the description.",
+			flipBack: "Press Enter, Space, or F to flip back.",
+		},
+	};
+
+	const title = content?.title ?? STR.sectionTitle ?? "Preparation";
 	const p0 = content?.paragraphs?.[0] ?? "";
 	const p1 = content?.paragraphs?.[1] ?? "";
-	const items = INTRO_INFO_CONTENT?.bullets?.[0]?.items ?? [];
+
+	const lang = detectLang() === "fr" ? "fr" : "en";
+	const intro = lang === "fr" ? INTRO_INFO_CONTENT_FR : INTRO_INFO_CONTENT;
+	const items = intro?.bullets?.[0]?.items ?? [];
 	const prefersReduced = useReducedMotion();
 
-	// --- Visited state for flip cards (persisted) ---
 	const LS_KEY = "prep_flip_visited_v1";
 	const [visited, setVisited] = useState(() => {
 		try {
@@ -180,7 +264,6 @@ export default function PreparationPage({ content, onStartActivities }) {
 		});
 	};
 
-	// motion helpers
 	const fadeUp = prefersReduced
 		? { initial: { opacity: 0 }, animate: { opacity: 1 } }
 		: { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } };
@@ -191,7 +274,6 @@ export default function PreparationPage({ content, onStartActivities }) {
 
 	return (
 		<div className="relative bg-transparent min-h-[100svh]">
-			{/* 💜 purple gradient wash */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 z-0 pointer-events-none"
@@ -205,7 +287,6 @@ export default function PreparationPage({ content, onStartActivities }) {
 			/>
 
 			<div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-8">
-				{/* Header card — left-aligned like Intro */}
 				<motion.section
 					{...fadeUp}
 					transition={fastEase}
@@ -229,7 +310,6 @@ export default function PreparationPage({ content, onStartActivities }) {
 					)}
 				</motion.section>
 
-				{/* HOW IT WORKS — left-aligned with instructions above grid */}
 				<motion.section
 					{...fadeUp}
 					transition={fastEase}
@@ -242,17 +322,11 @@ export default function PreparationPage({ content, onStartActivities }) {
 						className="text-2xl font-bold"
 						style={{ color: ACCENT }}
 					>
-						How does the Learning Quest work?
+						{STR.howTitle}
 					</h3>
 
-					{/* Instructions */}
-					<p className="mt-2 text-slate-700">
-						Click a card to flip it and read the step. A{" "}
-						<span className="font-medium">green check</span> will appear after
-						you’ve viewed a card.
-					</p>
+					<p className="mt-2 text-slate-700">{STR.instructions}</p>
 
-					{/* Responsive grid */}
 					<ol className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-center">
 						{items.map((it, i) => (
 							<FlipCard
@@ -262,6 +336,7 @@ export default function PreparationPage({ content, onStartActivities }) {
 								isVisited={!!visited[i]}
 								onVisited={() => markVisited(i)}
 								ACCENT={ACCENT}
+								STR={STR}
 							/>
 						))}
 					</ol>
