@@ -1,45 +1,96 @@
 // src/pages/activities/Activity06.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { BookOpen, ExternalLink, Library } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
+import LinkCard from "../components/LinkCard.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
+import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
+/* tiny language sniff (matches other activities) */
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
+/* Normalize resources from content.js (links[] or resources[]) */
+function normalizeResources(c) {
+	if (Array.isArray(c?.links) && c.links.length) {
+		return { linkItems: c.links, stringItems: [] };
+	}
+	const stringItems = Array.isArray(c?.resources) ? c.resources : [];
+	return { linkItems: [], stringItems };
+}
+
 export default function Activity06({
-	content,
+	// content prop intentionally ignored — content comes from ACTIVITIES_CONTENT
 	notes,
 	completed,
 	onNotes,
 	onToggleComplete,
-	accent = "#0891B2", // cyan-600; change to re-skin this activity
+	accent = "#0891B2",
 }) {
+	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
+	const reduceMotion = useReducedMotion();
+
+	const a6Content =
+		(ACTIVITIES_CONTENT &&
+			ACTIVITIES_CONTENT.a6 &&
+			(ACTIVITIES_CONTENT.a6[lang] || ACTIVITIES_CONTENT.a6.en)) ||
+		{};
+
+	// localized pieces from content
+	const cdata = a6Content?.cdata || {};
+	const title =
+		cdata.title ||
+		a6Content?.title ||
+		(lang === "fr" ? "Lisez un livre" : "Read a Book");
+	const instructionsHtml =
+		cdata.instructionsHtml ||
+		(a6Content?.prompt ? `<p>${a6Content.prompt}</p>` : "");
+	const tipText =
+		a6Content?.tip ||
+		a6Content?.prompt ||
+		(instructionsHtml ? instructionsHtml.replace(/<[^>]*>/g, "").trim() : "");
 	const placeholder =
-		content?.notePlaceholder || "Author, title, key takeaways…";
+		a6Content?.notePlaceholder ||
+		(lang === "fr"
+			? "Cliquez ou tapez ici pour saisir du texte."
+			: "Author, title, key takeaways…");
+	const exportLinksHeading =
+		a6Content?.resourcesHeading || (lang === "fr" ? "Ressources" : "Resources");
+	const activityNumber = Number.isFinite(a6Content?.number)
+		? a6Content.number
+		: 6;
 
-	// local + sync with prop (prevents premature “started”)
+	const { linkItems } = normalizeResources(a6Content);
+	const pageLinks = linkItems;
+	const hasLinks = pageLinks && pageLinks.length > 0;
+
+	// local notes state
 	const [localNotes, setLocalNotes] = useState(notes ?? "");
-	useEffect(() => {
-		setLocalNotes(notes ?? "");
-	}, [notes]);
-
+	useEffect(() => setLocalNotes(notes ?? ""), [notes]);
 	const saveNotes = (v) => {
 		setLocalNotes(v);
 		onNotes?.(v);
 	};
 
-	// compute started from freshest value
 	const started = hasActivityStarted(localNotes ?? notes, "notes");
 
-	const reduceMotion = useReducedMotion();
-
-	// --- animations (same rhythm as the other redesigned pages) ---
+	// animations
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
-
 	const pageFade = {
 		hidden: { opacity: 0 },
 		show: { opacity: 1, transition: { duration: 0.35 } },
@@ -66,32 +117,38 @@ export default function Activity06({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	// --- shared classes (rings via outline so we can set color inline) ---
-	const linkCardBase =
-		"group block mx-auto max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 " +
-		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer " +
-		"focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
-	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
-	const linkFooterBase =
-		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
+	const linkGridCols =
+		"grid grid-cols-1 sm:grid-cols-2 gap-4 place-content-center";
 
-	const activityNumber = 6;
-
-	// Exportable resources as bullet hyperlinks (no table)
-	const pageLinks = [
-		{
-			label: "#IndigenousReads (Government of Canada)",
-			url: "https://www.rcaanc-cirnac.gc.ca/eng/1496255894592/1557840487211",
-		},
-	];
-
-	// Tip to include at top of export (split into sentences)
-	const tipText =
-		"Read a book by a First Nations, Inuit or Métis author.  Share what you thought of this book.";
-
-	// Build a “local library” search URL that opens in a new tab.
-	const libraryQuery = encodeURIComponent('Local public Library"');
-	const librarySearchUrl = `https://www.google.com/search?q=${libraryQuery}`;
+	const handleDownload = useCallback(() => {
+		const html =
+			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+		downloadNotesAsWord({
+			html,
+			downloadFileName: `Activity-${
+				a6Content?.id || String(activityNumber).padStart(2, "0")
+			}-Reflection.docx`,
+			docTitle: title,
+			docSubtitle: a6Content?.subtitle,
+			activityNumber,
+			docIntro: tipText,
+			includeLinks: hasLinks,
+			linksHeading: exportLinksHeading,
+			pageLinks,
+			headingColor: accent,
+			accent,
+		});
+	}, [
+		localNotes,
+		a6Content,
+		activityNumber,
+		pageLinks,
+		exportLinksHeading,
+		title,
+		tipText,
+		accent,
+		hasLinks,
+	]);
 
 	return (
 		<motion.div
@@ -100,17 +157,14 @@ export default function Activity06({
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft gradient (accent → clear) */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
-					backgroundImage: `linear-gradient(
-            to bottom,
-            ${withAlpha(accent, "3D")},
-            rgba(255,255,255,0.65),
-            rgba(248,250,252,0.8)
-          )`,
+					backgroundImage: `linear-gradient(to bottom, ${withAlpha(
+						accent,
+						"3D"
+					)}, rgba(255,255,255,0.65), rgba(248,250,252,0.8))`,
 				}}
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 0.35 }}
@@ -118,7 +172,6 @@ export default function Activity06({
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* ===== HEADER (matches Activity 01) ===== */}
 				<motion.header
 					className="text-center"
 					variants={titleFade}
@@ -126,18 +179,16 @@ export default function Activity06({
 					animate="show"
 				>
 					<div className="mx-auto space-y-4 sm:space-y-5">
-						{/* Activity number */}
 						<p
 							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
 						>
-							Activity {activityNumber}
+							{lang === "fr" ? "Activité" : "Activity"} {activityNumber}
 						</p>
 
-						{/* Title row: H1 + icon */}
 						<div className="inline-flex items-center justify-center gap-3">
 							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
-								{content?.title || "Read a Book"}
+								{title}
 							</h1>
 							<BookOpen
 								className="w-8 h-8 align-middle"
@@ -147,10 +198,13 @@ export default function Activity06({
 							/>
 						</div>
 
-						{/* Instructions callout (same component structure as Activity 01) */}
 						<aside
 							role="note"
-							aria-label="Activity instructions"
+							aria-label={
+								lang === "fr"
+									? "Instructions de l'activité"
+									: "Activity instructions"
+							}
 							className="mx-auto max-w-3xl rounded-2xl border bg-white/85 backdrop-blur-sm px-5 py-4 text-base sm:text-lg leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.05)]"
 							style={{ borderColor: withAlpha(accent, "33") }}
 						>
@@ -163,121 +217,91 @@ export default function Activity06({
 									}}
 									aria-hidden="true"
 								>
-									Instructions
+									{lang === "fr" ? "Instructions" : "Instructions"}
 								</div>
-								<p
-									className="text-slate-800 max-w-2xl"
-									style={{ color: accent }}
-								>
-									Read a book by a First Nations, Inuit, or Métis author.
-									<br />
-									<strong>Share what you thought of this book.</strong>
-								</p>
+
+								{instructionsHtml ? (
+									<div
+										className="text-slate-800 max-w-2xl"
+										style={{ color: accent }}
+										dangerouslySetInnerHTML={{ __html: instructionsHtml }}
+									/>
+								) : (
+									<p
+										className="text-slate-800 max-w-2xl"
+										style={{ color: accent }}
+									>
+										{tipText}
+										<br />
+										<strong>
+											{lang === "fr"
+												? "Faites part de vos impressions."
+												: "Share what you thought of this book."}
+										</strong>
+									</p>
+								)}
 							</div>
 						</aside>
 					</div>
 				</motion.header>
 
-				{/* ===== Resource + Library link ===== */}
-				<motion.section
-					className="flex justify-center"
-					variants={gridStagger}
-					initial="hidden"
-					animate="show"
-				>
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 place-content-center w-full">
-						{/* Link card: #IndigenousReads */}
-						<motion.a
-							href="https://www.rcaanc-cirnac.gc.ca/eng/1496255894592/1557840487211"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Open: #IndigenousReads (new tab)"
-							aria-label="Open: #IndigenousReads in a new tab"
-							variants={cardPop}
-						>
-							<div className="flex items-center gap-3">
-								<div
-									className={badgeBase}
-									style={{
-										backgroundColor: withAlpha(accent, "1A"),
-										color: accent,
-									}}
-								>
-									<BookOpen className="w-5 h-5" aria-hidden="true" />
-								</div>
-								<div className="font-medium text-slate-900 group-hover:underline">
-									#IndigenousReads (Government of Canada)
-								</div>
-							</div>
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" aria-hidden="true" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
+				{hasLinks && (
+					<motion.section
+						className="flex justify-center"
+						variants={gridStagger}
+						initial="hidden"
+						animate="show"
+					>
+						<div className={linkGridCols}>
+							{pageLinks.map((lnk, i) => {
+								// compute suffix shown on French pages when link is English-only
+								const enOnlySuffix =
+									lang === "fr" && lnk.enOnly ? " (en anglais seulement)" : "";
+								return (
+									<motion.div
+										key={`${lnk.url || lnk.label}-${i}`}
+										variants={cardPop}
+									>
+										<LinkCard
+											link={lnk}
+											accent={accent}
+											Icon={BookOpen}
+											enOnlySuffix={enOnlySuffix}
+											variants={cardPop}
+										/>
+									</motion.div>
+								);
+							})}
+						</div>
+					</motion.section>
+				)}
 
-						{/* Link card: Ask your local library (opens search) */}
-						<motion.a
-							href={librarySearchUrl}
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Search the web: Ask your local library for suggestions (new tab)"
-							aria-label="Search the web in a new tab for: Ask your local library for suggestions"
-							variants={cardPop}
-						>
-							<div className="flex items-center gap-3">
-								<div
-									className={badgeBase}
-									style={{
-										backgroundColor: withAlpha(accent, "1A"),
-										color: accent,
-									}}
-								>
-									<Library className="w-5 h-5" aria-hidden="true" />
-								</div>
-								<div className="font-medium text-slate-900 group-hover:underline">
-									Ask your local library for suggestions
-								</div>
-							</div>
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" aria-hidden="true" />
-								<span>Search the web</span>
-							</div>
-						</motion.a>
-					</div>
-				</motion.section>
-
-				{/* ===== Notes (hex-accent NoteComposer) ===== */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
-					storageKey={`notes-${content?.id || "06"}`}
+					storageKey={`notes-${
+						a6Content?.id || String(activityNumber).padStart(2, "0")
+					}`}
 					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent={accent}
-					downloadFileName={`Activity-${content?.id || "06"}-Reflection.docx`}
-					/* Exported title becomes: "Activity 6: Read a Book" */
-					docTitle={content?.title || "Read a Book"}
-					docSubtitle={content?.subtitle}
-					/* Include activity number in exported title */
+					downloadFileName={`Activity-${
+						a6Content?.id || String(activityNumber).padStart(2, "0")
+					}-Reflection.docx`}
+					docTitle={title}
+					docSubtitle={a6Content?.subtitle}
 					activityNumber={activityNumber}
-					/* Include on-page tip in exported document */
 					docIntro={tipText}
-					/* Export resources as header + bullet list of hyperlink labels (no table) */
-					includeLinks={true}
-					linksHeading="Resources"
+					includeLinks={hasLinks}
+					linksHeading={exportLinksHeading}
 					pageLinks={pageLinks}
-					/* Use accent for exported headings */
 					headingColor={accent}
+					showDownloadButton={false}
 				/>
 
-				{/* ===== Complete toggle ===== */}
 				<div className="flex justify-end">
 					<CompleteButton
 						started={started}
@@ -285,27 +309,16 @@ export default function Activity06({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
+					<button
+						type="button"
+						onClick={handleDownload}
+						className="ml-2 px-4 py-2 rounded-lg text-white"
+						style={{ backgroundColor: accent }}
+					>
+						{lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
+					</button>
 				</div>
 			</div>
 		</motion.div>
-	);
-}
-
-/* Accent-aware, dashed/translucent tip (kept for reuse if needed elsewhere) */
-function TipCard({ accent = "#0891B2", children }) {
-	return (
-		<section
-			className="mx-auto max-w-xl w-full rounded-2xl border border-dashed p-4 shadow-sm"
-			role="note"
-			aria-label="Activity tip"
-			style={{
-				borderColor: withAlpha(accent, "33"), // ~20%
-				backgroundColor: withAlpha(accent, "14"), // ~8% tint
-			}}
-		>
-			<p className="text-base sm:text-lg text-center text-slate-900">
-				{children}
-			</p>
-		</section>
 	);
 }

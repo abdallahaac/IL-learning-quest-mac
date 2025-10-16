@@ -1,11 +1,12 @@
 // src/pages/activities/Activity03.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Utensils, ExternalLink } from "lucide-react";
+import { Utensils } from "lucide-react";
 
 import GroupSelector from "./Activity03/GroupSelector.jsx";
 import RecipeBuilder from "./Activity03/RecipeBuilder.jsx";
 import SavedRecipes from "./Activity03/SavedRecipes.jsx";
+import LinkCard from "../components/LinkCard.jsx";
 import {
 	withAlpha,
 	formatIngredient,
@@ -14,11 +15,12 @@ import {
 	safe,
 	downloadBlob,
 } from "../utils/recipeUtils.js";
+import { downloadAllDocx, downloadOne } from "../utils/downloadRecipes.js";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 
 export default function Activity03({
-	content, // localized content object for a3 (e.g. ACTIVITIES_CONTENT.a3.en / .fr)
+	content,
 	notes,
 	onNotes,
 	completed,
@@ -29,7 +31,6 @@ export default function Activity03({
 	const activityNumber = 3;
 	const storageKey = `recipes-${content?.id || "03"}`;
 
-	// localized strings for this activity
 	const strings = content || {};
 
 	// animations
@@ -55,7 +56,7 @@ export default function Activity03({
 		exit: { opacity: 0, height: 0, transition: { duration: 0.2 } },
 	};
 
-	// reference link: use first link from content.links if present
+	// reference link (same as before)
 	const referenceLink =
 		Array.isArray(strings.links) && strings.links.length
 			? strings.links[0]
@@ -65,7 +66,7 @@ export default function Activity03({
 					url: "https://www.firstnations.org/knowledge-center/recipes/",
 			  };
 
-	// Model (normalize ingredients + directions)
+	// MODEL normalization (same as original)
 	const initial = useMemo(() => {
 		const fromNotes = notes && typeof notes === "object" ? notes : null;
 		const tryLocal = () => {
@@ -130,21 +131,18 @@ export default function Activity03({
 
 	const started = hasActivityStarted(model, "recipes");
 
-	// UI state for new recipe
+	// UI state (same fields as before) — kept local to keep components independent
 	const [group, setGroup] = useState("firstNations");
 	const [name, setName] = useState("");
 	const [ingredients, setIngredients] = useState([]);
 	const [steps, setSteps] = useState([]);
 
-	// Ingredient composer (embedded controls)
 	const [ingItem, setIngItem] = useState("");
 	const [ingQty, setIngQty] = useState("");
 	const [ingUnit, setIngUnit] = useState("");
 
-	// Directions composer (add steps)
 	const [stepText, setStepText] = useState("");
 
-	// Inline edit state
 	const [editingId, setEditingId] = useState(null);
 	const [editName, setEditName] = useState("");
 	const [editIngredients, setEditIngredients] = useState([]);
@@ -155,7 +153,6 @@ export default function Activity03({
 	const [editStepText, setEditStepText] = useState("");
 	const [justSavedId, setJustSavedId] = useState(null);
 
-	// localized unitOptions fallback
 	const unitOptions =
 		Array.isArray(strings.unitOptions) && strings.unitOptions.length
 			? strings.unitOptions
@@ -236,7 +233,7 @@ export default function Activity03({
 
 	const filtered = model.recipes.filter((r) => r.group === group);
 
-	// Edit flow
+	// Edit flow (same as before)
 	const startEdit = (r) => {
 		setEditingId(r.id);
 		setEditName(r.name);
@@ -274,7 +271,6 @@ export default function Activity03({
 	};
 	const removeEditIngredient = (i) =>
 		setEditIngredients((prev) => prev.filter((_, idx) => idx !== i));
-
 	const addEditStep = () => {
 		if (!editStepText.trim()) return;
 		setEditSteps((prev) => [...prev, editStepText.trim()]);
@@ -282,7 +278,6 @@ export default function Activity03({
 	};
 	const removeEditStep = (i) =>
 		setEditSteps((prev) => prev.filter((_, idx) => idx !== i));
-
 	const saveEdit = () => {
 		if (!editingId) return;
 		const next = {
@@ -304,380 +299,22 @@ export default function Activity03({
 		window.setTimeout(() => setJustSavedId(null), 1400);
 	};
 
-	// DOCX export (localized labels used throughout)
-	const downloadAllDocx = async () => {
-		const items = Array.isArray(model.recipes) ? model.recipes : [];
-		if (!items.length) return;
+	// EXPORT handlers now call into the download utility
+	const handleDownloadAll = async () =>
+		downloadAllDocx({
+			items: Array.isArray(model.recipes) ? model.recipes : [],
+			strings,
+			activityNumber,
+			accent,
+			referenceLink,
+		});
 
-		// localized labels
-		const activityLabel = strings.activityLabel || "Activity";
-		const baseTitle = strings.title || "Make a Traditional Recipe";
-		const title = `${activityLabel} ${activityNumber}: ${baseTitle}`;
-		const fileName = `activity-${activityNumber}-recipes.docx`;
+	const handleDownloadOne = (r) =>
+		downloadOne(r, strings, activityNumber, accent, referenceLink);
 
-		// localized headings
-		const ingredientsHeading = strings.ingredientsHeading || "Ingredients";
-		const directionsHeading = strings.directionsLabel || "Directions";
-		const resourcesHeading = strings.resourcesHeading || "Resources";
-
-		try {
-			const {
-				Document,
-				Packer,
-				Paragraph,
-				TextRun,
-				AlignmentType,
-				Table,
-				TableRow,
-				TableCell,
-				WidthType,
-				BorderStyle,
-			} = await import("docx");
-
-			const H1 = new Paragraph({
-				alignment: AlignmentType.LEFT,
-				spacing: { before: 0, after: 300 },
-				children: [
-					new TextRun({
-						text: title,
-						bold: true,
-						size: 48,
-						font: "Arial",
-						color: accent,
-					}),
-				],
-			});
-
-			const tip1 = new Paragraph({
-				spacing: { before: 0, after: 160 },
-				children: [
-					new TextRun({
-						text:
-							strings.tip ||
-							"Try your hand at making a traditional First Nations, Inuit or Métis recipe.",
-						italics: true,
-						font: "Arial",
-						size: 24,
-					}),
-				],
-			});
-			const tip2 = new Paragraph({
-				spacing: { before: 0, after: 180 },
-				children: [
-					new TextRun({
-						text:
-							strings.tip && strings.tip.includes("\n")
-								? strings.tip.split("\n")[1] || ""
-								: "Share your experience or maybe have a lunch-time potluck.",
-						italics: true,
-						font: "Arial",
-						size: 24,
-					}),
-				],
-			});
-
-			const resourceHeading = new Paragraph({
-				spacing: { before: 80, after: 120 },
-				children: [
-					new TextRun({
-						text: resourcesHeading,
-						bold: true,
-						font: "Arial",
-						size: 32,
-						color: accent,
-					}),
-				],
-			});
-
-			const resourceLine = new Paragraph({
-				spacing: { before: 0, after: 280 },
-				children: [
-					new TextRun({
-						text: `${referenceLink.label} — `,
-						font: "Arial",
-						size: 24,
-					}),
-					new TextRun({
-						text: referenceLink.url,
-						font: "Arial",
-						size: 24,
-						underline: {},
-						color: "1155CC",
-					}),
-				],
-			});
-
-			const sections = [H1, tip1, tip2, resourceHeading, resourceLine];
-
-			items
-				.slice()
-				.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-				.forEach((r, idx) => {
-					const header = new Paragraph({
-						spacing: { before: idx === 0 ? 200 : 300, after: 120 },
-						children: [
-							new TextRun({
-								text: r.name || "Untitled recipe",
-								bold: true,
-								font: "Arial",
-								size: 32,
-								color: accent,
-							}),
-							new TextRun({ text: "  •  ", font: "Arial", size: 24 }),
-							new TextRun({
-								text: labelForGroup(r.group),
-								font: "Arial",
-								size: 24,
-								italics: true,
-							}),
-						],
-					});
-
-					const when = new Paragraph({
-						spacing: { before: 0, after: 120 },
-						children: [
-							new TextRun({
-								text: new Date(r.createdAt).toLocaleString(),
-								font: "Arial",
-								size: 20,
-								color: "6B7280",
-							}),
-						],
-					});
-
-					const ingHeaderRow = new TableRow({
-						children: [
-							new TableCell({
-								children: [
-									new Paragraph({
-										children: [
-											new TextRun({
-												text: ingredientsHeading,
-												bold: true,
-												font: "Arial",
-												size: 24,
-											}),
-										],
-									}),
-								],
-							}),
-						],
-						tableHeader: true,
-					});
-
-					const ingRows = (r.ingredients || []).map(
-						(it) =>
-							new TableRow({
-								children: [
-									new TableCell({
-										children: [
-											new Paragraph({
-												children: [
-													new TextRun({
-														text: formatIngredient(it),
-														font: "Arial",
-														size: 24,
-													}),
-												],
-											}),
-										],
-									}),
-								],
-							})
-					);
-
-					const ingTable = new Table({
-						width: { size: 100, type: WidthType.PERCENTAGE },
-						rows: [ingHeaderRow, ...ingRows],
-						borders: {
-							top: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
-							bottom: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
-							left: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
-							right: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
-							insideHorizontal: {
-								style: BorderStyle.SINGLE,
-								size: 1,
-								color: "E5E7EB",
-							},
-							insideVertical: {
-								style: BorderStyle.SINGLE,
-								size: 1,
-								color: "E5E7EB",
-							},
-						},
-					});
-
-					sections.push(header, when, ingTable);
-
-					if ((r.directions || []).length > 0) {
-						sections.push(
-							new Paragraph({
-								spacing: { before: 160, after: 80 },
-								children: [
-									new TextRun({
-										text: directionsHeading,
-										bold: true,
-										font: "Arial",
-										size: 24,
-										color: accent,
-									}),
-								],
-							})
-						);
-						(r.directions || []).forEach((step, i) => {
-							sections.push(
-								new Paragraph({
-									spacing: { before: 0, after: 80 },
-									children: [
-										new TextRun({
-											text: `${i + 1}. ${step}`,
-											font: "Arial",
-											size: 24,
-										}),
-									],
-								})
-							);
-						});
-					}
-				});
-
-			const doc = new Document({
-				styles: {
-					default: {
-						document: {
-							run: { font: "Arial", size: 24 },
-							paragraph: { spacing: { line: 360 } },
-						},
-					},
-				},
-				sections: [{ properties: {}, children: sections }],
-			});
-
-			const blob = await Packer.toBlob(doc);
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = fileName;
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
-		} catch {
-			// Fallback: Word-compatible HTML
-			const esc = (s = "") =>
-				String(s)
-					.replaceAll("&", "&amp;")
-					.replaceAll("<", "&lt;")
-					.replaceAll(">", "&gt;");
-
-			const ingredientsHeading = strings.ingredientsHeading || "Ingredients";
-			const directionsHeading = strings.directionsLabel || "Directions";
-			const resourcesHeading = strings.resourcesHeading || "Resources";
-			const activityLabel = strings.activityLabel || "Activity";
-
-			const items = Array.isArray(model.recipes) ? model.recipes : [];
-			const rows = (items || [])
-				.map((r) => {
-					const ings = (r.ingredients || [])
-						.map((it) => `<li>${esc(formatIngredient(it))}</li>`)
-						.join("");
-					const steps = (r.directions || [])
-						.map((s, i) => `<li>${esc(`${i + 1}. ${s}`)}</li>`)
-						.join("");
-					const dir = steps
-						? `<h3 style="font-size:13pt; color:${esc(
-								accent
-						  )}; margin:10pt 0 6pt;">${esc(directionsHeading)}</h3>
-               <ol style="margin:0 0 12pt 18pt; font-size:12pt; list-style:none; padding-left:0;">
-                 ${steps}
-               </ol>`
-						: "";
-					return `
-            <h2 style="font-size:16pt; color:${esc(
-							accent
-						)}; margin:18pt 0 6pt;">${esc(r.name || "Untitled recipe")}</h2>
-            <p style="margin:0 0 6pt; color:#6B7280;">${esc(
-							labelForGroup(r.group)
-						)} • ${esc(new Date(r.createdAt).toLocaleString())}</p>
-            <h3 style="font-size:13pt; color:${esc(
-							accent
-						)}; margin:10pt 0 6pt;">${esc(ingredientsHeading)}</h3>
-            <ul style="margin:0 0 12pt 18pt; font-size:12pt;">${ings}</ul>
-            ${dir}
-          `;
-				})
-				.join("");
-
-			const title = `${activityLabel} ${activityNumber}: ${esc(
-				strings.title || "Make a Traditional Recipe"
-			)}`;
-			const html = `
-        <html>
-          <head><meta charset="utf-8"><title>${title}</title></head>
-          <body style="font-family:Arial; line-height:1.5;">
-            <h1 style="font-size:24pt; color:${esc(
-							accent
-						)}; margin:0 0 12pt;">${title}</h1>
-            <p style="font-size:12pt; font-style:italic; margin:0 0 6pt;">${esc(
-							strings.tip || ""
-						)}</p>
-            <h2 style="font-size:16pt; color:${esc(
-							accent
-						)}; margin:12pt 0 8pt;">${esc(resourcesHeading)}</h2>
-            <p style="font-size:12pt; margin:0 0 18pt;">${esc(
-							referenceLink.label
-						)} —
-              <a href="${esc(
-								referenceLink.url
-							)}" style="color:#1155CC; text-decoration:underline;">${esc(
-				referenceLink.url
-			)}</a>
-            </p>
-            ${rows}
-          </body>
-        </html>
-      `.trim();
-
-			const blob = new Blob([html], { type: "application/msword" });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = `activity-${activityNumber}-recipes.doc`;
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
-		}
-	};
-
-	const downloadOne = (r) => {
-		const activityLabel = strings.activityLabel || "Activity";
-		const ingredientsHeading = strings.ingredientsHeading || "Ingredients";
-		const directionsHeading = strings.directionsLabel || "Directions";
-
-		const body = [
-			`${activityLabel} ${activityNumber}: ${
-				strings.title || "Make a Traditional Recipe"
-			}`,
-			`Group: ${labelForGroup(r.group)}`,
-			`Name: ${r.name}`,
-			"",
-			`${ingredientsHeading}:`,
-			...(r.ingredients || []).map((x) => `- ${formatIngredient(x)}`),
-			"",
-			(r.directions || []).length
-				? `${directionsHeading}:\n` + formatDirectionsText(r.directions) + "\n"
-				: "",
-			`Saved: ${new Date(r.createdAt).toLocaleString()}`,
-			`Source: ${referenceLink.url}`,
-		].join("\n");
-		downloadBlob(body, `Recipe-${safe(r.name)}.txt`);
-	};
-
-	// helper to render newlines in strings.tip (simple)
+	// render tip helper (same as original)
 	const renderTip = (text) => {
 		if (!text) return null;
-		// prefer cdata HTML when available
 		if (typeof strings.cdata === "object" && strings.cdata.instructionsHtml) {
 			return (
 				<div
@@ -699,7 +336,6 @@ export default function Activity03({
 			initial="hidden"
 			animate="show"
 		>
-			{/* background gradient */}
 			<motion.div
 				aria-hidden
 				className="fixed inset-0 -z-10 pointer-events-none"
@@ -715,7 +351,6 @@ export default function Activity03({
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* ===== HEADER ===== */}
 				<motion.header
 					className="text-center"
 					variants={titleFade}
@@ -742,7 +377,6 @@ export default function Activity03({
 							/>
 						</div>
 
-						{/* Instructions callout */}
 						<aside
 							role="note"
 							aria-label={strings.instructionsLabel || "Activity instructions"}
@@ -771,50 +405,23 @@ export default function Activity03({
 					</div>
 				</motion.header>
 
-				{/* Reference card */}
+				{/* Reference card (using the new LinkCard component which matches Activity02 styling) */}
 				<motion.section
 					className="flex justify-center"
 					variants={cardPop}
 					initial="hidden"
 					animate="show"
 				>
-					<a
-						href={referenceLink.url}
-						target="_blank"
-						rel="noreferrer"
-						className="group block max-w-md w-full rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-						style={{
-							outlineColor: accent,
-							borderColor: withAlpha(accent, "33"),
-						}}
-						title={referenceLink.label}
-						aria-label={referenceLink.label}
-					>
-						<div className="flex items-center gap-3">
-							<span
-								className="w-10 h-10 rounded-xl grid place-items-center"
-								style={{
-									backgroundColor: withAlpha(accent, "1A"),
-									color: accent,
-								}}
-							>
-								<Utensils className="w-5 h-5" aria-hidden="true" />
-							</span>
-							<div className="font-medium text-gray-800 group-hover:underline">
-								{referenceLink.label}
-							</div>
-						</div>
-						<div
-							className="mt-2 flex items-center justify-center gap-1 text-xs font-medium"
-							style={{ color: accent }}
-						>
-							<ExternalLink className="w-4 h-4" aria-hidden="true" />
-							<span>{strings.openLinkLabel || "Open link"}</span>
-						</div>
-					</a>
+					<LinkCard
+						link={referenceLink}
+						accent={accent}
+						Icon={Utensils}
+						enOnlySuffix={true}
+						variants={cardPop}
+					/>
 				</motion.section>
 
-				{/* ===== Builder ===== */}
+				{/* Builder */}
 				<section className="mx-auto max-w-3xl w-full">
 					<motion.div
 						className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm"
@@ -858,7 +465,7 @@ export default function Activity03({
 					</motion.div>
 				</section>
 
-				{/* ===== Saved recipes ===== */}
+				{/* Saved recipes */}
 				<section className="mx-auto max-w-3xl w-full">
 					<motion.div
 						className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm"
@@ -875,6 +482,7 @@ export default function Activity03({
 								</span>
 							</h2>
 						</div>
+
 						<SavedRecipes
 							filtered={filtered}
 							accent={accent}
@@ -902,7 +510,7 @@ export default function Activity03({
 							removeEditStep={removeEditStep}
 							addEditIngredient={addEditIngredient}
 							addEditStep={addEditStep}
-							downloadOne={downloadOne}
+							downloadOne={handleDownloadOne}
 							strings={strings}
 							labelForGroupLocalized={(id) =>
 								strings.groupLabels?.[id] || labelForGroup(id)
@@ -921,7 +529,7 @@ export default function Activity03({
 					/>
 					<button
 						type="button"
-						onClick={downloadAllDocx}
+						onClick={handleDownloadAll}
 						className="px-4 py-2 rounded-lg border text-sm font-medium transition-colors"
 						style={{
 							backgroundColor: accent,

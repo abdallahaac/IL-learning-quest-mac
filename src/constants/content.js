@@ -636,8 +636,7 @@ export const ACTIVITIES_CONTENT = {
 			},
 			links: [
 				{
-					label:
-						"Recettes autochtones (First Nations Development Institute) — anglais",
+					label: "Recettes autochtones",
 					url: "https://www.firstnations.org/knowledge-center/recipes/",
 				},
 			],
@@ -705,19 +704,41 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Discover facts about an Indigenous population outside Canada. What stood out to you?",
 			notePlaceholder: "Which community? What you learned…",
 			resourcesHeading: "Resources",
-			links: [],
+			links: [
+				{
+					label: "Global map of Indigenous Peoples (PDF)",
+					url: "https://newshour-classroom-tc.digi-producers.pbs.org/uploads/app/uploads/2014/11/A-global-map-of-indigenous-peoples.pdf",
+					icon: "map",
+				},
+			],
 		},
 		fr: {
 			id: "a4",
 			number: 4,
-			title:
-				"Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.",
-			tip: "Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.\nDécrivez vos apprentissages.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tCarte des peuples autochtones dans le monde (en anglais)\n•\tLes peuples autochtones du monde (en anglais)",
+			// shorter visible title — fragment of the approved sentence
+			title: "Apprenez des faits  sur un peuple autochtone d’ailleurs",
+			// keep the approved full sentence for instructions/tip (linguistics happy)
+			tip: "Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.\nDécrivez vos apprentissages.",
+			cdata: {
+				instructionsHtml: `
+        <p>Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.</p>
+     <strong>   <p>Décrivez vos apprentissages.</p></strong>
+
+      `,
+			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
-			links: [],
+			links: [
+				{
+					label: "Carte mondiale des peuples autochtone (PDF) ",
+					url: "https://newshour-classroom-tc.digi-producers.pbs.org/uploads/app/uploads/2014/11/A-global-map-of-indigenous-peoples.pdf",
+					icon: "map",
+				},
+			],
 		},
 	},
+	// ... inside ACTIVITIES_CONTENT
+	// src/constants/content.js (ACTIVITIES_CONTENT.a5)
 	a5: {
 		en: {
 			id: "a5",
@@ -726,19 +747,57 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Watch an Indigenous film or TV show, or listen to an Indigenous-focused podcast. What did you learn?",
 			notePlaceholder: "Title, creator(s), insights…",
 			resourcesHeading: "Resources",
-			links: [],
+			links: [
+				{
+					label: "National Film Board — Indigenous cinema",
+					url: "https://www.nfb.ca/indigenous-cinema/?&film_lang=en&sort=year:desc,title&year_min=1939&year_max=2022",
+					icon: "film",
+					enOnly: false,
+				},
+				{
+					label: "CBC Gem — Indigenous stories",
+					url: "https://gem.cbc.ca/section/indigenous-stories",
+					icon: "video",
+					enOnly: false,
+				},
+			],
 		},
+
 		fr: {
 			id: "a5",
 			number: 5,
-			title:
-				"Écoutez un film ou une série télévisée autochtone, ou bien un balado sur les Autochtones.",
-			tip: "Écoutez un film ou une série télévisée autochtone, ou bien un balado sur les Autochtones.\nQu’avez-vous appris?\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tCinéma autochtone de l’Office national du film\n•\tHistoires autochtones de CBC Gem (en anglais)",
+			// French page title (short, localized)
+			title: "Film, télévision ou balado",
+			// instructions / tip (keeps same intent & length; question will be bolded via cdata)
+			tip: "Écoutez un film ou une série télévisée autochtone, ou bien un balado axé sur les Autochtones. Qu’avez-vous appris?",
+			cdata: {
+				instructionsHtml: `
+        <p>Écoutez un film ou une série télévisée autochtone, ou bien un balado axé sur les Autochtones.</p>
+        <p><strong>Qu’avez-vous appris?</strong></p>
+      `,
+			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
-			links: [],
+			links: [
+				{
+					label: "Cinéma autochtone — Office national du film",
+					url: "https://www.onf.ca/cinema-autochtone/?language=fr&sort=year%3Adesc%2Ctitle&year_min=1968&year_max=2025",
+					icon: "film",
+					enOnly: false,
+				},
+				{
+					label: "Histoires autochtones de CBC Gem",
+					url: "https://gem.cbc.ca/section/indigenous-stories",
+					icon: "video",
+					enOnly: true,
+				},
+			],
 		},
 	},
+
+	// ...
+
+	// src/constants/content.js (replace or add the a6 block)
 	a6: {
 		en: {
 			id: "a6",
@@ -747,19 +806,55 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Read a book by a First Nations, Inuit, or Métis author. What did you think?",
 			notePlaceholder: "Author, title, key takeaways…",
 			resourcesHeading: "Resources",
-			links: [],
+			links: [
+				{
+					label: "#IndigenousReads (Government of Canada)",
+					url: "https://www.rcaanc-cirnac.gc.ca/eng/1496255894592/1557840487211",
+					icon: "book",
+					enOnly: false,
+				},
+				{
+					label: "Ask your local library for suggestions",
+					url: "https://www.google.com/search?q=Local+public+library",
+					icon: "library",
+					enOnly: false,
+				},
+			],
 		},
+
 		fr: {
 			id: "a6",
 			number: 6,
-			title:
-				"Lisez un livre d’un auteur ou autrice des Premières Nations, ou des peuples inuits ou métis",
-			tip: "Lisez un livre d’un auteur ou autrice des Premières Nations, ou des peuples inuits ou métis \nFaites part de vos impressions.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\t#LecturesAutochtones\n•\tDemandez des suggestions à votre bibliothécaire.",
+			// shorter visible title — localized
+			title: "Lisez un livre",
+			// full approved instruction sentence(s) in French
+			tip: "Lisez un livre d’un auteur ou autrice des Premières Nations, Inuit ou Métis. Faites part de vos impressions.",
+			cdata: {
+				instructionsHtml: `
+        <p>Lisez un livre d’un auteur ou autrice des Premières Nations, Inuit ou Métis.</p>
+        <p><strong>Faites part de vos impressions.</strong></p>
+      `,
+			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
-			links: [],
+			links: [
+				{
+					label: "#LecturesAutochtones",
+					url: "https://www.rcaanc-cirnac.gc.ca/fra/1496255894592/1557840487211",
+					icon: "book",
+					// this government resource is bilingual in many cases; set enOnly if it's english-only
+					enOnly: false,
+				},
+				{
+					label: "Demandez des suggestions à votre bibliothécaire",
+					url: "https://www.google.com/search?q=bibliothèque+municipale",
+					icon: "library",
+					enOnly: false,
+				},
+			],
 		},
 	},
+
 	a7: {
 		en: {
 			id: "a7",
