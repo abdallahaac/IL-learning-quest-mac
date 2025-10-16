@@ -452,6 +452,7 @@ export const UI_STRINGS = {
 // Keys match your quest ids: "a1"..."a10"
 // Tip is the instruction block; links are optional. If FR is missing, app will fall back to EN.
 
+// src/content/activitiesContent.js
 export const ACTIVITIES_CONTENT = {
 	a1: {
 		en: {
@@ -478,14 +479,11 @@ export const ACTIVITIES_CONTENT = {
 			id: "a1",
 			number: 1,
 			title: "Découvrez un artiste autochtone",
-			// clean plaintext fallback for exports
 			tip: "Découvrez les œuvres d’une ou un artiste autochtone qui vous parle. Décrivez la manière dont vous vous identifiez à cette personne. Comment vous inspire-t-elle?",
-			// HTML version rendered by the component
 			cdata: {
 				instructionsHtml: `
         <p>Décrivez la manière dont vous vous identifiez à cette personne.</p>
         <p><strong>Comment vous inspire-t-elle&nbsp;?</strong></p>
-
       `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
@@ -504,14 +502,13 @@ export const ACTIVITIES_CONTENT = {
 			],
 		},
 	},
+
 	a2: {
 		en: {
 			id: "a2",
 			number: 2,
 			title: "Indigenous Medicinal Plants",
-			// clean plaintext fallback
 			tip: "Discover Indigenous medicinal uses for plants in your area. Describe what you learned.",
-			// HTML version rendered in the component (keeps the same break structure)
 			cdata: {
 				instructionsHtml: `
           <p>Discover Indigenous medicinal uses for plants in your area.</p>
@@ -537,11 +534,8 @@ export const ACTIVITIES_CONTENT = {
 		fr: {
 			id: "a2",
 			number: 2,
-			// title changed per your request
 			title: "Plantes médicinales autochtones",
-			// same length as EN; clean plaintext fallback
 			tip: "Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région. Décrivez vos apprentissages.",
-			// same two-paragraph HTML as EN, in French, preserving the line break
 			cdata: {
 				instructionsHtml: `
           <p>Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.</p>
@@ -550,7 +544,6 @@ export const ACTIVITIES_CONTENT = {
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
-			// temporarily reuse the EN links; labels in French if you want, URLs are the EN resources
 			links: [
 				{
 					label:
@@ -567,25 +560,141 @@ export const ACTIVITIES_CONTENT = {
 			],
 		},
 	},
+
 	a3: {
 		en: {
 			id: "a3",
 			number: 3,
 			title: "Make a Traditional Recipe",
-			tip: "Try making a traditional First Nations, Inuit or Métis recipe. Share your experience.",
+			instructionsLabel: "Instructions",
+			tip: "Try making a traditional First Nations, Inuit or Métis recipe.\nShare your experience or maybe have a lunch-time potluck.",
 			notePlaceholder: "Recipe, process, who you shared it with…",
 			resourcesHeading: "Resources",
-			links: [],
+			groupLabels: {
+				firstNations: "First Nations",
+				inuit: "Inuit",
+				metis: "Métis",
+			},
+			links: [
+				{
+					label:
+						"Native/Indigenous recipes (First Nations Development Institute)",
+					url: "https://www.firstnations.org/knowledge-center/recipes/",
+				},
+			],
+			namePlaceholder: "Recipe name",
+			ingredientPlaceholder: "Ingredient (e.g., wild rice)",
+			stepPlaceholder:
+				"Add a step and press Enter (e.g., Rinse wild rice until water runs clear)",
+			addBtn: "Add",
+			saveRecipeBtn: "Save recipe",
+			downloadAllBtn: "Download all (.docx)",
+			savedRecipesHeading: "Saved recipes",
+			nothingHere: "Nothing here yet. Save a recipe above.",
+			openLinkLabel: "Open link",
+			directionsLabel: "Directions",
+			editBtn: "Edit",
+			deleteBtn: "Delete",
+			cancelBtn: "Cancel",
+			saveBtn: "Save",
+			savedFlash: "Saved",
+			recipeCountSuffix: "ingredient",
+			downloadOneBtn: "Download",
+
+			// localization for quantity & unit
+			qtyPlaceholder: "qty",
+			unitPlaceholder: "unit",
+			unitOptions: [
+				"tsp",
+				"tbsp",
+				"ml",
+				"L",
+				"cup",
+				"cups",
+				"g",
+				"kg",
+				"oz",
+				"lb",
+				"pinch",
+				"clove",
+				"slice",
+			],
 		},
+
 		fr: {
 			id: "a3",
 			number: 3,
-			title:
-				"Essayez une recette traditionnelle des Premières Nations, ou des peuples inuits ou métis",
-			tip: "Essayez une recette traditionnelle des Premières Nations, ou des peuples inuits ou métis\nFaites part de votre expérience ou organisez un repas-partage.\nVous ne savez pas par où commencer? Consultez la ressource suivante :\n•\tRecettes autochtones (en anglais)",
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			title: "Essayez une recette traditionnelle",
+			instructionsLabel: "Instructions",
+			tip: "Essayez une recette traditionnelle des Premières Nations, Inuit ou Métis.\nFaites part de votre expérience ou organisez un repas-partage.",
+			notePlaceholder: "Recette, procédé, avec qui vous l'avez partagée…",
 			resourcesHeading: "Ressources",
-			links: [],
+			groupLabels: {
+				firstNations: "Premières Nations",
+				inuit: "Inuit",
+				metis: "Métis",
+			},
+			links: [
+				{
+					label:
+						"Recettes autochtones (First Nations Development Institute) — anglais",
+					url: "https://www.firstnations.org/knowledge-center/recipes/",
+				},
+			],
+			namePlaceholder: "Nom de la recette",
+			ingredientPlaceholder: "Ingrédient (ex.: riz sauvage)",
+			stepPlaceholder:
+				"Ajoutez une étape et appuyez sur Entrée (ex.: Rincer le riz sauvage jusqu'à ce que l'eau soit claire)",
+			addBtn: "Ajouter",
+			saveRecipeBtn: "Enregistrer la recette",
+			downloadAllBtn: "Télécharger tout (.docx)",
+			savedRecipesHeading: "Recettes enregistrées",
+			nothingHere: "Rien pour l'instant. Enregistrez une recette ci-dessus.",
+			openLinkLabel: "Ouvrir le lien",
+			directionsLabel: "Préparation",
+			editBtn: "Modifier",
+			deleteBtn: "Supprimer",
+			cancelBtn: "Annuler",
+			saveBtn: "Enregistrer",
+			savedFlash: "Enregistré",
+			recipeCountSuffix: "ingrédient",
+			downloadOneBtn: "Télécharger",
+			activityLabel: "Activité", // header & exported title
+			ingredientsHeading: "Ingrédients", // used in exports and UI label
+			directionsLabel: "Préparation", // used in UI and exports
+			qtyPlaceholder: "qté", // French placeholder for quantity
+			unitPlaceholder: "unité", // French placeholder for unit
+			unitOptions: [
+				"tsp",
+				"tbsp",
+				"ml",
+				"L",
+				"cup",
+				"g",
+				"kg",
+				"oz",
+				"lb",
+				"pinch",
+			], // localized units
+
+			// french quantity & unit localization
+			qtyPlaceholder: "qté",
+			unitPlaceholder: "unité",
+			unitOptions: [
+				"c. à thé", // teaspoon
+				"c. à soupe", // tablespoon
+				"ml",
+				"L",
+				"tasse",
+				"tasses",
+				"g",
+				"kg",
+				"oz",
+				"lb",
+				"pincée",
+				"gousse",
+				"tranche",
+			],
 		},
 	},
 	a4: {

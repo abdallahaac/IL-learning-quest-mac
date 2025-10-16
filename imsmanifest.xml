@@ -32,7 +32,7 @@
   </organizations>
   <resources>
     <!-- <resource identifier="C256PESLE_S01" type="webcontent" adlcp:scormtype="sco" href="index.html"> -->
-    <resource identifier="C256PESLE_S01" type="webcontent" adlcp:scormtype="sco" href="index_fr.html">
+    <resource identifier="C256PESLE_S01" type="webcontent" adlcp:scormtype="sco" href="index.html">
     <!-- <resource identifier="C256PESLE_S01" type="webcontent" adlcp:scormtype="sco" href="index.html"> -->
       <metadata>
         <schema>ADL SCORM</schema>
