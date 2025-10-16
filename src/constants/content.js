@@ -875,27 +875,98 @@ export const ACTIVITIES_CONTENT = {
 			links: [],
 		},
 	},
+	// src/constants/content.js (add or replace a8)
+	// src/constants/content.js (add/replace this a8 entry inside ACTIVITIES_CONTENT)
 	a8: {
 		en: {
 			id: "a8",
 			number: 8,
 			title: "Two-Spirit & Indigiqueer Communities",
-			tip: "Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous 2SLGBTQQIA+ communities and their histories.",
+			tip: "Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous 2SLGBTQQIA+ communities and their histories. Find voices to follow and reflect on what you learn.",
 			notePlaceholder: "Voices you followed; what you learned…",
 			resourcesHeading: "Resources",
-			links: [],
+			links: [
+				{
+					label:
+						"Indigenous knowledge & Two-Spirit leadership (Native Governance Center)",
+					url: "https://nativegov.org/resources/indigenous-knowledge-and-two-spirit-leadership/",
+					icon: "article",
+					enOnly: true,
+				},
+				{
+					label: "Two-Spirit Library (W2SA)",
+					url: "https://w2sa.ca/two-spirit-library",
+					icon: "library",
+					enOnly: true,
+				},
+				{
+					label: "Two Spirits, One Voice (Egale)",
+					url: "https://egale.ca/awareness/two-spirits-one-voice/",
+					icon: "article",
+					enOnly: true,
+				},
+			],
+			// advocates/voices — rendered as static chips (no href)
+			resources: [
+				"Dr. James Makokis — Cree Two-Spirit doctor and speaker",
+				"Jaris Swidrovich — Two-Spirit Saulteaux pharmacist and educator",
+				"Raven Davis — Two-Spirit Anishinaabe artist and community organizer",
+				"TJ Cuthand — Theo Jean Cuthand, Two-Spirit Plains Cree filmmaker",
+				"Alexa Keleutak — Inuit 2SLGBTQQIA+ representative (Québec)",
+				"Chelsea Vowel (âpihtawikosisân) — Métis writer & public intellectual",
+			],
 		},
+
 		fr: {
 			id: "a8",
 			number: 8,
-			title:
-				"Enrichissez votre compréhension des communautés de personnes aux deux esprits, autochtones queers et autochtones 2ELGBTQQIA+, et de leurs histoires.",
-			tip: "Enrichissez votre compréhension des communautés de personnes aux deux esprits, autochtones queers et autochtones 2ELGBTQQIA+, et de leurs histoires.\nDécouvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.\nFaites part de vos apprentissages aux membres de votre équipe.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tRessource de savoir autochtone et de leadership bispirituel (en anglais)\n•\tBibliothèque bispirituelle (en anglais)\n•\tDeux esprits, une voix (en anglais)\nDéfenseur·es autochtones 2ELGBTQQIA+ connu·es :\n•\tJames Makokis, médecin et conférencier cri bispirituel\n•\tJaris Swidrovich, pharmacien et éducateur saulteux bispirituel\n•\tRaven Davis, artiste anishinaabe bispirituel·le, trans et en situation de handicap, et organisateur·trice communautaire.\n•\tTheo Jean Cuthand (TJ Cuthand), cinéaste, scénariste et réalisateur bispirituel cri des plaines transgenre\n•\tAlexa Keleutak, Inuite, représentante des Inuits 2ELGBTQQIA+ au Québec\n•\tChelsea Vowel (âpihtawikosisân), écrivaine métisse, mentor de la langue crie et intellectuelle publique",
+			title: "Communautés bispirituelles et autochtones queers",
+			tip: "Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ ainsi que de leurs histoires. Découvrez des personnes à suivre et partagez vos apprentissages.",
+			cdata: {
+				instructionsHtml: `
+        <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
+        <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux. Faites part de vos apprentissages aux membres de votre équipe.</strong></p>
+        <p>Vous ne savez pas par où commencer? Consultez les ressources suivantes :</p>
+        <ul>
+          <li>Ressource de savoir et leadership bispirituel (en anglais)</li>
+          <li>Bibliothèque bispirituelle (en anglais)</li>
+          <li>Deux esprits, une voix (en anglais)</li>
+        </ul>
+      `,
+			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
-			links: [],
+			links: [
+				{
+					label: "Ressource de savoir bispirituel",
+					url: "https://nativegov.org/resources/indigenous-knowledge-and-two-spirit-leadership/",
+					icon: "article",
+					enOnly: true,
+				},
+				{
+					label: "Bibliothèque Two-Spirit (W2SA) — en anglais",
+					url: "https://w2sa.ca/two-spirit-library",
+					icon: "library",
+					enOnly: true,
+				},
+				{
+					label: "Deux esprits, une voix (Egale) — en anglais",
+					url: "https://egale.ca/awareness/two-spirits-one-voice/",
+					icon: "article",
+					enOnly: true,
+				},
+			],
+			resources: [
+				"Dr. James Makokis — médecin cri bispirituel et conférencier",
+				"Jaris Swidrovich — pharmacien saulteaux et éducateur bispirituel",
+				"Raven Davis — artiste anishinaabe et organisateur·trice communautaire (bispirituel·le)",
+				"TJ Cuthand — cinéaste cri des plaines (Two-Spirit)",
+				"Alexa Keleutak — Inuite, représentante 2SLGBTQQIA+ (Québec)",
+				"Chelsea Vowel (âpihtawikosisân) — écrivaine métisse et intellectuelle publique",
+			],
 		},
 	},
+
 	a9: {
 		en: {
 			id: "a9",

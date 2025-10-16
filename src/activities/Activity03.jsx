@@ -56,17 +56,13 @@ export default function Activity03({
 		exit: { opacity: 0, height: 0, transition: { duration: 0.2 } },
 	};
 
-	// reference link (same as before)
+	// Reference link: pulled from content.links[0] if present (no hardcoded fallback)
 	const referenceLink =
 		Array.isArray(strings.links) && strings.links.length
 			? strings.links[0]
-			: {
-					label:
-						"Native/Indigenous recipes (First Nations Development Institute)",
-					url: "https://www.firstnations.org/knowledge-center/recipes/",
-			  };
+			: null;
 
-	// MODEL normalization (same as original)
+	// MODEL normalization
 	const initial = useMemo(() => {
 		const fromNotes = notes && typeof notes === "object" ? notes : null;
 		const tryLocal = () => {
@@ -131,7 +127,7 @@ export default function Activity03({
 
 	const started = hasActivityStarted(model, "recipes");
 
-	// UI state (same fields as before) — kept local to keep components independent
+	// UI state
 	const [group, setGroup] = useState("firstNations");
 	const [name, setName] = useState("");
 	const [ingredients, setIngredients] = useState([]);
@@ -233,7 +229,7 @@ export default function Activity03({
 
 	const filtered = model.recipes.filter((r) => r.group === group);
 
-	// Edit flow (same as before)
+	// Edit flow
 	const startEdit = (r) => {
 		setEditingId(r.id);
 		setEditName(r.name);
@@ -299,7 +295,7 @@ export default function Activity03({
 		window.setTimeout(() => setJustSavedId(null), 1400);
 	};
 
-	// EXPORT handlers now call into the download utility
+	// EXPORT handlers
 	const handleDownloadAll = async () =>
 		downloadAllDocx({
 			items: Array.isArray(model.recipes) ? model.recipes : [],
@@ -312,7 +308,7 @@ export default function Activity03({
 	const handleDownloadOne = (r) =>
 		downloadOne(r, strings, activityNumber, accent, referenceLink);
 
-	// render tip helper (same as original)
+	// render tip helper
 	const renderTip = (text) => {
 		if (!text) return null;
 		if (typeof strings.cdata === "object" && strings.cdata.instructionsHtml) {
@@ -405,21 +401,23 @@ export default function Activity03({
 					</div>
 				</motion.header>
 
-				{/* Reference card (using the new LinkCard component which matches Activity02 styling) */}
-				<motion.section
-					className="flex justify-center"
-					variants={cardPop}
-					initial="hidden"
-					animate="show"
-				>
-					<LinkCard
-						link={referenceLink}
-						accent={accent}
-						Icon={Utensils}
-						enOnlySuffix={true}
+				{/* Reference card (pulled from content.links[0] if present) */}
+				{referenceLink ? (
+					<motion.section
+						className="flex justify-center"
 						variants={cardPop}
-					/>
-				</motion.section>
+						initial="hidden"
+						animate="show"
+					>
+						<LinkCard
+							link={referenceLink}
+							accent={accent}
+							Icon={Utensils}
+							openLinkLabel={strings.openLinkLabel}
+							variants={cardPop}
+						/>
+					</motion.section>
+				) : null}
 
 				{/* Builder */}
 				<section className="mx-auto max-w-3xl w-full">

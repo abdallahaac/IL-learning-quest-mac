@@ -268,6 +268,7 @@ export default function Activity06({
 											Icon={BookOpen}
 											enOnlySuffix={enOnlySuffix}
 											variants={cardPop}
+											cardHeight={"120px"}
 										/>
 									</motion.div>
 								);

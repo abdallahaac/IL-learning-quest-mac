@@ -382,10 +382,7 @@ export default function AppShell() {
 		return (
 			<div className="app-shell relative h-screen flex flex-col bg-white">
 				<div className="absolute inset-0 z-0 pointer-events-none">
-					<PatternMorph
-						pageIndex={0}
-						sequence={["dots", "asterisks", "grid"]}
-					/>
+					<PatternMorph pageIndex={0} sequence={["dots", "grid"]} />
 				</div>
 				<div className="relative z-20">
 					<SplashPage
@@ -418,7 +415,7 @@ export default function AppShell() {
 			<div className="absolute inset-0 z-0 pointer-events-none">
 				<PatternMorph
 					pageIndex={state.pageIndex}
-					sequence={["dots", "asterisks", "grid"]}
+					sequence={["dots", , "grid"]}
 				/>
 			</div>
 
