@@ -925,13 +925,8 @@ export const ACTIVITIES_CONTENT = {
 			cdata: {
 				instructionsHtml: `
         <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
-        <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux. Faites part de vos apprentissages aux membres de votre équipe.</strong></p>
-        <p>Vous ne savez pas par où commencer? Consultez les ressources suivantes :</p>
-        <ul>
-          <li>Ressource de savoir et leadership bispirituel (en anglais)</li>
-          <li>Bibliothèque bispirituelle (en anglais)</li>
-          <li>Deux esprits, une voix (en anglais)</li>
-        </ul>
+        <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</p>
+    
       `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
@@ -974,20 +969,115 @@ export const ACTIVITIES_CONTENT = {
 			title: "Indigenous-Focused News Story",
 			tip: "Uncover a news story with an Indigenous focus and reflect on its scope. What challenges or biases are visible?",
 			notePlaceholder: "Story link, your reflections…",
-			resourcesHeading: "Resources",
-			links: [],
+			resourcesHeading: "Suggested Indigenous-Led Outlets",
+			// used by doc export and by Activity09 when building pageLinks
+			links: [
+				{ label: "APTN", url: "https://www.aptntv.ca/" },
+				{
+					label: "The Turtle Island News",
+					url: "https://theturtleislandnews.com/",
+				},
+				{ label: "Ku'ku'kwes News", url: "https://kukukwes.com/" },
+				{ label: "IndigiNews", url: "https://indiginews.com/" },
+				{ label: "Ha-Shilth-Sa", url: "https://hashilthsa.com/" },
+				{ label: "Windspeaker", url: "https://windspeaker.com/" },
+			],
+			// optional: richer objects for the UI cards (title + desc + url)
+			outlets: [
+				{
+					href: "https://www.aptntv.ca/",
+					title: "APTN",
+					desc: "National Indigenous television network with news and feature reporting.",
+				},
+				{
+					href: "https://theturtleislandnews.com/",
+					title: "The Turtle Island News",
+					desc: "Community-focused reporting across Turtle Island.",
+				},
+				{
+					href: "https://kukukwes.com/",
+					title: "Ku'ku'kwes News",
+					desc: "Independent Indigenous news from Atlantic Canada.",
+				},
+				{
+					href: "https://indiginews.com/",
+					title: "IndigiNews",
+					desc: "Local Indigenous voices and investigative features.",
+				},
+				{
+					href: "https://hashilthsa.com/",
+					title: "Ha-Shilth-Sa",
+					desc: "Newspaper of the Nuu-chah-nulth Tribal Council.",
+				},
+				{
+					href: "https://windspeaker.com/",
+					title: "Windspeaker",
+					desc: "Coverage of Indigenous news, culture and opinion.",
+				},
+			],
 		},
+
 		fr: {
 			id: "a9",
 			number: 9,
-			title:
-				"Découvrez un reportage axé sur les réalités autochtones et réfléchissez à la portée du récit.",
-			tip: "Découvrez un reportage axé sur les réalités autochtones et réfléchissez à la portée du récit.\nFaites part de vos remarques et perspectives sur ce que vous avez appris, comme les difficultés que doit affronter la population ou les préjugés que le reportage fait ressortir.\nVous ne savez pas par où commencer? Explorez ces radiodiffuseurs et distributeurs de nouvelles autochtones :\n•\tAPTN (en anglais)\n•\tThe Turtle Island News (en anglais)\n•\tKukukwes.com (en anglais)\n•\tIndigiNews (en anglais)\n•\tThe Ha-Shilth-Sa (en anglais)\n•\tWindspeaker.com (en anglais)",
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
-			resourcesHeading: "Ressources",
-			links: [],
+			title: "Reportage axé sur les réalités autochtones",
+			tip: "Découvrez un reportage axé sur les réalités autochtones et réfléchissez à la portée du récit : quelles difficultés apparaissent? Quels biais sont présents?",
+			notePlaceholder: "Lien vers l’article, vos réflexions…",
+			resourcesHeading: "Ressources autochtones proposées",
+			// links used for export (labels kept short and friendly)
+			links: [
+				{ label: "APTN (en anglais)", url: "https://www.aptntv.ca/" },
+				{
+					label: "The Turtle Island News (en anglais)",
+					url: "https://theturtleislandnews.com/",
+				},
+				{ label: "Ku'ku'kwes (en anglais)", url: "https://kukukwes.com/" },
+				{ label: "IndigiNews (en anglais)", url: "https://indiginews.com/" },
+				{ label: "Ha-Shilth-Sa (en anglais)", url: "https://hashilthsa.com/" },
+				{ label: "Windspeaker (en anglais)", url: "https://windspeaker.com/" },
+			],
+			// richer outlets for UI (fr descriptions where useful)
+			outlets: [
+				{
+					href: "https://www.aptntv.ca/",
+					title: "APTN",
+					desc: "Réseau national de télévision autochtone avec couverture d’actualités.",
+				},
+				{
+					href: "https://theturtleislandnews.com/",
+					title: "The Turtle Island News",
+					desc: "Reportages communautaires couvrant Turtle Island.",
+				},
+				{
+					href: "https://kukukwes.com/",
+					title: "Ku'ku'kwes News",
+					desc: "Actualités autochtones indépendantes de l’Atlantique canadien.",
+				},
+				{
+					href: "https://indiginews.com/",
+					title: "IndigiNews",
+					desc: "Voix locales autochtones et reportages d’investigation.",
+				},
+				{
+					href: "https://hashilthsa.com/",
+					title: "Ha-Shilth-Sa",
+					desc: "Journaux du Nuu-chah-nulth Tribal Council.",
+				},
+				{
+					href: "https://windspeaker.com/",
+					title: "Windspeaker",
+					desc: "Actualités, analyses et opinions autochtones.",
+				},
+			],
+			// optional HTML instructions for the callout (keeps formatting)
+			instructionsHtml: `
+      <p>Découvrez un reportage qui porte sur des sujets autochtones et réfléchissez à sa portée.</p>
+      <p><strong>Quels défis la communauté rencontre-t-elle?</strong></p>
+
+    `,
 		},
 	},
+	// add this under ACTIVITIES_CONTENT (or replace existing a10)
 	a10: {
 		en: {
 			id: "a10",
@@ -996,17 +1086,83 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Explore a First Nations, Inuit or Métis-owned business (in person or online). What products or services spoke to you and why?",
 			notePlaceholder: "Business, offerings, how you’ll support…",
 			resourcesHeading: "Resources",
-			links: [],
+			// links used for export/download
+			links: [
+				{ label: "Shop First Nations", url: "https://shopfirstnations.com/" },
+				{
+					label: "17 Canadian Indigenous-Owned Businesses (2025)",
+					url: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
+				},
+				{
+					label: "Indigenous Business Directory (ISC)",
+					url: "https://www.sac-isc.gc.ca/rea-ibd",
+				},
+			],
+			// optional richer objects for the UI cards (href + title + desc)
+			outlets: [
+				{
+					href: "https://shopfirstnations.com/",
+					title: "Shop First Nations",
+					desc: "Marketplace featuring Indigenous-owned makers and brands.",
+				},
+				{
+					href: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
+					title: "17 Canadian Indigenous-Owned Businesses (2025)",
+					desc: "A curated roundup of Indigenous-owned businesses across Canada.",
+				},
+				{
+					href: "https://www.sac-isc.gc.ca/rea-ibd",
+					title: "Indigenous Business Directory (ISC)",
+					desc: "Government-supported searchable directory of Indigenous businesses.",
+				},
+			],
 		},
+
 		fr: {
 			id: "a10",
 			number: 10,
-			title:
-				"Découvrez, en personne ou en ligne, une entreprise ou un magasin appartenant à une personne inuite, métisse ou des Premières Nations.",
-			tip: "Découvrez, en personne ou en ligne, une entreprise ou un magasin appartenant à une personne inuite, métisse ou des Premières Nations.\nQuels produits ou services ont attiré votre attention? Pourquoi?\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tMagasins des Premières Nations (en anglais)\n•\t17 entreprises canadiennes appartenant à des Autochtones (2025) (en anglais)\n•\tRépertoire des entreprises autochtones – recherche détaillée",
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			title: "Entreprise appartenant à des Autochtones",
+			tip: "Découvrez, en personne ou en ligne, une entreprise appartenant à une personne des Premières Nations, inuite ou métisse. Quels produits ou services vous ont interpellé et pourquoi ?",
+			notePlaceholder: "Entreprise, offres, comment vous soutiendrez…",
 			resourcesHeading: "Ressources",
-			links: [],
+			links: [
+				{
+					label: "Shop First Nations (en anglais)",
+					url: "https://shopfirstnations.com/",
+				},
+				{
+					label:
+						"17 entreprises canadiennes appartenant à des Autochtones (2025) (en anglais)",
+					url: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
+				},
+				{
+					label: "Répertoire des entreprises autochtones (ISC)",
+					url: "https://www.sac-isc.gc.ca/rea-ibd",
+				},
+			],
+			outlets: [
+				{
+					href: "https://shopfirstnations.com/",
+					title: "Shop First Nations",
+					desc: "Place de marché regroupant des marques et artisans autochtones.",
+				},
+				{
+					href: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
+					title:
+						"17 entreprises canadiennes appartenant à des Autochtones (2025)",
+					desc: "Sélection d’entreprises autochtones au Canada.",
+				},
+				{
+					href: "https://www.sac-isc.gc.ca/rea-ibd",
+					title: "Répertoire des entreprises autochtones (ISC)",
+					desc: "Répertoire gouvernemental consultable d’entreprises autochtones.",
+				},
+			],
+			// optional HTML instructions to preserve formatting (displayed if present)
+			instructionsHtml: `
+      <p>Découvrez une entreprise appartenant à une personne inuite, métisse ou des Premières Nations (en personne ou en ligne).</p>
+      <p><strong>Réfléchissez :</strong> quels produits ou services ont retenu votre attention et pourquoi? Comment pourriez-vous soutenir cette entreprise?</p>
+    `,
 		},
 	},
 };

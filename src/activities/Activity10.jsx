@@ -1,5 +1,5 @@
 // src/pages/activities/Activity10.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
 	Store, // header icon
@@ -13,42 +13,73 @@ import NoteComposer, {
 } from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
+import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
 export default function Activity10({
-	content,
 	notes,
 	completed,
 	onNotes,
 	onToggleComplete,
-	accent = "#DB5A42", // keep your color
+	accent = "#DB5A42",
 }) {
+	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
+	const reduceMotion = useReducedMotion();
+
+	// pull content for a10 from constants (language-aware)
+	const a10Content =
+		(ACTIVITIES_CONTENT &&
+			ACTIVITIES_CONTENT.a10 &&
+			(ACTIVITIES_CONTENT.a10[lang] || ACTIVITIES_CONTENT.a10.en)) ||
+		{};
+
+	const activityNumber = Number.isFinite(a10Content?.number)
+		? a10Content.number
+		: 10;
+	const pageTitle = a10Content?.title || "Indigenous-Owned Business";
+	const tipText =
+		a10Content?.tip ||
+		(lang === "fr"
+			? "Découvrez, en personne ou en ligne, une entreprise appartenant à une personne inuite, métisse ou des Premières Nations."
+			: "Explore a First Nations, Inuit or Métis-owned business (in person or online). What products or services spoke to you and why?");
 	const placeholder =
-		content?.notePlaceholder || "Business, offerings, how you’ll support…";
+		a10Content?.notePlaceholder ||
+		(lang === "fr"
+			? "Entreprise, offres, comment vous soutiendrez…"
+			: "Business, offerings, how you’ll support…");
+	const linksHeading =
+		a10Content?.resourcesHeading ||
+		(lang === "fr" ? "Ressources" : "Resources");
 
-	// keep local notes synced with incoming prop so "started" is accurate
-	const [localNotes, setLocalNotes] = useState(notes);
-	useEffect(() => {
-		setLocalNotes(notes);
-	}, [notes]);
+	const instructionsHtml = a10Content?.instructionsHtml || null;
 
+	// keep local notes in sync
+	const [localNotes, setLocalNotes] = useState(notes ?? "");
+	useEffect(() => setLocalNotes(notes ?? ""), [notes]);
 	const saveNotes = (v) => {
 		setLocalNotes(v);
 		onNotes?.(v);
 	};
 
-	// compute whether the activity has started (string or object notes supported)
 	const started = hasActivityStarted(localNotes);
 
-	const reduceMotion = useReducedMotion();
-	const activityNumber = 10;
-
-	// --- animations (homogeneous with other activities) ---
+	// animations (same as other activities)
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
-
 	const pageFade = {
 		hidden: { opacity: 0 },
 		show: { opacity: 1, transition: { duration: 0.35 } },
@@ -75,7 +106,7 @@ export default function Activity10({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	// --- shared classes (matches other pages) ---
+	// shared classes
 	const linkCardBase =
 		"group block w-full rounded-2xl border border-gray-200 bg-white p-4 " +
 		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
@@ -84,25 +115,37 @@ export default function Activity10({
 	const linkFooterBase =
 		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
 
-	// Title & tip (used both in UI and export)
-	const pageTitle = content?.title || "Indigenous-Owned Business";
-	const tipText =
-		"Explore in person or online a First Nations, Inuit or Métis-owned business or shop.";
+	// pageLinks for export (from content.links)
+	const pageLinks = useMemo(() => {
+		if (Array.isArray(a10Content?.links)) {
+			return a10Content.links.map((l) =>
+				typeof l === "string"
+					? { label: l, url: "" }
+					: { label: l.label || "", url: l.url || l.href || "" }
+			);
+		}
+		return [];
+	}, [a10Content]);
 
-	// Exportable resources (no table)
-	const pageLinks = [
-		{ label: "Shop First Nations", url: "https://shopfirstnations.com/" },
-		{
-			label: "17 Canadian Indigenous-Owned Businesses (2025)",
-			url: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
-		},
-		{
-			label: "Indigenous Business Directory (ISC)",
-			url: "https://www.sac-isc.gc.ca/rea-ibd",
-		},
-	];
+	// outlet tiles for UI (from content.outlets)
+	const outletTiles = useMemo(() => {
+		if (Array.isArray(a10Content?.outlets) && a10Content.outlets.length > 0) {
+			return a10Content.outlets.map((o) => ({
+				href: o.href || o.url || o.link || "",
+				title: o.title || o.label || "",
+				desc: o.desc || o.description || "",
+				Icon:
+					o.icon === "shopping"
+						? ShoppingBag
+						: o.icon === "directory"
+						? Landmark
+						: Newspaper,
+			}));
+		}
+		return [];
+	}, [a10Content]);
 
-	// helper row with left badge icon + centered title
+	// TitleRow helper (keeps the same visual layout)
 	const TitleRow = ({ Icon, children }) => (
 		<div className="relative flex items-center pl-14">
 			<div
@@ -117,23 +160,25 @@ export default function Activity10({
 		</div>
 	);
 
-	// ---- Download handler (external button) ----
+	// Download handler uses the NoteComposer export helper (still imported)
 	const handleDownload = () => {
 		const html =
 			typeof localNotes === "string"
 				? localNotes || ""
-				: localNotes?.text || ""; // in case notes are stored as an object
+				: localNotes?.text || "";
 		downloadNotesAsWord({
 			html,
-			downloadFileName: `Activity-${content?.id || "10"}-Reflection.docx`,
+			downloadFileName: `Activity-${
+				a10Content?.id || String(activityNumber)
+			}-Reflection.docx`,
 			docTitle: pageTitle,
-			docSubtitle: content?.subtitle,
+			docSubtitle: a10Content?.subtitle,
 			activityNumber,
 			docIntro: tipText,
 			includeLinks: true,
-			linksHeading: "Resources",
+			linksHeading,
 			pageLinks,
-			headingColor: accent, // export headings match page accent
+			headingColor: accent,
 			accent,
 		});
 	};
@@ -145,17 +190,14 @@ export default function Activity10({
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft, accessible gradient (matches A01/A08 style) */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
-					backgroundImage: `linear-gradient(
-            to bottom,
-            ${withAlpha(accent, "3D")},
-            rgba(255,255,255,0.65),
-            rgba(248,250,252,0.8)
-          )`,
+					backgroundImage: `linear-gradient(to bottom, ${withAlpha(
+						accent,
+						"3D"
+					)}, rgba(255,255,255,0.65), rgba(248,250,252,0.8))`,
 				}}
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 0.35 }}
@@ -163,7 +205,6 @@ export default function Activity10({
 			/>
 
 			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* ===== HEADER (homogeneous with Activity 01) ===== */}
 				<motion.header
 					className="text-center"
 					variants={titleFade}
@@ -171,7 +212,6 @@ export default function Activity10({
 					animate="show"
 				>
 					<div className="mx-auto space-y-4 sm:space-y-5">
-						{/* Activity number (big, uppercase) */}
 						<p
 							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
@@ -179,7 +219,6 @@ export default function Activity10({
 							Activity {activityNumber}
 						</p>
 
-						{/* H1 + icon row */}
 						<div className="inline-flex items-center justify-center gap-3">
 							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
 								{pageTitle}
@@ -192,7 +231,6 @@ export default function Activity10({
 							/>
 						</div>
 
-						{/* Instructions callout with pill header */}
 						<aside
 							role="note"
 							aria-label="Activity instructions"
@@ -210,108 +248,101 @@ export default function Activity10({
 								>
 									Instructions
 								</div>
-								<p
-									className="text-slate-800 max-w-2xl"
-									style={{ color: accent }}
-								>
-									{tipText}
-									<br />
-									<strong>
-										What products or services spoke to you and why?
-									</strong>
-								</p>
+
+								{instructionsHtml ? (
+									<div
+										className="text-slate-800 max-w-2xl"
+										style={{ color: accent }}
+										dangerouslySetInnerHTML={{ __html: instructionsHtml }}
+									/>
+								) : (
+									<p
+										className="text-slate-800 max-w-2xl"
+										style={{ color: accent }}
+									>
+										{tipText}
+										<br />
+										<strong>
+											{lang === "fr"
+												? "Quels produits ou services ont attiré votre attention et pourquoi?"
+												: "What products or services spoke to you and why?"}
+										</strong>
+									</p>
+								)}
 							</div>
 						</aside>
 					</div>
 				</motion.header>
 
-				{/* ===== Resource links ===== */}
 				<motion.section variants={gridStagger} initial="hidden" animate="show">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-						<motion.a
-							href="https://shopfirstnations.com/"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Open: Shop First Nations (new tab)"
-							aria-label="Open Shop First Nations in a new tab"
-							variants={cardPop}
-						>
-							<TitleRow Icon={ShoppingBag}>Shop First Nations</TitleRow>
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" aria-hidden="true" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
-
-						<motion.a
-							href="https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Open: 17 Canadian Indigenous-Owned Businesses (new tab)"
-							aria-label="Open 17 Canadian Indigenous-Owned Businesses in a new tab"
-							variants={cardPop}
-						>
-							<TitleRow Icon={Newspaper}>
-								17 Canadian Indigenous-Owned Businesses (2025)
-							</TitleRow>
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" aria-hidden="true" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
-
-						<motion.a
-							href="https://www.sac-isc.gc.ca/rea-ibd"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Open: Indigenous Business Directory (new tab)"
-							aria-label="Open Indigenous Business Directory in a new tab"
-							variants={cardPop}
-						>
-							<TitleRow Icon={Landmark}>Indigenous Business Directory</TitleRow>
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" aria-hidden="true" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
+						{outletTiles.length > 0
+							? outletTiles
+									.filter((t) => t.href)
+									.map(({ href, title, desc, Icon }, i) => {
+										const TheIcon = Icon || Newspaper;
+										return (
+											<motion.a
+												key={href + i}
+												href={href}
+												target="_blank"
+												rel="noreferrer"
+												className={linkCardBase}
+												style={{ outlineColor: accent }}
+												title={`Open: ${title}`}
+												aria-label={`Open ${title} in a new tab`}
+												variants={cardPop}
+											>
+												<TitleRow Icon={TheIcon}>{title}</TitleRow>
+												{desc ? (
+													<p className="mt-2 text-sm text-gray-600 text-center max-w-sm mx-auto">
+														{desc}
+													</p>
+												) : null}
+												<div
+													className={linkFooterBase}
+													style={{ color: accent }}
+												>
+													<ExternalLink
+														className="w-4 h-4"
+														aria-hidden="true"
+													/>
+													<span>
+														{lang === "fr" ? "Ouvrir le lien" : "Open link"}
+													</span>
+												</div>
+											</motion.a>
+										);
+									})
+							: // nothing hard-coded — show nothing if content lacks outlets
+							  null}
 					</div>
 				</motion.section>
 
-				{/* ===== Notes (NoteComposer) ===== */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
-					storageKey={`notes-${content?.id || "10"}`}
+					storageKey={`notes-${a10Content?.id || String(activityNumber)}`}
 					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent={accent}
-					downloadFileName={`Activity-${content?.id || "10"}-Reflection.docx`}
-					/* Exported title becomes: "Activity 10: {pageTitle}" */
+					downloadFileName={`Activity-${
+						a10Content?.id || String(activityNumber)
+					}-Reflection.docx`}
 					docTitle={pageTitle}
-					docSubtitle={content?.subtitle}
+					docSubtitle={a10Content?.subtitle}
 					activityNumber={activityNumber}
-					/* Include the on-page tip in export */
 					docIntro={tipText}
-					/* Export resources as header + bullet list of hyperlink labels */
 					includeLinks={true}
-					linksHeading="Resources"
+					linksHeading={linksHeading}
 					pageLinks={pageLinks}
-					/* Use accent for exported headings */
 					headingColor={accent}
-					/* Hide NoteComposer's built-in download button */
 					showDownloadButton={false}
 				/>
 
-				{/* ===== Bottom actions: Mark Complete + Download ===== */}
 				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
@@ -324,9 +355,13 @@ export default function Activity10({
 						onClick={handleDownload}
 						className="px-4 py-2 rounded-lg text-white"
 						style={{ backgroundColor: accent }}
-						title="Download your reflections as a Word-compatible .docx file"
+						title={
+							lang === "fr"
+								? "Télécharger vos notes et ressources en .docx"
+								: "Download your notes and resources as .docx"
+						}
 					>
-						Download (.docx)
+						{lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
 					</button>
 				</div>
 			</div>
@@ -334,7 +369,7 @@ export default function Activity10({
 	);
 }
 
-/* Accent-aware dashed tip — same component style pattern */
+/* Accent-aware dashed tip */
 function TipCard({ accent = "#DB5A42", children }) {
 	return (
 		<section
@@ -342,8 +377,8 @@ function TipCard({ accent = "#DB5A42", children }) {
 			role="note"
 			aria-label="Activity tip"
 			style={{
-				borderColor: withAlpha(accent, "33"), // ~20%
-				backgroundColor: withAlpha(accent, "14"), // ~8% tint
+				borderColor: withAlpha(accent, "33"),
+				backgroundColor: withAlpha(accent, "14"),
 			}}
 		>
 			<p className="text-base sm:text-lg text-center text-slate-900">

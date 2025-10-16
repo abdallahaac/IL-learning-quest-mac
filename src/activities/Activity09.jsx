@@ -1,46 +1,83 @@
 // src/pages/activities/Activity09.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { HeartHandshake, Newspaper, ExternalLink } from "lucide-react";
+import { Newspaper, ExternalLink } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
+import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
 export default function Activity09({
-	content,
 	notes,
 	completed,
 	onNotes,
 	onToggleComplete,
 	accent = "#934D6C", // theming control
 }) {
+	// language (mirror pattern used in other activities)
+	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
+	const reduceMotion = useReducedMotion();
+
+	// pick activity content from ACTIVITIES_CONTENT (lang-aware)
+	const a9Content =
+		(ACTIVITIES_CONTENT &&
+			ACTIVITIES_CONTENT.a9 &&
+			(ACTIVITIES_CONTENT.a9[lang] || ACTIVITIES_CONTENT.a9.en)) ||
+		{};
+
+	// small helpers / fallbacks pulled from content
+	const activityNumber = Number.isFinite(a9Content?.number)
+		? a9Content.number
+		: 9;
+	const pageTitle = a9Content?.title || "Indigenous-Focused News Story";
+	const tipText =
+		a9Content?.tip ||
+		(lang === "fr"
+			? "Découvrez un reportage axé sur les réalités autochtones et réfléchissez à sa portée."
+			: "Uncover a news story with an Indigenous focus and reflect on the scope of the story.");
 	const placeholder =
-		content?.notePlaceholder ||
-		"Story link; your summary and reflections on framing, voices, and biases…";
+		a9Content?.notePlaceholder ||
+		(lang === "fr"
+			? "Lien vers l’article, vos réflexions…"
+			: "Story link; your reflections…");
+	const linksHeading =
+		a9Content?.resourcesHeading ||
+		(lang === "fr" ? "Ressources" : "Suggested Indigenous-Led Outlets");
 
-	// keep local state in sync with incoming prop (prevents premature “started”)
-	const [localNotes, setLocalNotes] = useState(notes);
-	useEffect(() => {
-		setLocalNotes(notes);
-	}, [notes]);
+	// instructionsHtml (support formatted instructions from content)
+	const instructionsHtml =
+		a9Content?.instructionsHtml ||
+		(a9Content?.cdata && a9Content.cdata.instructionsHtml) ||
+		null;
 
+	// keep local state in sync with incoming prop
+	const [localNotes, setLocalNotes] = useState(notes ?? "");
+	useEffect(() => setLocalNotes(notes ?? ""), [notes]);
 	const saveNotes = (v) => {
 		setLocalNotes(v);
 		onNotes?.(v);
 	};
 
-	// compute “started” using shared utility (works with string or object notes)
 	const started = hasActivityStarted(localNotes);
 
-	const reduceMotion = useReducedMotion();
-
-	// --- animations (homogeneous with other activities) ---
+	// --- animations (same pattern) ---
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
-
 	const pageFade = {
 		hidden: { opacity: 0 },
 		show: { opacity: 1, transition: { duration: 0.35 } },
@@ -77,16 +114,17 @@ export default function Activity09({
 	const linkFooterBase =
 		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
 
-	const activityNumber = 9;
-
-	// Title & tip (used both in UI and export)
-	const pageTitle = content?.title || "Indigenous-Focused News Story";
-	const tipText =
-		"Uncover a news story with an Indigenous focus and reflect on the scope of the story.";
-
-	// Links list (exported to doc; no table) — memoized
-	const pageLinks = useMemo(
-		() => [
+	// pageLinks for exports — prefer content.links, fallback to sensible defaults
+	const pageLinks = useMemo(() => {
+		if (Array.isArray(a9Content?.links) && a9Content.links.length > 0) {
+			return a9Content.links.map((l) =>
+				typeof l === "string"
+					? { label: l, url: "" }
+					: { label: l.label || l.title || "", url: l.url || l.href || "" }
+			);
+		}
+		// fallback list (keeps previous UX if content not provided)
+		return [
 			{ label: "APTN", url: "https://www.aptntv.ca/" },
 			{
 				label: "The Turtle Island News",
@@ -96,13 +134,27 @@ export default function Activity09({
 			{ label: "IndigiNews", url: "https://indiginews.com/" },
 			{ label: "Ha-Shilth-Sa", url: "https://hashilthsa.com/" },
 			{ label: "Windspeaker", url: "https://windspeaker.com/" },
-		],
-		[]
-	);
+		];
+	}, [a9Content]);
 
-	// Also memoize the outlet tiles (so the JSX isn’t rebuilt on every keystroke)
-	const outletTiles = useMemo(
-		() => [
+	// outlet tiles (UI) — prefer content.outlets, else derive from links or use fallback
+	const outletTiles = useMemo(() => {
+		if (Array.isArray(a9Content?.outlets) && a9Content.outlets.length > 0) {
+			return a9Content.outlets.map((o) => ({
+				href: o.href || o.url || o.link || "",
+				title: o.title || o.label || "",
+				desc: o.desc || o.description || "",
+			}));
+		}
+		if (Array.isArray(a9Content?.links) && a9Content.links.length > 0) {
+			return a9Content.links.map((l) => ({
+				href: l.url || l.href || "",
+				title: l.label || l.title || l.url || "",
+				desc: l.desc || "",
+			}));
+		}
+		// fallback
+		return [
 			{
 				href: "https://www.aptntv.ca/",
 				title: "APTN",
@@ -133,9 +185,8 @@ export default function Activity09({
 				title: "Windspeaker",
 				desc: "Independent Indigenous news and opinion.",
 			},
-		],
-		[]
-	);
+		];
+	}, [a9Content]);
 
 	/* ------- External Download (.docx) — always enabled, next to Complete ------- */
 	const downloadPageDocx = async () => {
@@ -218,11 +269,13 @@ export default function Activity09({
 					],
 				});
 
-			const children = [H1, Intro, H2("Suggested Indigenous-Led Outlets")];
+			const children = [H1, Intro, H2(linksHeading)];
 			pageLinks.forEach((l) => children.push(LinkBullet(l.label, l.url)));
 
 			if (typeof localNotes === "string" && localNotes?.trim()) {
-				children.push(H2("Saved response"));
+				children.push(
+					H2(lang === "fr" ? "Réponse enregistrée" : "Saved response")
+				);
 				localNotes
 					.split(/\n{2,}/)
 					.map((p) => p.trim())
@@ -272,7 +325,9 @@ export default function Activity09({
 				typeof localNotes === "string" && localNotes?.trim()
 					? `<h2 style="font-size:16pt;color:${esc(
 							accent
-					  )};margin:24pt 0 12pt;">Saved response</h2>
+					  )};margin:24pt 0 12pt;">${esc(
+							lang === "fr" ? "Réponse enregistrée" : "Saved response"
+					  )}</h2>
              <p style="font-size:12pt;margin:0 0 9pt;">${esc(
 								localNotes
 							).replace(/\n/g, "<br/>")}</p>`
@@ -289,7 +344,7 @@ export default function Activity09({
 						)}</p>
             <h2 style="font-size:16pt;color:${esc(
 							accent
-						)};margin:24pt 0 12pt;">Suggested Indigenous-Led Outlets</h2>
+						)};margin:24pt 0 12pt;">${esc(linksHeading)}</h2>
             <ul style="margin:0 0 12pt 18pt;font-size:12pt;">${links}</ul>
             ${body}
           </body>
@@ -333,7 +388,7 @@ export default function Activity09({
 			/>
 
 			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* ===== HEADER (homogeneous with Activity 01) ===== */}
+				{/* ===== HEADER (homogeneous with other activities) ===== */}
 				<motion.header
 					className="text-center"
 					variants={titleFade}
@@ -341,7 +396,7 @@ export default function Activity09({
 					animate="show"
 				>
 					<div className="mx-auto space-y-4 sm:space-y-5">
-						{/* Activity number (big, uppercase) */}
+						{/* Activity number */}
 						<p
 							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
@@ -362,7 +417,7 @@ export default function Activity09({
 							/>
 						</div>
 
-						{/* Instructions callout with pill header */}
+						{/* Instructions callout (use content.instructionsHtml if present) */}
 						<aside
 							role="note"
 							aria-label="Activity instructions"
@@ -380,29 +435,39 @@ export default function Activity09({
 								>
 									Instructions
 								</div>
-								<p
-									className="text-slate-800 max-w-2xl"
-									style={{ color: accent }}
-								>
-									{tipText}
-									<br />
-									<strong>
-										Share your thoughts and perspectives on what you learned—for
-										example, challenges people face or biases the story reveals.
-									</strong>{" "}
-								</p>
+
+								{instructionsHtml ? (
+									<div
+										className="text-slate-800 max-w-2xl"
+										style={{ color: accent }}
+										dangerouslySetInnerHTML={{ __html: instructionsHtml }}
+									/>
+								) : (
+									<p
+										className="text-slate-800 max-w-2xl"
+										style={{ color: accent }}
+									>
+										{tipText}
+										<br />
+										<strong>
+											{lang === "fr"
+												? "Partagez vos remarques : quels défis la communauté rencontre-t-elle ? Quels biais émergent ?"
+												: "Share your thoughts and perspectives on what you learned — for example, challenges people face or biases the story reveals."}
+										</strong>
+									</p>
+								)}
 							</div>
 						</aside>
 					</div>
 				</motion.header>
 
-				{/* ===== Outlets ===== */}
+				{/* ===== Outlets (cards) ===== */}
 				<motion.section variants={gridStagger} initial="hidden" animate="show">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 						{outletTiles.map(({ href, title, desc }) => (
 							<motion.a
-								key={href}
-								href={href}
+								key={href || title}
+								href={href || "#"}
 								target="_blank"
 								rel="noreferrer"
 								className={linkCardBase}
@@ -435,7 +500,9 @@ export default function Activity09({
 									) : null}
 									<div className={linkFooterBase} style={{ color: accent }}>
 										<ExternalLink className="w-4 h-4" aria-hidden="true" />
-										<span>Open link</span>
+										<span>
+											{lang === "fr" ? "Ouvrir le lien" : "Open link"}
+										</span>
 									</div>
 								</div>
 							</motion.a>
@@ -447,25 +514,23 @@ export default function Activity09({
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
-					storageKey={`notes-${content?.id || "09"}`}
+					storageKey={`notes-${a9Content?.id || String(activityNumber)}`}
 					placeholder={placeholder}
 					size="md"
 					rows={8}
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent={accent}
-					downloadFileName={`Activity-${content?.id || "09"}-Reflection.docx`}
-					/* Exported title becomes: "Activity 9: {pageTitle}" */
+					downloadFileName={`Activity-${
+						a9Content?.id || String(activityNumber)
+					}-Reflection.docx`}
 					docTitle={pageTitle}
-					docSubtitle={content?.subtitle}
+					docSubtitle={a9Content?.subtitle}
 					activityNumber={activityNumber}
-					/* Include the on-page tip in export */
 					docIntro={tipText}
-					/* Export resources as header + bullet list of hyperlink labels */
 					includeLinks={true}
-					linksHeading="Suggested Indigenous-Led Outlets"
+					linksHeading={linksHeading}
 					pageLinks={pageLinks}
-					/* Use accent for exported headings */
 					headingColor={accent}
 					showDownloadButton={false}
 				/>
@@ -483,9 +548,13 @@ export default function Activity09({
 						onClick={downloadPageDocx}
 						className="px-4 py-2 rounded-lg text-white"
 						style={{ backgroundColor: accent }}
-						title="Download your notes and resources as .docx"
+						title={
+							lang === "fr"
+								? "Télécharger vos notes et ressources en .docx"
+								: "Download your notes and resources as .docx"
+						}
 					>
-						Download (.docx)
+						{lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
 					</button>
 				</div>
 			</div>
@@ -493,7 +562,7 @@ export default function Activity09({
 	);
 }
 
-/* (kept for parity, but not used in the header anymore) */
+/* kept for parity, but not used in the header anymore */
 function TipCard({ accent = "#934D6C", children }) {
 	return (
 		<section

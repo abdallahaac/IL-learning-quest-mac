@@ -33,6 +33,7 @@ export default function Activity08({
 	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
 	const reduceMotion = useReducedMotion();
 
+	// choose content by language (fall back to English)
 	const a8Content =
 		(ACTIVITIES_CONTENT &&
 			ACTIVITIES_CONTENT.a8 &&
@@ -40,30 +41,27 @@ export default function Activity08({
 		{};
 
 	const cdata = a8Content?.cdata || {};
+
+	// TAKE THE TITLE FROM CONTENT (or fallback)
 	const pageTitle =
-		cdata.title ||
 		a8Content?.title ||
-		(lang === "fr"
-			? "Communautés bispirituelles"
-			: "Two-Spirit & Indigiqueer Communities");
+		cdata?.title ||
+		(lang === "fr" ? "Activité" : "Activity");
 
-	// --- FORCE the exact French instruction you asked for when lang === 'fr' ---
+	// TAKE INSTRUCTIONS FROM CONTENT (cdata.instructionsHtml preferred), otherwise use prompt/tip
 	let instructionsHtml =
-		cdata.instructionsHtml ||
-		(a8Content?.prompt ? `<p>${a8Content.prompt}</p>` : "");
+		cdata?.instructionsHtml ||
+		a8Content?.instructionsHtml ||
+		(a8Content?.prompt ? `<p>${a8Content.prompt}</p>` : "") ||
+		"";
 
-	if (lang === "fr") {
-		instructionsHtml = `
-      <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
-      <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</strong></p>
-    `;
-	}
-
+	// fallback plain tip text (used when we don't have HTML)
 	const tipText =
 		a8Content?.tip ||
 		a8Content?.prompt ||
 		(instructionsHtml ? instructionsHtml.replace(/<[^>]*>/g, "").trim() : "");
 
+	// placeholder from content or fallback
 	const placeholder =
 		a8Content?.notePlaceholder ||
 		(lang === "fr"
@@ -75,7 +73,6 @@ export default function Activity08({
 	// ----- ADVOCATES parsing: build advocates array + name->bio map from content.resources -----
 	// content.resources entries are strings like:
 	//   "Dr. James Makokis — Cree Two-Spirit doctor and speaker"
-	// We parse into { name, bio } and produce a lookup object.
 	const rawResources = Array.isArray(a8Content?.resources)
 		? a8Content.resources
 		: [];
@@ -84,9 +81,9 @@ export default function Activity08({
 		.map((item) => {
 			if (!item) return null;
 			if (typeof item === "string") {
-				// split on em-dash, en-dash or hyphen (catch common separators)
+				// split on em-dash, en-dash or hyphen (tolerant)
 				const parts = item
-					.split(/—|–|-+/)
+					.split(/—|–| - /)
 					.map((s) => s.trim())
 					.filter(Boolean);
 				const name = parts[0] || "";
@@ -101,10 +98,7 @@ export default function Activity08({
 		})
 		.filter(Boolean);
 
-	// advocates array to feed LinkCard (LinkCard.normalizeAdvocates accepts objects or strings)
 	const advocates = advocatesParsed.map((a) => ({ name: a.name, bio: a.bio }));
-
-	// map: name -> bio for overrides/quick lookup
 	const advocatesBios = advocatesParsed.reduce((acc, a) => {
 		if (a.name && a.bio) acc[a.name] = a.bio;
 		return acc;
@@ -124,7 +118,7 @@ export default function Activity08({
 
 	const started = hasActivityStarted(localNotes);
 
-	// animations (kept identical to prior)
+	// animations
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
 	const pageFade = {
@@ -163,14 +157,11 @@ export default function Activity08({
 	const first3 = pageLinks.slice(0, 3);
 
 	// card sizing config: supports array of either strings (minHeight) or objects:
-	// { cardHeight, cardMinHeight, cardMaxHeight, cardWidth, cardMinWidth, cardMaxWidth }
-	// set a8Content.cardHeights = [{ cardMinHeight: "160px" }, { cardMinHeight: "200px" }, ...]
 	const cardHeightsConfig = Array.isArray(a8Content?.cardHeights)
 		? a8Content.cardHeights
 		: [];
 
 	const defaultForIdx = (idx) => {
-		// make last two cards shorter by default
 		if (idx >= 2) return { cardMinHeight: "130px" };
 		return {};
 	};
@@ -179,10 +170,8 @@ export default function Activity08({
 		const cfg = cardHeightsConfig[idx];
 		if (!cfg) return defaultForIdx(idx);
 		if (typeof cfg === "string") {
-			// treat as minHeight
 			return { cardMinHeight: cfg };
 		}
-		// copy allowed sizing fields only
 		const allowed = [
 			"cardHeight",
 			"cardMinHeight",
@@ -261,7 +250,8 @@ export default function Activity08({
 									}}
 									aria-hidden="true"
 								>
-									Instructions
+									{a8Content?.resourcesHeading ||
+										(lang === "fr" ? "Ressources" : "Resources")}
 								</div>
 
 								{instructionsHtml ? (
@@ -305,7 +295,6 @@ export default function Activity08({
 									{...getCardProps(0)}
 								/>
 							) : (
-								/* optional placeholder if missing */
 								<div className="rounded-2xl border bg-white p-4 shadow-sm h-full" />
 							)}
 						</motion.div>
