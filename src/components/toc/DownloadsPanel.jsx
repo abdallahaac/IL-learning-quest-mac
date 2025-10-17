@@ -15,10 +15,58 @@ const normalizeHex = (h) => {
 };
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
+// minimal lang sniff so this panel localizes itself
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
 export default function DownloadsPanel({
 	reflectionsReady,
 	onDownloadAllReflections,
 }) {
+	const lang = detectLang() === "fr" ? "fr" : "en";
+	const isFr = lang === "fr";
+
+	// Localized strings
+	const STR = {
+		actTitle: isFr
+			? "Télécharger la liste des activités"
+			: "Download activities list",
+		actSub: isFr
+			? "Obtenez un document avec tous les titres d’activité."
+			: "Get a document with all activity titles.",
+		reflTitle: isFr
+			? "Télécharger les réflexions des activités"
+			: "Download activities reflections",
+		reflSubReady: isFr
+			? "Réflexions personnelles de chaque activité réunies dans un seul document."
+			: "Personal reflections from each activity consolidated into one document.",
+		reflSubLocked: isFr
+			? "Terminez toutes les activités et marquez chacune comme terminée pour activer ce téléchargement."
+			: "Finish all activities and mark each one complete to enable this download.",
+		btnReflReady: isFr
+			? "Télécharger toutes les réflexions (.docx)"
+			: "Download All Reflections (.docx)",
+		btnReflPrep: isFr ? "Préparation…" : "Preparing…",
+		btnReflAria: isFr
+			? "Télécharger toutes les réflexions"
+			: "Download all reflections",
+		btnReflTitleReady: isFr
+			? "Télécharger toutes les réflexions (.docx)"
+			: "Download All Reflections (.docx)",
+		btnReflTitleLocked: isFr
+			? "Terminez d’abord toutes les activités et marquez chacune comme terminée"
+			: "Finish all activities and mark each one Complete first",
+	};
+
 	// Use emerald to mirror your gated “complete all activities” state
 	const reflectionsAccentHex = normalizeHex("#10B981") || "#10B981";
 	const ringAccent =
@@ -34,7 +82,6 @@ export default function DownloadsPanel({
 		try {
 			await onDownloadAllReflections?.();
 		} finally {
-			// cooldown similar to the activities button
 			setTimeout(() => setWorking(false), 900);
 		}
 	};
@@ -65,16 +112,14 @@ export default function DownloadsPanel({
 						</span>
 						<div className="min-w-0">
 							<div className="text-base font-semibold text-slate-900">
-								Download activities list
+								{STR.actTitle}
 							</div>
-							<div className="text-sm text-slate-600 mt-0.5">
-								Get a document with all activity titles.
-							</div>
+							<div className="text-sm text-slate-600 mt-0.5">{STR.actSub}</div>
 						</div>
 					</div>
 					<div className="mt-4">
-						{/* keep your original button exactly */}
-						<DownloadAllActivitiesButton accent="#2563EB" />
+						{/* If the button supports it, we pass locale. If it doesn't, no harm done. */}
+						<DownloadAllActivitiesButton accent="#2563EB" locale={lang} />
 					</div>
 				</motion.div>
 
@@ -111,16 +156,14 @@ export default function DownloadsPanel({
 									reflectionsReady ? "text-slate-900" : "text-slate-400"
 								}`}
 							>
-								Download activities reflections
+								{STR.reflTitle}
 							</div>
 							<div
 								className={`text-sm mt-0.5 ${
 									reflectionsReady ? "text-slate-600" : "text-slate-400"
 								}`}
 							>
-								{reflectionsReady
-									? "Personal reflections from each activity consolidated into one document."
-									: "Finish all activities and mark each one complete to enable this download."}
+								{reflectionsReady ? STR.reflSubReady : STR.reflSubLocked}
 							</div>
 						</div>
 					</div>
@@ -144,7 +187,12 @@ export default function DownloadsPanel({
 									: "1px solid rgba(148,163,184,0.35)",
 								color: reflectionsReady ? "#059669" : "#64748B",
 							}}
-							aria-hidden="true"
+							aria-label={STR.btnReflAria}
+							title={
+								reflectionsReady
+									? STR.btnReflTitleReady
+									: STR.btnReflTitleLocked
+							}
 							whileHover={
 								!reflectionsDisabled
 									? {
@@ -169,17 +217,9 @@ export default function DownloadsPanel({
 									: {}
 							}
 							transition={{ duration: 0.15, ease: "easeOut" }}
-							aria-label="Download all reflections"
-							title={
-								reflectionsReady
-									? "Download All Reflections (.docx)"
-									: "Finish all activities and mark each one Complete first"
-							}
 						>
 							<Download className="w-4 h-4" aria-hidden="true" />
-							<span>
-								{working ? "Preparing…" : "Download All Reflections (.docx)"}
-							</span>
+							<span>{working ? STR.btnReflPrep : STR.btnReflReady}</span>
 						</motion.button>
 					</div>
 				</motion.div>

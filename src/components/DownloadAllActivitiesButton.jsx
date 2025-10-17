@@ -3,6 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Download } from "lucide-react";
 import activitiesData from "../constants/activities_overview.json";
+import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
 /** utils */
 const normalizeHex = (h) => {
@@ -13,12 +14,143 @@ const normalizeHex = (h) => {
 };
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
+/** tiny lang sniff */
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
+/** pick bilingual fields: field_fr, fr.field, i18n?.fr?.field */
+function pickLocalized(obj, field, lang) {
+	if (!obj || typeof obj !== "object") return "";
+	if (lang === "fr") {
+		if (obj[`${field}_fr`]) return String(obj[`${field}_fr`]);
+		if (obj.fr && typeof obj.fr === "object" && obj.fr[field])
+			return String(obj.fr[field]);
+		if (obj.i18n && obj.i18n.fr && obj.i18n.fr[field])
+			return String(obj.i18n.fr[field]);
+	}
+	if (obj[field]) return String(obj[field]);
+	if (obj.en && typeof obj.en === "object" && obj.en[field])
+		return String(obj.en[field]);
+	if (obj.i18n && obj.i18n.en && obj.i18n.en[field])
+		return String(obj.i18n.en[field]);
+	return "";
+}
+
+/** brutally simple HTML stripper for docx text runs */
+function stripHtml(html) {
+	if (!html) return "";
+	return String(html)
+		.replace(/<[^>]+>/g, "")
+		.replace(/\s+\n/g, "\n")
+		.replace(/\s{2,}/g, " ")
+		.trim();
+}
+
+/** normalize activity list from ACTIVITIES_CONTENT or JSON fallback */
+function buildActivities(lang) {
+	// Prefer ACTIVITIES_CONTENT if present and iterable
+	const keys = ACTIVITIES_CONTENT ? Object.keys(ACTIVITIES_CONTENT) : [];
+	if (keys.length) {
+		return keys
+			.sort((a, b) => {
+				const na =
+					ACTIVITIES_CONTENT[a]?.en?.number ??
+					ACTIVITIES_CONTENT[a]?.fr?.number ??
+					0;
+				const nb =
+					ACTIVITIES_CONTENT[b]?.en?.number ??
+					ACTIVITIES_CONTENT[b]?.fr?.number ??
+					0;
+				return na - nb;
+			})
+			.map((k, idx) => {
+				const pack = ACTIVITIES_CONTENT[k];
+				const node =
+					lang === "fr" ? pack.fr || pack.en : pack.en || pack.fr || {};
+				return {
+					id: node.id || k,
+					number: node.number ?? idx + 1,
+					title: node.title || "",
+					subtitle: pickLocalized(node, "subtitle", lang),
+					tip:
+						node.tip ||
+						stripHtml(
+							node?.cdata?.instructionsHtml || node?.instructionsHtml || ""
+						),
+					resourcesHeading:
+						node.resourcesHeading ||
+						(lang === "fr" ? "Ressources" : "Resources"),
+					links: Array.isArray(node.links) ? node.links : [],
+				};
+			});
+	}
+
+	// Fallback to JSON file shape { activities: [...] }
+	const items = Array.isArray(activitiesData?.activities)
+		? activitiesData.activities
+		: [];
+	return items.map((a, idx) => ({
+		id: a.id || String(idx + 1),
+		number: a.number ?? idx + 1,
+		title:
+			pickLocalized(a, "title", lang) ||
+			(lang === "fr" ? `Activité ${idx + 1}` : `Activity ${idx + 1}`),
+		subtitle: pickLocalized(a, "subtitle", lang),
+		tip: pickLocalized(a, "tip", lang),
+		resourcesHeading:
+			pickLocalized(a, "resourcesHeading", lang) ||
+			(lang === "fr" ? "Ressources" : "Resources"),
+		links: Array.isArray(a.resources)
+			? a.resources
+			: Array.isArray(a.links)
+			? a.links
+			: [],
+	}));
+}
+
 export default function DownloadAllActivitiesButton({
 	accent = "#67AAF9",
-	docName = "Activities-Overview.docx",
-	coverTitle = "Activities Overview",
+	// if caller passes docName/coverTitle we respect them; otherwise we localize
+	docName,
+	coverTitle,
 	className = "",
+	locale, // optional explicit 'en' | 'fr'
 }) {
+	const lang = (locale || detectLang()) === "fr" ? "fr" : "en";
+
+	// localized UI strings
+	const STR = {
+		btnIdle:
+			lang === "fr"
+				? "Télécharger la liste des activités (.docx)"
+				: "Download All Activities (.docx)",
+		btnPrep: lang === "fr" ? "Préparation…" : "Preparing…",
+		aria:
+			lang === "fr"
+				? "Télécharger la liste des activités"
+				: "Download all activities overview",
+		tooltip:
+			lang === "fr"
+				? "Télécharger la liste de toutes les activités"
+				: "Download all activities overview",
+		resources: lang === "fr" ? "Ressources" : "Resources",
+		tipHeader: lang === "fr" ? "Consignes" : "Instructions",
+		exportedPrefix: lang === "fr" ? "Exporté le" : "Exported",
+		defaultCover:
+			lang === "fr" ? "Aperçu des activités" : "Activities Overview",
+		defaultName:
+			lang === "fr" ? "Aperçu-des-activités.docx" : "Activities-Overview.docx",
+	};
+
 	const accentHex = normalizeHex(accent) || "#2563EB";
 	const ringAccent = `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${accentHex}] focus-visible:ring-offset-2`;
 
@@ -27,9 +159,9 @@ export default function DownloadAllActivitiesButton({
 	const handleDownload = async () => {
 		if (busy) return;
 		setBusy(true);
-		const items = Array.isArray(activitiesData?.activities)
-			? activitiesData.activities
-			: [];
+
+		const items = buildActivities(lang);
+
 		try {
 			const {
 				Document,
@@ -42,17 +174,20 @@ export default function DownloadAllActivitiesButton({
 			} = await import("docx");
 			const { saveAs } = await import("file-saver");
 
-			const today = new Date().toLocaleDateString();
+			const today = new Date().toLocaleDateString(
+				lang === "fr" ? "fr-CA" : "en-CA"
+			);
 			const children = [];
 
 			// Cover
+			const coverText = coverTitle || STR.defaultCover;
 			children.push(
 				new Paragraph({
 					alignment: AlignmentType.CENTER,
 					spacing: { after: 300 },
 					children: [
 						new TextRun({
-							text: coverTitle,
+							text: coverText,
 							bold: true,
 							size: 56,
 							font: "Arial",
@@ -67,7 +202,7 @@ export default function DownloadAllActivitiesButton({
 					spacing: { after: 400 },
 					children: [
 						new TextRun({
-							text: `Exported ${today}`,
+							text: `${STR.exportedPrefix} ${today}`,
 							italics: true,
 							size: 24,
 							font: "Arial",
@@ -78,19 +213,27 @@ export default function DownloadAllActivitiesButton({
 
 			// Activities
 			items.forEach((a, idx) => {
-				const heading = a?.title || `Activity ${a?.id ?? idx + 1}`;
+				const indexLabel = `${idx + 1}. ${
+					a.title ||
+					(lang === "fr"
+						? `Activité ${a.number ?? idx + 1}`
+						: `Activity ${a.number ?? idx + 1}`)
+				}`;
 
+				// Title
 				children.push(
 					new Paragraph({
-						text: `${idx + 1}. ${heading}`,
+						text: indexLabel,
 						heading: HeadingLevel.HEADING_1,
 						spacing: { before: 480, after: 200 },
 					})
 				);
 
-				if (a?.subtitle) {
+				// Subtitle (optional)
+				if (a.subtitle) {
 					children.push(
 						new Paragraph({
+							spacing: { after: 160 },
 							children: [
 								new TextRun({
 									text: a.subtitle,
@@ -99,22 +242,49 @@ export default function DownloadAllActivitiesButton({
 									size: 24,
 								}),
 							],
-							spacing: { after: 160 },
 						})
 					);
 				}
 
-				const links = Array.isArray(a?.resources) ? a.resources : [];
-				if (links.length) {
+				// Tip/Instructions
+				if (a.tip) {
 					children.push(
 						new Paragraph({
-							text: "Resources",
+							text: STR.tipHeader,
+							heading: HeadingLevel.HEADING_2,
+							spacing: { before: 160, after: 80 },
+						})
+					);
+					children.push(
+						new Paragraph({
+							spacing: { after: 160 },
+							children: [
+								new TextRun({
+									text: a.tip,
+									font: "Arial",
+									size: 24,
+								}),
+							],
+						})
+					);
+				}
+
+				// Resources
+				const links = Array.isArray(a.links) ? a.links : [];
+				if (links.length) {
+					const resHeading = a.resourcesHeading || STR.resources;
+					children.push(
+						new Paragraph({
+							text: resHeading,
 							heading: HeadingLevel.HEADING_2,
 							spacing: { before: 200, after: 120 },
 						})
 					);
 					links.forEach((l) => {
-						const label = String(l?.label || l?.title || l?.url || "").trim();
+						const label =
+							pickLocalized(l, "label", lang).trim() ||
+							pickLocalized(l, "title", lang).trim() ||
+							String(l?.url || "").trim();
 						const url = String(l?.url || "").trim();
 						children.push(
 							new Paragraph({
@@ -154,12 +324,16 @@ export default function DownloadAllActivitiesButton({
 				sections: [{ properties: {}, children }],
 			});
 
+			const finalName = docName || STR.defaultName;
 			const blob = await Packer.toBlob(doc);
-			saveAs(blob, docName);
+			saveAs(blob, finalName);
 		} catch {
-			alert("Unable to generate DOCX in this environment.");
+			alert(
+				lang === "fr"
+					? "Impossible de générer le DOCX dans cet environnement."
+					: "Unable to generate DOCX in this environment."
+			);
 		} finally {
-			// cooldown protects against rapid double-clicks
 			setTimeout(() => setBusy(false), 900);
 		}
 	};
@@ -196,11 +370,27 @@ export default function DownloadAllActivitiesButton({
 					: {}
 			}
 			transition={{ duration: 0.15, ease: "easeOut" }}
-			aria-label="Download all activities overview"
-			title="Download all activities overview"
+			aria-label={
+				lang === "fr"
+					? "Télécharger la liste des activités"
+					: "Download all activities overview"
+			}
+			title={
+				lang === "fr"
+					? "Télécharger la liste de toutes les activités"
+					: "Download all activities overview"
+			}
 		>
 			<Download className="w-4 h-4" />
-			<span>{busy ? "Preparing…" : "Download All Activities (.docx)"}</span>
+			<span>
+				{busy
+					? lang === "fr"
+						? "Préparation…"
+						: "Preparing…"
+					: lang === "fr"
+					? "Télécharger la liste des activités (.docx)"
+					: "Download All Activities (.docx)"}
+			</span>
 		</motion.button>
 	);
 }

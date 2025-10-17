@@ -56,7 +56,7 @@ const SPLASH_SEEN_KEY = "__APP_SPLASH_SEEN_ONCE__";
 // ===== DEBUG FLAG =====
 // Set to `true` to force the splash to show on every refresh (useful for debugging).
 // Remember to set to `false` or remove before shipping.
-const DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH = true;
+const DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH = false;
 
 function isSplashDisabled() {
 	try {
