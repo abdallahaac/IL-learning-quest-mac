@@ -1,3 +1,4 @@
+// src/AppShell.jsx (updated)
 import React from "react";
 import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
@@ -51,6 +52,11 @@ import {
 } from "./constants/content.js";
 
 const SPLASH_SEEN_KEY = "__APP_SPLASH_SEEN_ONCE__";
+
+// ===== DEBUG FLAG =====
+// Set to `true` to force the splash to show on every refresh (useful for debugging).
+// Remember to set to `false` or remove before shipping.
+const DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH = true;
 
 function isSplashDisabled() {
 	try {
@@ -216,7 +222,11 @@ export default function AppShell() {
 				true;
 			if (reduced && !force) return false;
 
-			if (!force && hasSeenSplashOnce()) return false;
+			// <- IMPORTANT: this line prevents the splash from showing on refresh
+			// by checking a storage key. The debug flag lets us bypass it during development.
+			if (!force && hasSeenSplashOnce() && !DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH)
+				return false;
+
 			return true;
 		} catch {
 			return true;
