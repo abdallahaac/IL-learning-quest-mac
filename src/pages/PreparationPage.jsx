@@ -221,7 +221,7 @@ function FlipCard({
 			{/* Non-flipping badge */}
 			{isVisited && (
 				<span
-					className="absolute -top-3 -right-3 z-10 w-12 h-12 rounded-full grid place-items-center text-white"
+					className="absolute -top-3 -right-3 z-10 w-8 h-8 rounded-full grid place-items-center text-white"
 					style={{
 						backgroundColor: "#10B981",
 						boxShadow: "0 2px 6px rgba(16,185,129,0.45)",
@@ -229,7 +229,7 @@ function FlipCard({
 					aria-hidden="true"
 				>
 					{/* checkmark doubled in visible size */}
-					<FontAwesomeIcon icon={faCircleCheck} className="text-[24px]" />
+					<FontAwesomeIcon icon={faCircleCheck} className="text-[18px]" />
 				</span>
 			)}
 
@@ -260,7 +260,7 @@ function FlipCard({
 					<div
 						id={frontId}
 						aria-hidden={flipped}
-						className="absolute inset-0 grid place-items-center backface-hidden px-4 rounded-2xl"
+						className="absolute inset-0 grid place-items-center backface-hidden px-4 rounded-xl"
 						style={{
 							backfaceVisibility: "hidden",
 							backgroundColor: ACCENT, // purple front background

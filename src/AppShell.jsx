@@ -1,4 +1,4 @@
-// src/AppShell.jsx (updated)
+// src/AppShell.jsx
 import React from "react";
 import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
@@ -52,10 +52,6 @@ import {
 } from "./constants/content.js";
 
 const SPLASH_SEEN_KEY = "__APP_SPLASH_SEEN_ONCE__";
-
-// ===== DEBUG FLAG =====
-// Set to `true` to force the splash to show on every refresh (useful for debugging).
-// Remember to set to `false` or remove before shipping.
 const DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH = false;
 
 function isSplashDisabled() {
@@ -108,7 +104,6 @@ function scrollContainerToTop(el, { reduced }) {
 	}
 }
 
-// Language detection
 function detectLang() {
 	try {
 		const qs = new URLSearchParams(window.location.search);
@@ -121,7 +116,6 @@ function detectLang() {
 	return "en";
 }
 
-// Static page content map
 const CONTENT_BY_TYPE = {
 	cover: { en: COVER_CONTENT, fr: COVER_CONTENT_FR },
 	intro: { en: INTRO_INFO_CONTENT, fr: INTRO_INFO_CONTENT_FR },
@@ -131,7 +125,6 @@ const CONTENT_BY_TYPE = {
 	resources: { en: RESOURCES_CONTENT, fr: RESOURCES_CONTENT_FR },
 };
 
-// Return localized activity payload from constants by id with EN fallback
 function getActivityContent(id, lang) {
 	const pack = ACTIVITIES_CONTENT?.[id];
 	if (!pack) return null;
@@ -222,8 +215,6 @@ export default function AppShell() {
 				true;
 			if (reduced && !force) return false;
 
-			// <- IMPORTANT: this line prevents the splash from showing on refresh
-			// by checking a storage key. The debug flag lets us bypass it during development.
 			if (!force && hasSeenSplashOnce() && !DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH)
 				return false;
 
@@ -361,7 +352,6 @@ export default function AppShell() {
 		return nextPage?.content?.title || STR.footer.next;
 	};
 
-	// Localize non-activity pages
 	const localizedContent = React.useMemo(() => {
 		const type = currentPage?.type;
 		const map = CONTENT_BY_TYPE[type];
@@ -369,10 +359,9 @@ export default function AppShell() {
 		return lang === "fr" ? map.fr : map.en;
 	}, [currentPage, lang]);
 
-	// Localize activity content from constants by id; fallback to EN
 	const localizedActivityContent = React.useMemo(() => {
 		if (currentPage?.type !== "activity") return null;
-		const id = currentPage?.content?.id; // "a1".."a10"
+		const id = currentPage?.content?.id;
 		return getActivityContent(id, lang) || currentPage.content;
 	}, [currentPage, lang]);
 
@@ -423,10 +412,7 @@ export default function AppShell() {
 			}}
 		>
 			<div className="absolute inset-0 z-0 pointer-events-none">
-				<PatternMorph
-					pageIndex={state.pageIndex}
-					sequence={["dots", , "grid"]}
-				/>
+				<PatternMorph pageIndex={state.pageIndex} sequence={["dots", "grid"]} />
 			</div>
 
 			<div className="relative z-10 flex min-h-0 flex-1 flex-col">
@@ -560,6 +546,8 @@ export default function AppShell() {
 											content={localizedContent}
 											notes={state.notes["team"]}
 											onNotes={(v) => setNote("team", v)}
+											reflectionsReady={allActivitiesCompleted && !reflectBusy}
+											onDownloadAllReflections={onDownloadAllReflections}
 										/>
 									)}
 
@@ -568,6 +556,8 @@ export default function AppShell() {
 											content={localizedContent}
 											notes={state.notes["reflect"]}
 											onNotes={(v) => setNote("reflect", v)}
+											reflectionsReady={allActivitiesCompleted && !reflectBusy}
+											onDownloadAllReflections={onDownloadAllReflections}
 										/>
 									)}
 

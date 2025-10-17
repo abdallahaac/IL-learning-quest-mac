@@ -3,7 +3,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Users, ClipboardList, CheckCircle2, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import DownloadsPanel from "../components/toc/DownloadsPanel.jsx";
-import { TEAM_CONTENT, TEAM_CONTENT_FR } from "../constants/content.js"; // <- adjust path
+import { TEAM_CONTENT } from "../constants/content.js";
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -12,7 +12,12 @@ export default function TeamReflectionPage({
 	content,
 	notes,
 	onNotes,
-	reflectionsReady = false,
+
+	// Mirror ContentsPage: parent is the single source of truth.
+	// If not provided, we fall back to allActivitiesCompleted the same way your top-level gating does.
+	reflectionsReady,
+	allActivitiesCompleted = false,
+
 	onDownloadAllReflections,
 }) {
 	// THEME
@@ -21,15 +26,11 @@ export default function TeamReflectionPage({
 	const card = "rounded-2xl border border-gray-200 bg-white shadow-sm";
 	const ringAccent = `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${ACCENT}] focus-visible:ring-offset-2`;
 
-	// decide language/content source:
-	// prefer explicit content prop; otherwise pick EN by default.
-	// You can pass TEAM_CONTENT_FR from parent based on document language.
+	// Content source
 	const mergedContent = useMemo(() => {
-		// if provided, use content; otherwise fallback to TEAM_CONTENT
 		return {
 			...TEAM_CONTENT,
 			...(content || {}),
-			// ensure steps is an array if provided, else default
 			steps:
 				Array.isArray(content?.steps) && content.steps.length
 					? content.steps
@@ -38,7 +39,7 @@ export default function TeamReflectionPage({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [content]);
 
-	// MODEL (text + checks only)
+	// MODEL (text + checks)
 	const model = useMemo(() => {
 		if (typeof notes === "string") return { text: notes, checks: [] };
 		return {
@@ -53,7 +54,7 @@ export default function TeamReflectionPage({
 		return Array.from({ length: total }, (_, i) => !!model.checks[i]);
 	});
 
-	// Persist text/steps to parent
+	// Persist to parent (exporter reads notes.team)
 	useEffect(() => {
 		onNotes?.({ ...model, text, checks });
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,7 +104,7 @@ export default function TeamReflectionPage({
 		scale: [1, 1.05, 1],
 	};
 
-	// quick prompts come from content
+	// quick prompts
 	const quickPrompts = Array.isArray(mergedContent.quickPrompts)
 		? mergedContent.quickPrompts
 		: [
@@ -115,7 +116,7 @@ export default function TeamReflectionPage({
 
 	const wordCount = (text || "").trim() ? text.trim().split(/\s+/).length : 0;
 
-	// PUBLIC LABELS (pull from content with sensible fallback)
+	// labels
 	const INSTRUCTION_PILL = mergedContent.instructionPill || "Instruction";
 	const INSTRUCTIONS_HTML = mergedContent.instructionsHtml || "";
 	const STEPS_HEADING = mergedContent.stepsHeading || "Steps";
@@ -132,9 +133,19 @@ export default function TeamReflectionPage({
 	const WORD_LABEL_SINGULAR = mergedContent.wordsLabelSingular || "word";
 	const WORD_LABEL_PLURAL = mergedContent.wordsLabelPlural || "words";
 
+	// EXACTLY like ContentsPage: trust the parent-provided reflectionsReady.
+	// If parent doesn't pass it, fall back to allActivitiesCompleted, else false.
+	const reflectionsGate =
+		typeof reflectionsReady === "boolean"
+			? reflectionsReady
+			: Boolean(allActivitiesCompleted);
+
+	// Debug breadcrumb if you need to see what’s happening at runtime:
+	// console.debug("TeamReflectionPage gate:", { reflectionsReady, allActivitiesCompleted, reflectionsGate });
+
 	return (
 		<div className="relative bg-transparent min-h-[80svh]">
-			{/* Accent gradient overlay (above global canvas) */}
+			{/* Accent gradient overlay */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 z-0 pointer-events-none"
@@ -152,7 +163,7 @@ export default function TeamReflectionPage({
 				transition={{ duration: 0.6 }}
 			/>
 
-			{/* Content wrapper sits above the gradient */}
+			{/* Content wrapper */}
 			<div className={`relative z-10 ${wrap}`}>
 				{/* Header */}
 				<header className="text-center space-y-4">
@@ -167,7 +178,7 @@ export default function TeamReflectionPage({
 						/>
 					</div>
 
-					{/* Instructions-style callout */}
+					{/* Instructions */}
 					<aside
 						role="note"
 						aria-label="Team reflection instructions"
@@ -205,7 +216,7 @@ export default function TeamReflectionPage({
 					</aside>
 				</header>
 
-				{/* Steps + progress */}
+				{/* Steps + progress (pure UX, not gating) */}
 				<section className={`${card} p-4 sm:p-5`}>
 					<div className="flex items-center justify-between gap-3 mb-4">
 						<div className="flex items-center gap-2">
@@ -366,7 +377,7 @@ export default function TeamReflectionPage({
 					</AnimatePresence>
 				</section>
 
-				{/* Notes (left) + Reflection preview (right) */}
+				{/* Notes */}
 				<section className="grid  gap-6">
 					<div className={`${card} p-4 sm:p-5`}>
 						<div className="flex items-center justify-between">
@@ -412,17 +423,13 @@ export default function TeamReflectionPage({
 						/>
 						<p className="mt-2 text-xs text-slate-500">{NOTES_SAVE_TIP}</p>
 					</div>
-
-					{/* Right column preview area intentionally left blank in this UI (keeps parity) */}
 				</section>
 
-				{/* Downloads — same component as ContentsPage */}
-				<section className="pt-2">
-					<DownloadsPanel
-						reflectionsReady={reflectionsReady}
-						onDownloadAllReflections={onDownloadAllReflections}
-					/>
-				</section>
+				{/* Downloads — EXACTLY like Contents: driven by parent/reflection gate */}
+				<DownloadsPanel
+					reflectionsReady={reflectionsReady}
+					onDownloadAllReflections={onDownloadAllReflections}
+				/>
 			</div>
 		</div>
 	);
