@@ -23,7 +23,7 @@ const STRINGS = {
 	},
 	fr: {
 		mark: "Marquer comme terminé",
-		marked: "terminé",
+		marked: "Terminé",
 		disabled: "Commencez l’activité pour activer ceci",
 	},
 };
