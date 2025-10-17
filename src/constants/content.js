@@ -1332,7 +1332,7 @@ export const ACTIVITIES_CONTENT = {
 		fr: {
 			id: "a7",
 			number: 7,
-			title: "Apprenez à prononcer trois mots dans une langue autochtone.",
+			title: "Apprenez à prononcer trois mots dans une langue autochtone",
 			tip: "Apprenez à prononcer trois mots dans une langue autochtone. Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.",
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
