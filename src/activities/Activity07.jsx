@@ -1,31 +1,135 @@
 // src/pages/activities/Activity07.jsx
-// activity7 (homogenized header/instructions to match Activity 01)
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import {
-	Feather,
-	Link2,
-	BookText,
-	BookOpen,
-	Bookmark,
-	ExternalLink,
-} from "lucide-react";
+import { Feather, BookOpen, ExternalLink } from "lucide-react";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
+import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
 export default function Activity07({
-	content,
+	content, // still accepted but we prefer ACTIVITIES_CONTENT source
 	notes,
 	onNotes,
 	completed,
 	onToggleComplete,
 	accent = "#0D9488",
 }) {
+	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
+	const reduceMotion = useReducedMotion();
+
+	// canonical source: ACTIVITIES_CONTENT.a7[lang] or fallback to provided prop
+	const a7Content =
+		(ACTIVITIES_CONTENT &&
+			ACTIVITIES_CONTENT.a7 &&
+			(ACTIVITIES_CONTENT.a7[lang] || ACTIVITIES_CONTENT.a7.en)) ||
+		content ||
+		{};
+
+	// UI strings grouped under a7Content.ui
+	const ui = a7Content.ui || {};
+	const uiSafe = {
+		instructionsPill:
+			ui.instructionsPill || (lang === "fr" ? "Consignes" : "Instructions"),
+		editorHeading:
+			ui.editorHeading ||
+			(lang === "fr"
+				? "Ajoutez vos mots (cartes à retourner)"
+				: "Add your words (Flip Cards)"),
+		editorTip:
+			ui.editorTip ||
+			(lang === "fr"
+				? "Astuce : appuyez sur Entrée dans le champ « Retour » pour ajouter rapidement."
+				: "Tip: press Enter in the Back field to add quickly."),
+		frontPlaceholder:
+			ui.frontPlaceholder ||
+			(lang === "fr" ? "Recto (mot / expression)" : "Front (word / phrase)"),
+		backPlaceholder:
+			ui.backPlaceholder ||
+			(lang === "fr"
+				? "Verso (sens / traduction)"
+				: "Back (meaning / translation)"),
+		addCardButton:
+			ui.addCardButton || (lang === "fr" ? "Ajouter la carte" : "Add card"),
+		removeButton: ui.removeButton || (lang === "fr" ? "Supprimer" : "Remove"),
+		cardsCountSuffix:
+			ui.cardsCountSuffix || (lang === "fr" ? "cartes" : "cards"),
+		noCardsPrimary:
+			ui.noCardsPrimary ||
+			(lang === "fr"
+				? "Aucune carte pour l’instant — ajoutez la première au-dessus."
+				: "No cards yet — add your first above."),
+		noCardsSecondary:
+			ui.noCardsSecondary ||
+			(lang === "fr"
+				? "Ajoutez des cartes-mots ci-dessous (mot au recto, sens au verso). Cliquez sur une carte pour la retourner et vous entraîner."
+				: "Add word cards below (word on the front, meaning on the back). Click a card to flip it and practice anytime."),
+		newWordLabel:
+			ui.newWordLabel || (lang === "fr" ? "Nouveau mot" : "New word"),
+		meaningLabel:
+			ui.meaningLabel ||
+			(lang === "fr" ? "Sens / Traduction" : "Meaning / Translation"),
+		openLinkLabel:
+			ui.openLinkLabel || (lang === "fr" ? "Ouvrir le lien" : "Open link"),
+		downloadButton:
+			ui.downloadButton ||
+			(lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"),
+		downloadCardsIntro:
+			ui.downloadCardsIntro ||
+			(lang === "fr" ? "Nouveau mot → Sens" : "New word → Meaning"),
+		doc: ui.doc || {
+			activityTipHeader: lang === "fr" ? "Conseil d’activité" : "Activity tip",
+			resourcesHeader: lang === "fr" ? "Ressources" : "Resources",
+			savedResponseHeader:
+				lang === "fr" ? "Réponse enregistrée" : "Saved response",
+			bulletPointsHeader: lang === "fr" ? "Points clés" : "Bullet points",
+			wordCardsHeader: lang === "fr" ? "Cartes-mots" : "Word cards",
+			wordColumn: lang === "fr" ? "Mot" : "Word",
+			meaningColumn: lang === "fr" ? "Sens" : "Meaning",
+		},
+		celebrateTitle:
+			ui.celebrateTitle ||
+			(lang === "fr"
+				? "Bravo ! Vous avez ajouté 3 mots 🎉"
+				: "Nice! You added 3 words 🎉"),
+		celebrateBody:
+			ui.celebrateBody ||
+			(lang === "fr"
+				? "Continuez — ajoutez-en davantage et entraînez-vous en retournant les cartes."
+				: "Keep going—add more and practice by flipping the cards."),
+	};
+
+	const activityNumber = Number.isFinite(a7Content?.number)
+		? a7Content.number
+		: 7;
+	const pageTitle =
+		a7Content?.title ||
+		(lang === "fr" ? "Apprenez à prononcer trois mots" : "Learn Three Words");
+	const tipText =
+		a7Content?.tip ||
+		(lang === "fr"
+			? "Apprenez à prononcer trois mots..."
+			: "Learn to say three words...");
 	const placeholder =
-		content?.notePlaceholder || "Words/phrases and where they’re used…";
+		a7Content?.notePlaceholder ||
+		(lang === "fr"
+			? "Cliquez ou tapez ici pour saisir du texte."
+			: "Words/phrases and where they’re used…");
+	const instructionsHtml = a7Content?.instructionsHtml ?? null;
 
 	// normalize notes -> object with cards
 	const initialModel = useMemo(() => {
@@ -45,7 +149,6 @@ export default function Activity07({
 		onNotes?.(next);
 	};
 
-	// keep local model in sync with prop changes (prevents premature “started”)
 	useEffect(() => {
 		if (!notes) {
 			setModel({ text: "", bullets: [], cards: [] });
@@ -62,19 +165,20 @@ export default function Activity07({
 		});
 	}, [notes]);
 
-	/* -------------------------------------------------------------
-       DOWNLOAD #1: CARDS ONLY
-    -------------------------------------------------------------- */
+	/* ------- download cards (table) ------- */
 	const downloadCardsDocx = async () => {
 		const cards = Array.isArray(model.cards)
 			? model.cards.filter((c) => c?.front?.trim() && c?.back?.trim())
 			: [];
 		if (!cards.length) return;
 
-		const baseTitle = content?.title || "Learn Three Words";
+		const baseTitle = pageTitle;
 		const fileName = `${(baseTitle || "activity-words")
 			.toLowerCase()
 			.replace(/\s+/g, "-")}-cards.docx`;
+		const wordHeader = uiSafe.doc.wordColumn;
+		const meaningHeader = uiSafe.doc.meaningColumn;
+		const introText = uiSafe.downloadCardsIntro;
 
 		try {
 			const {
@@ -100,7 +204,7 @@ export default function Activity07({
 			const intro = new Paragraph({
 				children: [
 					new TextRun({
-						text: "New word → Meaning",
+						text: introText,
 						italics: true,
 						font: "Arial",
 						size: 24,
@@ -116,7 +220,7 @@ export default function Activity07({
 							new Paragraph({
 								children: [
 									new TextRun({
-										text: "Word",
+										text: wordHeader,
 										bold: true,
 										font: "Arial",
 										size: 24,
@@ -130,7 +234,7 @@ export default function Activity07({
 							new Paragraph({
 								children: [
 									new TextRun({
-										text: "Meaning",
+										text: meaningHeader,
 										bold: true,
 										font: "Arial",
 										size: 24,
@@ -213,6 +317,7 @@ export default function Activity07({
 			a.remove();
 			URL.revokeObjectURL(url);
 		} catch (err) {
+			// fallback HTML
 			const esc = (s = "") =>
 				String(s)
 					.replaceAll("&", "&amp;")
@@ -227,9 +332,11 @@ export default function Activity07({
           <head><meta charset="utf-8"><title>${esc(baseTitle)}</title></head>
           <body style="font-family:Arial;">
             <h1>${esc(baseTitle)}</h1>
-            <p><em>New word → Meaning</em></p>
+            <p><em>${esc(introText)}</em></p>
             <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;">
-              <thead><tr><th>Word</th><th>Meaning</th></tr></thead>
+              <thead><tr><th>${esc(wordHeader)}</th><th>${esc(
+				meaningHeader
+			)}</th></tr></thead>
               <tbody>${rowsHtml}</tbody>
             </table>
           </body>
@@ -238,7 +345,7 @@ export default function Activity07({
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;
-			a.download = (fileName || "cards.docx").replace(/\.docx$/i, ".doc");
+			a.download = fileName.replace(/\.docx$/i, ".doc");
 			document.body.appendChild(a);
 			a.click();
 			a.remove();
@@ -246,7 +353,6 @@ export default function Activity07({
 		}
 	};
 
-	// Optional one-card export
 	const downloadOneCardDocx = async (i) => {
 		const c = model.cards?.[i];
 		if (!c?.front?.trim() || !c?.back?.trim()) return;
@@ -256,42 +362,21 @@ export default function Activity07({
 		saveNotes({ ...model, cards: original });
 	};
 
-	/* -------------------------------------------------------------
-       DOWNLOAD #2: FULL PAGE SNAPSHOT — NoteComposer style
-    -------------------------------------------------------------- */
-	const activityNumber = 7;
+	/* ------- full page export (docx) ------- */
 	const downloadPageDocx = async () => {
-		const baseTitle = content?.title || "Learn Three Words";
+		const baseTitle = pageTitle;
 		const title = `Activity ${activityNumber}: ${baseTitle}`;
-		const subtitle =
-			content?.subtitle ||
-			"Learn to say three words in an Indigenous language.";
+		const subtitle = a7Content?.subtitle || "";
+		const headingHex = accent;
 
-		const headingHex = accent; // align heading color with page accent
-
-		// page resources
-		const resources = [
-			{ label: "FirstVoices", href: "https://www.firstvoices.com/" },
-			{
-				label: "Inuktut glossary (Inuktut Tusaalanga)",
-				href: "https://tusaalanga.ca/glossary",
-			},
-			{
-				label: "Michif Language Revitalization Circle (resources)",
-				href: "https://speakmichif.ca/learn/resources",
-			},
-			{
-				label: "Métis languages resources (Louis Riel Institute)",
-				href: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
-			},
-		];
+		// use content.links for resources
+		const resources = Array.isArray(a7Content?.links) ? a7Content.links : [];
 
 		const bullets = (model.bullets || []).filter(Boolean);
 		const cards = (model.cards || []).filter(
 			(c) => c?.front?.trim() || c?.back?.trim()
 		);
-
-		const fileName = "activity-a7-reflection.docx";
+		const fileName = `activity-a${activityNumber}-reflection.docx`;
 
 		try {
 			const {
@@ -308,7 +393,7 @@ export default function Activity07({
 				ExternalHyperlink,
 			} = await import("docx");
 
-			// Styled helpers (match NoteComposer)
+			// helpers
 			const Title = (t) =>
 				new Paragraph({
 					alignment: AlignmentType.LEFT,
@@ -382,29 +467,24 @@ export default function Activity07({
 				});
 
 			const children = [];
-
-			// Title / Subtitle
 			children.push(Title(title));
 			if (subtitle) children.push(SubtitleP(subtitle));
 
-			// Activity tip (matches on-page copy)
-			children.push(H2("Activity tip"));
-			children.push(
-				Body(
-					"Share the words you learned with your team, and use them as often as possible."
-				)
-			);
-			children.push(Body("Share them with your team and use them often."));
+			// Activity tip (from content)
+			children.push(H2(uiSafe.doc.activityTipHeader));
+			children.push(Body(tipText));
 
-			// Resources — header + bullet hyperlinks
+			// Resources
 			if (resources.length) {
-				children.push(H2("Resources"));
-				resources.forEach((r) => children.push(BulletLink(r.label, r.href)));
+				children.push(H2(uiSafe.doc.resourcesHeader));
+				resources.forEach((r) =>
+					children.push(BulletLink(r.label || r, r.url || r.href || ""))
+				);
 			}
 
 			// Saved response
 			if (model.text?.trim()) {
-				children.push(H2("Saved response"));
+				children.push(H2(uiSafe.doc.savedResponseHeader));
 				model.text
 					.split(/\n{2,}/)
 					.map((p) => p.trim())
@@ -412,20 +492,19 @@ export default function Activity07({
 					.forEach((p) => children.push(Body(p)));
 			}
 
-			// Saved bullets
+			// Bullets
 			if (bullets.length) {
-				children.push(H2("Bullet points"));
+				children.push(H2(uiSafe.doc.bulletPointsHeader));
 				bullets.forEach((b) => children.push(BulletP(b)));
 			}
 
 			// Cards table
 			if (cards.length) {
-				children.push(H2("Word cards"));
-
+				children.push(H2(uiSafe.doc.wordCardsHeader));
 				const headerRow = new TableRow({
 					children: [
-						new TableCell({ children: [Body("Word")] }),
-						new TableCell({ children: [Body("Meaning")] }),
+						new TableCell({ children: [Body(uiSafe.doc.wordColumn)] }),
+						new TableCell({ children: [Body(uiSafe.doc.meaningColumn)] }),
 					],
 					tableHeader: true,
 				});
@@ -486,48 +565,27 @@ export default function Activity07({
 			a.click();
 			a.remove();
 			URL.revokeObjectURL(url);
-		} catch {
-			// HTML fallback (bullet hyperlinks + same section order)
+		} catch (err) {
+			// fallback HTML (keeps same order and headings)
 			const esc = (s = "") =>
 				String(s)
 					.replaceAll("&", "&amp;")
 					.replaceAll("<", "&lt;")
 					.replaceAll(">", "&gt;");
-			const tip = [
-				"Share the words you learned with your team, and use them as often as possible.",
-				"Share them with your team and use them often.",
-			];
-
-			const resHtml = [
-				{ label: "FirstVoices", href: "https://www.firstvoices.com/" },
-				{
-					label: "Inuktut glossary (Inuktut Tusaalanga)",
-					href: "https://tusaalanga.ca/glossary",
-				},
-				{
-					label: "Michif Language Revitalization Circle (resources)",
-					href: "https://speakmichif.ca/learn/resources",
-				},
-				{
-					label: "Métis languages resources (Louis Riel Institute)",
-					href: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
-				},
-			]
+			const resHtml = (Array.isArray(a7Content?.links) ? a7Content.links : [])
 				.map(
 					(r) =>
 						`<li><a href="${
-							r.href
+							r.url || r.href || "#"
 						}" style="text-decoration:underline; color:#0563C1;">${esc(
-							r.label
+							r.label || r
 						)}</a></li>`
 				)
 				.join("");
-
 			const bulletsHtml = (model.bullets || [])
 				.filter(Boolean)
 				.map((b) => `<li>${esc(b)}</li>`)
 				.join("");
-
 			const cardsHtml = (model.cards || [])
 				.filter((c) => c?.front?.trim() || c?.back?.trim())
 				.map(
@@ -537,70 +595,58 @@ export default function Activity07({
 						)}</td></tr>`
 				)
 				.join("");
-
 			const html = `
         <html>
           <head><meta charset="utf-8"><title>${esc(title)}</title></head>
           <body style="font-family:Arial; line-height:1.5;">
-            <h1 style="font-size:24pt; color:${esc(
-							accent
-						)}; margin:0 0 15pt;">${esc(title)}</h1>
             ${
 							subtitle
-								? `<p style="font-size:14pt; font-style:italic; margin:0 0 12pt;">${esc(
-										subtitle
-								  )}</p>`
+								? `<p style="font-style:italic">${esc(subtitle)}</p>`
 								: ""
 						}
-            <h2 style="font-size:16pt; color:${esc(
-							accent
-						)}; margin:24pt 0 12pt;">Activity tip</h2>
-            ${tip
-							.map(
-								(t) =>
-									`<p style="font-size:12pt; margin:0 0 9pt;">${esc(t)}</p>`
-							)
-							.join("")}
-            <h2 style="font-size:16pt; color:${esc(
-							accent
-						)}; margin:24pt 0 12pt;">Resources</h2>
-            <ul style="margin:0 0 12pt 18pt; font-size:12pt;">${resHtml}</ul>
+            <h2 style="color:${esc(accent)}">${esc(
+				uiSafe.doc.activityTipHeader
+			)}</h2>
+            <p>${esc(tipText)}</p>
+            ${
+							resHtml
+								? `<h2 style="color:${esc(accent)}">${esc(
+										uiSafe.doc.resourcesHeader
+								  )}</h2><ul>${resHtml}</ul>`
+								: ""
+						}
             ${
 							model.text?.trim()
-								? `<h2 style="font-size:16pt; color:${esc(
-										accent
-								  )}; margin:24pt 0 12pt;">Saved response</h2>
-                   <p style="font-size:12pt; margin:0 0 9pt;">${esc(
-											model.text
-										).replace(/\n/g, "<br/>")}</p>`
+								? `<h2 style="color:${esc(accent)}">${esc(
+										uiSafe.doc.savedResponseHeader
+								  )}</h2><p>${esc(model.text).replace(/\n/g, "<br/>")}</p>`
 								: ""
 						}
             ${
 							bulletsHtml
-								? `<h2 style="font-size:16pt; color:${esc(
-										accent
-								  )}; margin:24pt 0 12pt;">Bullet points</h2><ul style="margin:0 0 12pt 18pt; font-size:12pt;">${bulletsHtml}</ul>`
+								? `<h2 style="color:${esc(accent)}">${esc(
+										uiSafe.doc.bulletPointsHeader
+								  )}</h2><ul>${bulletsHtml}</ul>`
 								: ""
 						}
             ${
 							cardsHtml
-								? `<h2 style="font-size:16pt; color:${esc(
-										accent
-								  )}; margin:24pt 0 12pt;">Word cards</h2>
-                   <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;">
-                     <thead><tr><th>Word</th><th>Meaning</th></tr></thead>
-                     <tbody>${cardsHtml}</tbody>
-                   </table>`
+								? `<h2 style="color:${esc(accent)}">${esc(
+										uiSafe.doc.wordCardsHeader
+								  )}</h2><table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;"><thead><tr><th>${esc(
+										uiSafe.doc.wordColumn
+								  )}</th><th>${esc(
+										uiSafe.doc.meaningColumn
+								  )}</th></tr></thead><tbody>${cardsHtml}</tbody></table>`
 								: ""
 						}
           </body>
         </html>`.trim();
-
 			const blob = new Blob([html], { type: "application/msword" });
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;
-			a.download = (fileName || "page.docx").replace(/\.docx$/i, ".doc");
+			a.download = fileName.replace(/\.docx$/i, ".doc");
 			document.body.appendChild(a);
 			a.click();
 			a.remove();
@@ -608,7 +654,7 @@ export default function Activity07({
 		}
 	};
 
-	/* ----- FLASHCARD EDITOR STATE ----- */
+	/* ----- flashcard editor state ----- */
 	const [newFront, setNewFront] = useState("");
 	const [newBack, setNewBack] = useState("");
 
@@ -645,7 +691,6 @@ export default function Activity07({
 		}
 	};
 
-	// celebration when reaching 3+ valid cards
 	const validCount = (model.cards || []).filter(
 		(c) => c?.front?.trim() && c?.back?.trim()
 	).length;
@@ -658,45 +703,12 @@ export default function Activity07({
 		prevValidRef.current = validCount;
 	}, [validCount]);
 
-	// compute "started" from cards model for CompleteButton gating
+	// determine started based on cards (same gating as before)
 	const started = hasActivityStarted(model, "cards");
 
-	// --- animations (single definition; matches other activities) ---
-	const reduceMotion = useReducedMotion();
-	const STAGGER = 0.14;
-	const DELAY_CHILDREN = 0.1;
-
-	const pageFade = {
-		hidden: { opacity: 0 },
-		show: { opacity: 1, transition: { duration: 0.35 } },
-	};
-	const titleFade = {
-		hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
-		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-	};
-	const gridStagger = {
-		hidden: {},
-		show: {
-			transition: {
-				delayChildren: reduceMotion ? 0 : DELAY_CHILDREN,
-				staggerChildren: reduceMotion ? 0 : STAGGER,
-			},
-		},
-	};
-	const cardPop = {
-		hidden: {
-			opacity: 0,
-			y: reduceMotion ? 0 : 8,
-			scale: reduceMotion ? 1 : 0.99,
-		},
-		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
-	};
-
-	// shared classes (accent via outlineColor inline)
+	// shared style classes
 	const linkCardBase =
-		"group block w-full rounded-2xl border border-gray-200 bg-white p-4 " +
-		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
-		"cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
+		"group block w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
 	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
 	const linkFooterBase =
 		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
@@ -715,58 +727,67 @@ export default function Activity07({
 		</div>
 	);
 
+	// outlets for UI from a7Content.outlets
+	const outletTiles = Array.isArray(a7Content?.outlets)
+		? a7Content.outlets
+		: [];
+
 	return (
 		<motion.div
 			className="relative bg-transparent min-h-[80svh]"
-			variants={pageFade}
+			variants={{
+				hidden: { opacity: 0 },
+				show: { opacity: 1, transition: { duration: 0.35 } },
+			}}
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft accent gradient (match A01 style) */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
-					backgroundImage: `linear-gradient(
-            to bottom,
-            ${withAlpha(accent, "3D")},
-            rgba(255,255,255,0.65),
-            rgba(248,250,252,0.8)
-          )`,
+					backgroundImage: `linear-gradient(to bottom, ${withAlpha(
+						accent,
+						"3D"
+					)}, rgba(255,255,255,0.65), rgba(248,250,252,0.8))`,
 				}}
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 0.35 }}
 				transition={{ duration: 0.6 }}
 			/>
 
-			{/* celebration overlay */}
 			<AnimatePresence initial={false} mode="wait">
 				{celebrate && (
-					<Celebration accent={accent} onClose={() => setCelebrate(false)} />
+					<Celebration
+						accent={accent}
+						onClose={() => setCelebrate(false)}
+						title={uiSafe.celebrateTitle}
+						body={uiSafe.celebrateBody}
+					/>
 				)}
 			</AnimatePresence>
 
 			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* ===== HEADER (matches Activity 01) ===== */}
 				<motion.header
 					className="text-center"
-					variants={titleFade}
+					variants={{
+						hidden: { opacity: 0, y: reduceMotion ? 0 : 8 },
+						show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+					}}
 					initial="hidden"
 					animate="show"
 				>
 					<div className="mx-auto space-y-4 sm:space-y-5">
-						{/* Activity number */}
 						<p
 							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
 						>
-							Activity {activityNumber}
+							{`${lang === "fr" ? "Activité" : "Activity"} ${activityNumber}`}
 						</p>
 
-						{/* Title row: H1 + icon */}
 						<div className="inline-flex items-center justify-center gap-3">
 							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
-								{content?.title || "Learn Three Words"}
+								{pageTitle}
 							</h1>
 							<Feather
 								className="w-8 h-8 align-middle"
@@ -776,7 +797,6 @@ export default function Activity07({
 							/>
 						</div>
 
-						{/* Instructions callout (same pattern as Activity 01) */}
 						<aside
 							role="note"
 							aria-label="Activity instructions"
@@ -792,134 +812,99 @@ export default function Activity07({
 									}}
 									aria-hidden="true"
 								>
-									Instructions
+									{uiSafe.instructionsPill}
 								</div>
-								<p
-									className="text-slate-800 max-w-3xl"
-									style={{ color: accent }}
-								>
-									Learn to say three words in an Indigenous language.
-									<br />
-									<strong>
-										Share the words you learned with your team, and use them as
-										often as possible.
-									</strong>
-								</p>
+
+								{instructionsHtml ? (
+									<div
+										className="text-slate-800 max-w-3xl"
+										style={{ color: accent }}
+										dangerouslySetInnerHTML={{ __html: instructionsHtml }}
+									/>
+								) : (
+									<p
+										className="text-slate-800 max-w-3xl"
+										style={{ color: accent }}
+									>
+										{tipText}
+										<br />
+										<strong>{uiSafe.editorTip}</strong>
+									</p>
+								)}
 							</div>
 						</aside>
 					</div>
 				</motion.header>
 
-				{/* ===== Resources ===== */}
-				<motion.section variants={gridStagger} initial="hidden" animate="show">
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+				<motion.section
+					className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+					initial="hidden"
+					animate="show"
+					variants={{
+						hidden: {},
+						show: {
+							transition: {
+								delayChildren: reduceMotion ? 0 : 0.1,
+								staggerChildren: reduceMotion ? 0 : 0.14,
+							},
+						},
+					}}
+				>
+					{outletTiles.map((o, idx) => (
 						<motion.a
-							href="https://www.firstvoices.com/"
+							key={o.href || idx}
+							href={o.href}
 							target="_blank"
 							rel="noreferrer"
 							className={linkCardBase}
 							style={{ outlineColor: accent }}
-							title="Open: FirstVoices (new tab)"
-							aria-label="Open FirstVoices in a new tab"
-							variants={cardPop}
+							title={`Open: ${o.title}`}
+							aria-label={`Open ${o.title} in a new tab`}
+							variants={{
+								hidden: { opacity: 0, y: 8 },
+								show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
+							}}
 						>
-							<TitleRow Icon={BookOpen}>FirstVoices</TitleRow>
+							<TitleRow Icon={BookOpen}>{o.title}</TitleRow>
+							{o.desc ? (
+								<p className="mt-2 text-sm text-gray-600 text-center max-w-sm mx-auto">
+									{o.desc}
+								</p>
+							) : null}
 							<div className={linkFooterBase} style={{ color: accent }}>
 								<ExternalLink className="w-4 h-4" />
-								<span>Open link</span>
+								<span>{uiSafe.openLinkLabel}</span>
 							</div>
 						</motion.a>
-
-						<motion.a
-							href="https://tusaalanga.ca/glossary"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Open: Inuktut glossary (new tab)"
-							aria-label="Open Inuktut glossary in a new tab"
-							variants={cardPop}
-						>
-							<TitleRow Icon={BookOpen}>
-								Inuktut glossary (Inuktut Tusaalanga)
-							</TitleRow>
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
-
-						<motion.a
-							href="https://speakmichif.ca/learn/resources"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Open: Michif Language Revitalization Circle resources (new tab)"
-							aria-label="Open Michif Language Revitalization Circle resources in a new tab"
-							variants={cardPop}
-						>
-							<TitleRow Icon={BookOpen}>
-								Michif Language Revitalization Circle (resources)
-							</TitleRow>
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
-
-						<motion.a
-							href="https://www.louisrielinstitute.ca/metis-languages-learning-resources"
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title="Open: Métis languages resources — Louis Riel Institute (new tab)"
-							aria-label="Open Métis languages resources in a new tab"
-							variants={cardPop}
-						>
-							<TitleRow Icon={BookOpen}>
-								Métis languages resources (Louis Riel Institute)
-							</TitleRow>
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" />
-								<span>Open link</span>
-							</div>
-						</motion.a>
-					</div>
+					))}
 				</motion.section>
 
-				{/* ===== Editor LEFT · Flip preview RIGHT ===== */}
 				<section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					{/* LEFT: Editor card */}
 					<div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow p-4">
 						<div className="flex items-center justify-between">
 							<h3 className="text-lg font-semibold text-slate-900">
-								Add your words (Flip Cards)
+								{uiSafe.editorHeading}
 							</h3>
-							<span className="text-sm text-slate-500">{validCount} cards</span>
+							<span className="text-sm text-slate-500">
+								{validCount} {uiSafe.cardsCountSuffix}
+							</span>
 						</div>
-						<p className="text-sm text-slate-600 mt-1">
-							Tip: press <kbd>Enter</kbd> in the “Back” field to add quickly.
-						</p>
+						<p className="text-sm text-slate-600 mt-1">{uiSafe.editorTip}</p>
 
-						{/* input row */}
 						<div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
 							<input
 								value={newFront}
 								onChange={(e) => setNewFront(e.target.value)}
-								placeholder="Front (word / phrase)"
-								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6
-                           focus:outline-none focus-visible:ring-2"
+								placeholder={uiSafe.frontPlaceholder}
+								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2"
 								style={{ outlineColor: accent }}
 							/>
 							<input
 								value={newBack}
 								onChange={(e) => setNewBack(e.target.value)}
 								onKeyDown={handleNewKey}
-								placeholder="Back (meaning / translation)"
-								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6
-                           focus:outline-none focus-visible:ring-2"
+								placeholder={uiSafe.backPlaceholder}
+								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2"
 								style={{ outlineColor: accent }}
 							/>
 						</div>
@@ -929,15 +914,13 @@ export default function Activity07({
 								type="button"
 								onClick={addCard}
 								disabled={!newFront.trim() || !newBack.trim()}
-								className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white disabled:opacity-50
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+								className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
 								style={{ backgroundColor: accent, outlineColor: accent }}
 							>
-								Add card
+								{uiSafe.addCardButton}
 							</button>
 						</div>
 
-						{/* Editable list */}
 						<div className="mt-4">
 							{model.cards?.length ? (
 								<ul className="space-y-2">
@@ -950,10 +933,9 @@ export default function Activity07({
 												value={c.front}
 												onChange={(e) => updateCard(i, "front", e.target.value)}
 												aria-label={`Front ${i + 1}`}
-												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6
-                                   focus:outline-none focus-visible:ring-2"
+												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2"
 												style={{ outlineColor: accent }}
-												placeholder="Front"
+												placeholder={uiSafe.frontPlaceholder}
 											/>
 											<span className="hidden sm:block text-xs text-slate-500 px-1 text-center">
 												↔
@@ -962,20 +944,18 @@ export default function Activity07({
 												value={c.back}
 												onChange={(e) => updateCard(i, "back", e.target.value)}
 												aria-label={`Back ${i + 1}`}
-												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6
-                                   focus:outline-none focus-visible:ring-2"
+												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2"
 												style={{ outlineColor: accent }}
-												placeholder="Back"
+												placeholder={uiSafe.backPlaceholder}
 											/>
-
 											<div className="flex items-center gap-2 sm:ml-2">
 												<button
 													type="button"
 													onClick={() => removeCard(i)}
 													className="text-xs px-2 py-1 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
-													title="Remove"
+													title={uiSafe.removeButton}
 												>
-													Remove
+													{uiSafe.removeButton}
 												</button>
 											</div>
 										</li>
@@ -983,23 +963,23 @@ export default function Activity07({
 								</ul>
 							) : (
 								<p className="text-sm text-slate-500">
-									No cards yet — add your first above.
+									{uiSafe.noCardsPrimary}
 									<br />
-									Add word cards below (word on the front, meaning on the back).
-									<br />
-									Click a card to flip it and practice anytime.
+									{uiSafe.noCardsSecondary}
 								</p>
 							)}
 						</div>
 					</div>
 
-					{/* RIGHT: Flip preview wrapped in a matching card */}
 					<div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow p-4 flex items-center justify-center">
-						<Flashcards cards={model.cards || []} accent={accent} />
+						<Flashcards
+							cards={model.cards || []}
+							accent={accent}
+							uiSafe={uiSafe}
+						/>
 					</div>
 				</section>
 
-				{/* ------- Bottom action bar ------- */}
 				<div
 					className="mt-6 pt-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-2 sm:justify-end"
 					style={{ borderColor: "rgba(203,213,225,0.8)" }}
@@ -1011,15 +991,14 @@ export default function Activity07({
 						accent="#10B981"
 					/>
 
-					{/* Always-enabled download button right next to Complete */}
 					<button
 						type="button"
 						onClick={downloadPageDocx}
 						className="px-4 py-2 rounded-lg text-white"
 						style={{ backgroundColor: accent }}
-						title="Export page (title, tip, resources, saved response, bullets, and cards) as .docx"
+						title={uiSafe.downloadButton}
 					>
-						Download (.docx)
+						{uiSafe.downloadButton}
 					</button>
 				</div>
 			</div>
@@ -1028,7 +1007,7 @@ export default function Activity07({
 }
 
 /* ----- Flashcards ----- */
-function Flashcards({ cards = [], accent = "#0D9488" }) {
+function Flashcards({ cards = [], accent = "#0D9488", uiSafe = {} }) {
 	const safeCards = Array.isArray(cards) ? cards : [];
 	const [i, setI] = useState(0);
 	const [flipped, setFlipped] = useState(false);
@@ -1050,20 +1029,19 @@ function Flashcards({ cards = [], accent = "#0D9488" }) {
 	return (
 		<div className="grid gap-4 place-items-center w-full">
 			<div className="text-sm text-gray-600">
-				{count ? `${i + 1} / ${count}` : "No cards yet"}
+				{count ? `${i + 1} / ${count}` : uiSafe.noCardsPrimary}
 			</div>
 
-			{/* Outer shell */}
 			<button
 				disabled={!curr}
 				onClick={() => curr && setFlipped(!flipped)}
-				className={`relative w-full aspect-[4/3] rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden
-          ${curr ? "cursor-pointer" : "opacity-60 cursor-not-allowed"}`}
+				className={`relative w-full aspect-[4/3] rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden ${
+					curr ? "cursor-pointer" : "opacity-60 cursor-not-allowed"
+				}`}
 				style={{ perspective: 1000 }}
-				title={curr ? "Click to flip" : undefined}
+				title={curr ? uiSafe.newWordLabel : undefined}
 				type="button"
 			>
-				{/* Inner flipper */}
 				<motion.div
 					animate={{ rotateY: flipped ? 180 : 0 }}
 					transition={{ duration: 0.45 }}
@@ -1075,7 +1053,6 @@ function Flashcards({ cards = [], accent = "#0D9488" }) {
 					}}
 					className="relative"
 				>
-					{/* FRONT */}
 					<div
 						className="absolute inset-0 grid place-items-center"
 						style={{
@@ -1087,16 +1064,15 @@ function Flashcards({ cards = [], accent = "#0D9488" }) {
 							className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium"
 							style={{ color: accent }}
 						>
-							New word
+							{uiSafe.newWordLabel}
 						</div>
 						<div className="h-full w-full grid place-items-center px-6 pt-8">
 							<div className="text-2xl font-semibold text-gray-800 text-center">
-								{curr ? curr.front : "Add cards to get started"}
+								{curr ? curr.front : uiSafe.noCardsPrimary}
 							</div>
 						</div>
 					</div>
 
-					{/* BACK */}
 					<div
 						className="absolute inset-0 grid place-items-center"
 						style={{
@@ -1109,7 +1085,7 @@ function Flashcards({ cards = [], accent = "#0D9488" }) {
 							className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium"
 							style={{ color: accent }}
 						>
-							Meaning / Translation
+							{uiSafe.meaningLabel}
 						</div>
 						<div className="h-full w-full grid place-items-center px-6 pt-8">
 							<div className="text-2xl font-semibold text-gray-800 text-center">
@@ -1126,7 +1102,7 @@ function Flashcards({ cards = [], accent = "#0D9488" }) {
 					disabled={!count}
 					className="px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-100 disabled:opacity-50"
 				>
-					Back
+					{langLabel("Back")}
 				</button>
 				<button
 					onClick={next}
@@ -1134,15 +1110,38 @@ function Flashcards({ cards = [], accent = "#0D9488" }) {
 					className="px-4 py-2 rounded-lg text-white disabled:opacity-50"
 					style={{ backgroundColor: accent }}
 				>
-					Next
+					{langLabel("Next")}
 				</button>
 			</div>
 		</div>
 	);
 }
 
+// small i18n helper for Back/Next (keeps small UI localized)
+function langLabel(key) {
+	if (typeof key !== "string") return key;
+	// only Back/Next localized here; other text comes from content
+	const map = {
+		Back: { en: "Back", fr: "Précédent" },
+		Next: { en: "Next", fr: "Suivant" },
+	};
+	const lang =
+		(typeof document !== "undefined" &&
+			document.documentElement?.getAttribute("lang")) ||
+		navigator?.language ||
+		navigator?.languages?.[0] ||
+		"en";
+	const short = lang.toLowerCase().slice(0, 2) === "fr" ? "fr" : "en";
+	return map[key] ? map[key][short] : key;
+}
+
 /* ---- Celebration overlay ---- */
-function Celebration({ onClose, accent = "#0D9488" }) {
+function Celebration({
+	onClose,
+	accent = "#0D9488",
+	title = "Nice! You added 3 words 🎉",
+	body = "Keep going—add more and practice by flipping the cards.",
+}) {
 	useEffect(() => {
 		const onEsc = (e) => e.key === "Escape" && onClose?.();
 		window.addEventListener("keydown", onEsc);
@@ -1176,11 +1175,9 @@ function Celebration({ onClose, accent = "#0D9488" }) {
 			>
 				<div className="flex items-center gap-3" style={{ color: accent }}>
 					<Feather className="w-6 h-6" />
-					<p className="text-lg font-semibold">Nice! You added 3 words 🎉</p>
+					<p className="text-lg font-semibold">{title}</p>
 				</div>
-				<p className="text-sm text-slate-700 text-center mt-1">
-					Keep going—add more and practice by flipping the cards.
-				</p>
+				<p className="text-sm text-slate-700 text-center mt-1">{body}</p>
 			</motion.div>
 
 			{[...Array(18)].map((_, i) => (

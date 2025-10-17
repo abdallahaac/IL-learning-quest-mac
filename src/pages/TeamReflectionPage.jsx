@@ -1,7 +1,9 @@
+// src/pages/TeamReflectionPage.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import { Users, ClipboardList, CheckCircle2, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import DownloadsPanel from "../components/toc/DownloadsPanel.jsx"; // <-- use the same panel as Contents page
+import DownloadsPanel from "../components/toc/DownloadsPanel.jsx";
+import { TEAM_CONTENT, TEAM_CONTENT_FR } from "../constants/content.js"; // <- adjust path
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -10,7 +12,6 @@ export default function TeamReflectionPage({
 	content,
 	notes,
 	onNotes,
-	// pass these through just like ContentsPage so DownloadsPanel works the same
 	reflectionsReady = false,
 	onDownloadAllReflections,
 }) {
@@ -20,59 +21,22 @@ export default function TeamReflectionPage({
 	const card = "rounded-2xl border border-gray-200 bg-white shadow-sm";
 	const ringAccent = `focus:outline-none focus-visible:ring-2 focus-visible:ring-[${ACCENT}] focus-visible:ring-offset-2`;
 
-	// DEFAULT CONTENT
-	const defaultContent = {
-		title: "Team Reflection",
-		reflectionPrompt:
-			"Based on what I’ve learned so far, one thing I want to carry forward in my role is...",
-		steps: [
-			{
-				heading: "Set the tone for respectful dialogue",
-				items: [
-					"Begin each meeting by revisiting group agreements or shared values, such as respect, open-mindedness, and confidentiality.",
-					"Invite team members to share how they’re feeling about the learning journey so far.",
-				],
-			},
-			{
-				heading: "Share learnings and reflections",
-				items: [
-					"Ask each team member to share highlights from one or more activities they completed.",
-					"Encourage them to discuss what surprised them, challenged their assumptions, or left a lasting impression.",
-					"Use open-ended prompts, such as: What did you learn that shifted your perspective? How did this activity connect to your personal or professional life? What questions do you still have?",
-				],
-			},
-			{
-				heading: "Connect learning to the workplace",
-				items: [
-					"Discuss how insights from the quest relate to your team’s work and the public service more broadly.",
-					"Ask: How can this knowledge help build better relationships with Indigenous communities? What changes—big or small—can we make to support reconciliation in our daily work?",
-				],
-			},
-			{
-				heading: "Make a reflection",
-				items: [
-					"Invite each team member to identify one idea they will carry forward in their role.",
-					"This could include using Indigenous-owned resources, incorporating Indigenous perspectives into work, or continuing personal education.",
-				],
-			},
-			{
-				heading: "Keep the conversation going",
-				items: [
-					"Schedule future check-ins or informal gatherings to continue the conversation.",
-					"Encourage participants to post resources, reflections, or questions in your Teams chat.",
-				],
-			},
-		],
-	};
-
-	const modelContent = {
-		...defaultContent,
-		...(content || {}),
-		steps:
-			Array.isArray(content?.steps) && content.steps.length
-				? content.steps
-				: defaultContent.steps,
-	};
+	// decide language/content source:
+	// prefer explicit content prop; otherwise pick EN by default.
+	// You can pass TEAM_CONTENT_FR from parent based on document language.
+	const mergedContent = useMemo(() => {
+		// if provided, use content; otherwise fallback to TEAM_CONTENT
+		return {
+			...TEAM_CONTENT,
+			...(content || {}),
+			// ensure steps is an array if provided, else default
+			steps:
+				Array.isArray(content?.steps) && content.steps.length
+					? content.steps
+					: TEAM_CONTENT.steps,
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [content]);
 
 	// MODEL (text + checks only)
 	const model = useMemo(() => {
@@ -85,7 +49,7 @@ export default function TeamReflectionPage({
 
 	const [text, setText] = useState(model.text);
 	const [checks, setChecks] = useState(() => {
-		const total = modelContent?.steps?.length ?? 0;
+		const total = mergedContent?.steps?.length ?? 0;
 		return Array.from({ length: total }, (_, i) => !!model.checks[i]);
 	});
 
@@ -96,7 +60,7 @@ export default function TeamReflectionPage({
 	}, [text, checks]);
 
 	// UI helpers
-	const totalSteps = modelContent?.steps?.length ?? 0;
+	const totalSteps = mergedContent?.steps?.length ?? 0;
 	const completed = checks.filter(Boolean).length;
 	const pct = totalSteps ? Math.round((completed / totalSteps) * 100) : 0;
 
@@ -138,16 +102,36 @@ export default function TeamReflectionPage({
 		],
 		scale: [1, 1.05, 1],
 	};
-	const quickPrompts = [
-		"One thing that surprised me…",
-		"A perspective I hadn’t considered…",
-		"Where I might follow up…",
-		"How this connects to my work…",
-	];
+
+	// quick prompts come from content
+	const quickPrompts = Array.isArray(mergedContent.quickPrompts)
+		? mergedContent.quickPrompts
+		: [
+				"One thing that surprised me…",
+				"A perspective I hadn’t considered…",
+				"Where I might follow up…",
+				"How this connects to my work…",
+		  ];
 
 	const wordCount = (text || "").trim() ? text.trim().split(/\s+/).length : 0;
 
-	// RENDER
+	// PUBLIC LABELS (pull from content with sensible fallback)
+	const INSTRUCTION_PILL = mergedContent.instructionPill || "Instruction";
+	const INSTRUCTIONS_HTML = mergedContent.instructionsHtml || "";
+	const STEPS_HEADING = mergedContent.stepsHeading || "Steps";
+	const SAVED_LABEL = mergedContent.savedLabel || "Saved";
+	const CLICK_TO_MARK = mergedContent.clickToMark || "Click to mark";
+	const STEPS_COMPLETE_MSG =
+		mergedContent.stepsCompleteMessage || "Great—steps complete!";
+	const REFLECTION_PROMPT = mergedContent.reflectionPrompt || "Reflection";
+	const REFLECTION_PLACEHOLDER =
+		mergedContent.reflectionPlaceholder || "Write a few sentences…";
+	const NOTES_SAVE_TIP =
+		mergedContent.notesSaveTip ||
+		"Tip: notes save automatically in this lesson.";
+	const WORD_LABEL_SINGULAR = mergedContent.wordsLabelSingular || "word";
+	const WORD_LABEL_PLURAL = mergedContent.wordsLabelPlural || "words";
+
 	return (
 		<div className="relative bg-transparent min-h-[80svh]">
 			{/* Accent gradient overlay (above global canvas) */}
@@ -174,7 +158,7 @@ export default function TeamReflectionPage({
 				<header className="text-center space-y-4">
 					<div className="flex items-center justify-center gap-3">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900">
-							{modelContent?.title || "Team Reflection"}
+							{mergedContent?.title || "Team Reflection"}
 						</h1>
 						<Users
 							className="w-7 h-7"
@@ -183,7 +167,7 @@ export default function TeamReflectionPage({
 						/>
 					</div>
 
-					{/* Instructions-style callout (matches activity pages) */}
+					{/* Instructions-style callout */}
 					<aside
 						role="note"
 						aria-label="Team reflection instructions"
@@ -199,13 +183,24 @@ export default function TeamReflectionPage({
 								}}
 								aria-hidden="true"
 							>
-								Instruction
+								{INSTRUCTION_PILL}
 							</div>
-							<p className="text-slate-800 max-w-2xl" style={{ color: ACCENT }}>
-								To make the most of your team discussions during the learning
-								quest, follow these steps to create a safe, respectful, and
-								reflective learning environment.
-							</p>
+
+							{INSTRUCTIONS_HTML ? (
+								<div
+									className="text-slate-800 max-w-2xl"
+									style={{ color: ACCENT }}
+									dangerouslySetInnerHTML={{ __html: INSTRUCTIONS_HTML }}
+								/>
+							) : (
+								<p
+									className="text-slate-800 max-w-2xl"
+									style={{ color: ACCENT }}
+								>
+									{mergedContent.instructionText ||
+										"To make the most of your team discussions during the learning quest, follow these steps to create a safe, respectful, and reflective learning environment."}
+								</p>
+							)}
 						</div>
 					</aside>
 				</header>
@@ -225,7 +220,9 @@ export default function TeamReflectionPage({
 							>
 								<ClipboardList className="w-5 h-5" />
 							</div>
-							<h2 className="text-lg font-semibold text-slate-900">Steps</h2>
+							<h2 className="text-lg font-semibold text-slate-900">
+								{STEPS_HEADING}
+							</h2>
 						</div>
 
 						<AnimatePresence>
@@ -236,7 +233,7 @@ export default function TeamReflectionPage({
 									exit={{ opacity: 0, y: -4 }}
 									className="text-xs font-medium text-slate-600"
 								>
-									Saved
+									{SAVED_LABEL}
 								</motion.div>
 							)}
 						</AnimatePresence>
@@ -263,7 +260,7 @@ export default function TeamReflectionPage({
 
 					{/* Steps list */}
 					<ol className="space-y-4">
-						{modelContent?.steps?.map((s, i) => {
+						{mergedContent?.steps?.map((s, i) => {
 							const isChecked = !!checks[i];
 							const isHinted = i === shouldHintIndex;
 							return (
@@ -328,14 +325,16 @@ export default function TeamReflectionPage({
 														border: `1px solid ${ACCENT}2e`,
 													}}
 												>
-													Click to mark
+													{CLICK_TO_MARK}
 												</span>
 											)}
 										</div>
 										<ul className="mt-1.5 list-disc list-outside pl-5 text-[15px] leading-6 text-slate-700 space-y-1">
-											{s.items.map((it, k) => (
-												<li key={k}>{it}</li>
-											))}
+											{Array.isArray(s.items) && s.items.length ? (
+												s.items.map((it, k) => <li key={k}>{it}</li>)
+											) : (
+												<li className="text-slate-500">No items</li>
+											)}
 										</ul>
 									</div>
 								</li>
@@ -360,7 +359,7 @@ export default function TeamReflectionPage({
 							>
 								<Sparkles className="w-4 h-4" />
 								<span className="text-sm font-medium">
-									Great—steps complete!
+									{STEPS_COMPLETE_MSG}
 								</span>
 							</motion.div>
 						)}
@@ -375,20 +374,16 @@ export default function TeamReflectionPage({
 								htmlFor="reflection"
 								className="block text-sm font-medium text-slate-800"
 							>
-								{modelContent?.reflectionPrompt || "Reflection"}
+								{REFLECTION_PROMPT}
 							</label>
 							<span className="text-xs text-slate-500">
-								{wordCount} {wordCount === 1 ? "word" : "words"}
+								{wordCount}{" "}
+								{wordCount === 1 ? WORD_LABEL_SINGULAR : WORD_LABEL_PLURAL}
 							</span>
 						</div>
 
 						<div className="mt-2 flex flex-wrap gap-2">
-							{[
-								"One thing that surprised me…",
-								"A perspective I hadn’t considered…",
-								"Where I might follow up…",
-								"How this connects to my work…",
-							].map((p) => (
+							{quickPrompts.map((p) => (
 								<button
 									key={p}
 									type="button"
@@ -412,15 +407,13 @@ export default function TeamReflectionPage({
 							id="reflection"
 							value={text}
 							onChange={(e) => setText(e.target.value)}
-							placeholder="Write a few sentences…"
+							placeholder={REFLECTION_PLACEHOLDER}
 							className={`mt-3 w-full min-h-40 bg-gray-50 border border-gray-200 rounded-lg p-3 text-slate-900 resize-vertical ${ringAccent}`}
 						/>
-						<p className="mt-2 text-xs text-slate-500">
-							Tip: notes save automatically in this lesson.
-						</p>
+						<p className="mt-2 text-xs text-slate-500">{NOTES_SAVE_TIP}</p>
 					</div>
 
-					{/* Right column preview */}
+					{/* Right column preview area intentionally left blank in this UI (keeps parity) */}
 				</section>
 
 				{/* Downloads — same component as ContentsPage */}

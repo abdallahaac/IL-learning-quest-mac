@@ -3,6 +3,7 @@ import React, { useEffect, useId, useState, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+
 import {
 	INTRO_INFO_CONTENT,
 	INTRO_INFO_CONTENT_FR,
@@ -220,14 +221,15 @@ function FlipCard({
 			{/* Non-flipping badge */}
 			{isVisited && (
 				<span
-					className="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full grid place-items-center text-white"
+					className="absolute -top-3 -right-3 z-10 w-12 h-12 rounded-full grid place-items-center text-white"
 					style={{
 						backgroundColor: "#10B981",
 						boxShadow: "0 2px 6px rgba(16,185,129,0.45)",
 					}}
 					aria-hidden="true"
 				>
-					<FontAwesomeIcon icon={faCircleCheck} className="text-[12px]" />
+					{/* checkmark doubled in visible size */}
+					<FontAwesomeIcon icon={faCircleCheck} className="text-[24px]" />
 				</span>
 			)}
 
@@ -258,26 +260,27 @@ function FlipCard({
 					<div
 						id={frontId}
 						aria-hidden={flipped}
-						className="absolute inset-0 grid place-items-center backface-hidden px-4"
-						style={{ backfaceVisibility: "hidden" }}
+						className="absolute inset-0 grid place-items-center backface-hidden px-4 rounded-2xl"
+						style={{
+							backfaceVisibility: "hidden",
+							backgroundColor: ACCENT, // purple front background
+							color: "#FFFFFF", // white text
+						}}
 					>
-						<h4
-							className="text-2xl sm:text-3xl font-bold tracking-tight select-none"
-							style={{ color: ACCENT }}
-						>
+						<h4 className="text-2xl sm:text-3xl font-bold tracking-tight select-none">
 							{STR.stepLabel} {step}
 						</h4>
 						<SrOnly>{STR.sr.flip}</SrOnly>
 					</div>
 
-					{/* BACK */}
+					{/* BACK (unchanged visually) */}
 					<div
 						id={backId}
 						aria-hidden={!flipped}
 						className={[
 							"absolute inset-0 backface-hidden",
 							!reduceMotion ? "[transform:rotateY(180deg)]" : "",
-							"grid place-items-center px-5 py-6",
+							"grid place-items-center px-5 py-6 rounded",
 						].join(" ")}
 						style={{ backfaceVisibility: "hidden" }}
 						role="group"
@@ -301,19 +304,25 @@ function FlipCard({
 							onMouseDown={(e) => e.stopPropagation()}
 							onTouchStart={(e) => e.stopPropagation()}
 						>
-							<p className="leading-relaxed text-gray-900 text-center text-[15px]">
-								{backText}
-							</p>
+							{/* RENDER HTML FROM JSON */}
+							<div
+								className="leading-relaxed text-gray-900 text-center text-[15px]"
+								dangerouslySetInnerHTML={{ __html: backText }}
+							/>
 						</div>
 						<p className="sr-only">{STR.sr.flipBack}</p>
 					</div>
 
-					{/* Sizer for consistent dimensions */}
-					<div className="opacity-0 h-full w-full px-5 py-6">
+					{/* Sizer for consistent dimensions — hidden from AT to avoid duplicate reading */}
+					<div className="opacity-0 h-full w-full px-5 py-6" aria-hidden="true">
 						<h4 className="text-2xl font-bold">
 							{STR.stepLabel} {step}
 						</h4>
-						<p className="mt-2 text-sm">{backText}</p>
+						{/* use innerHTML here too — aria-hidden prevents SR duplication */}
+						<div
+							className="mt-2 text-sm"
+							dangerouslySetInnerHTML={{ __html: backText }}
+						/>
 					</div>
 				</button>
 

@@ -149,3 +149,51 @@ a {
 		background-color: rgba(255, 255, 255, 0.92) !important;
 	}
 }
+/* Styles for rendered bullets from JSON (accessible + consistent) */
+.bullet-item {
+	margin-bottom: 1rem;
+}
+.bullet-heading {
+	margin: 0 0 0.25rem;
+	font-size: 1.02rem;
+	font-weight: 600;
+	line-height: 1.2;
+	color: #0f172a; /* dark slate for headings */
+}
+.bullet-body {
+	margin: 0;
+	color: #394149; /* readable body color */
+	font-size: 0.98rem;
+	line-height: 1.5;
+}
+
+/* Links: high contrast, underlined, and keyboard-focus-friendly */
+.bullet-body a {
+	color: #1e3a8a; /* strong accessible blue */
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	font-weight: 600;
+}
+.bullet-body a:focus,
+.bullet-body a:focus-visible {
+	outline: 3px solid rgba(30, 58, 138, 0.15);
+	box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.12);
+	border-radius: 4px;
+}
+
+/* Small help: make sure the rendering container doesn't squish the content */
+.your-html-renderer-container .bullet-item {
+	max-width: 60ch;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Optional: spacing tweaks for small screens */
+@media (max-width: 640px) {
+	.bullet-heading {
+		font-size: 1rem;
+	}
+	.bullet-body {
+		font-size: 0.98rem;
+	}
+}

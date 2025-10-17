@@ -19,166 +19,43 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faStar as faStarRegular } from "@fortawesome/free-regular-svg-icons";
 
+import {
+	RESOURCES_CONTENT,
+	RESOURCES_CONTENT_FR,
+} from "../constants/content.js";
+
 /* #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
-const PAGE_TITLE = "Resources";
-
-/**
- * Data
- * - `type` kept only as metadata (not rendered)
- * - `tags` kept only as metadata (not rendered)
- */
-const SECTIONS = [
-	{
-		title: "Best media by Indigenous voices",
-		summary:
-			"Best media by Indigenous voices: “mural” created by Parks Canada team members.",
-		type: "Media",
-		links: [
-			{
-				label: "Best media by Indigenous voices (mural, Parks Canada)",
-				url: "https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f",
-			},
-		],
-		tags: ["Parks Canada"],
-	},
-	{
-		title: "The Reconciliation Path",
-		summary:
-			"The Reconciliation Path: interactive job aid from the Canada School of Public Service.",
-		type: "Job aid",
-		links: [
-			{
-				label: "The Reconciliation Path (CSPS job aid)",
-				url: "https://catalogue.csps-efpc.gc.ca/product?catalog=IRA1-J16&cm_locale=en",
-			},
-		],
-		tags: ["CSPS"],
-	},
-	{
-		title: "Indigenous Awareness, Cultural Safety and Capacity Building",
-		summary:
-			"Indigenous Awareness, Cultural Safety and Capacity Building: GCpedia page created by Environment and Climate Change Canada.",
-		type: "Government resource",
-		links: [
-			{
-				label:
-					"Indigenous Awareness, Cultural Safety and Capacity Building (GCpedia – ECCC)",
-				url: "https://www.sac-isc.gc.ca/rea-ibd",
-			},
-		],
-		tags: ["ECCC"],
-	},
-	{
-		title: "Conservation Through Reconciliation Partnership",
-		summary:
-			"Conservation Through Reconciliation Partnership resources: Indigenous-led conservation reading list; Virtual Campfire Series webinars; Indigenous protected and conserved areas knowledge basket.",
-		type: "Conservation",
-		links: [
-			{
-				label: "Indigenous-led conservation reading list",
-				url: "https://bit.ly/IndLedConsRL",
-			},
-			{
-				label: "Virtual Campfire Series webinars",
-				url: "https://conservation-reconciliation.ca/virtual-campfire",
-			},
-			{
-				label:
-					"Indigenous protected and conserved areas knowledge basket (IPCA)",
-				url: "https://ipcaknowledgebasket.ca/",
-			},
-		],
-		tags: ["IPCA"],
-	},
-	{
-		title: "Striking Balance: Tsá Tué Biosphere Reserve",
-		summary:
-			"Striking Balance: Tsá Tué Biosphere Reserve: film on Indigenous conservation.",
-		type: "Documentary",
-		links: [
-			{
-				label: "Striking Balance: Tsá Tué Biosphere Reserve (film)",
-				url: "https://www.tvo.org/video/documentaries/tsa-tue-biosphere-reserve",
-			},
-		],
-		tags: ["TVO"],
-	},
-	{
-		title: "Fundamentals of OCAP®",
-		summary:
-			"Fundamentals of OCAP® (ownership, control, access and possession): First Nations Information Governance Centre training.",
-		type: "Training",
-		links: [
-			{
-				label: "Fundamentals of OCAP® (FNIGC training)",
-				url: "https://fnigc.ca/ocap-training/take-the-course/",
-			},
-		],
-		tags: ["FNIGC"],
-	},
-	{
-		title: "Inuit societal values",
-		summary: "Inuit societal values: Government of Nunavut resource.",
-		type: "Values",
-		links: [
-			{
-				label: "Inuit societal values (Government of Nunavut)",
-				url: "https://www.gov.nu.ca/en/culture-language-heritage-and-art/inuit-societal-values",
-			},
-		],
-		tags: ["Nunavut"],
-	},
-	{
-		title: "Métis governance practices",
-		summary:
-			"Métis governance practices: BCcampus Open Publishing resource, part of Indigenous Digital Literacies.",
-		type: "Governance",
-		links: [
-			{
-				label: "Métis governance practices (BCcampus Open Publishing)",
-				url: "https://opentextbc.ca/indigenousdigitalliteracies/chapter/metis-governance/",
-			},
-		],
-		tags: ["BCcampus"],
-	},
-	{
-		title: "Public education",
-		summary:
-			"Public education: resources on legal subjects such as rights, treaties and land claims.",
-		type: "Law",
-		links: [
-			{
-				label: "Public education (First Peoples Law)",
-				url: "https://www.firstpeopleslaw.com/public-education",
-			},
-		],
-		tags: ["First Peoples Law"],
-	},
-	{
-		title: "4 Seasons of Indigenous Learning",
-		summary:
-			"4 Seasons of Indigenous Learning: training offered by Outdoor Learning School and Store.",
-		type: "Training",
-		links: [
-			{
-				label:
-					"4 Seasons of Indigenous Learning (Outdoor Learning School & Store)",
-				url: "https://outdoorlearning.com/4-seasons/",
-			},
-		],
-		tags: ["Outdoor Learning"],
-	},
-];
+// detect doc lang (fall back to navigator or en)
+const detectLang = () => {
+	if (typeof document !== "undefined" && document.documentElement?.lang) {
+		return document.documentElement.lang;
+	}
+	if (typeof navigator !== "undefined" && navigator.language) {
+		return navigator.language;
+	}
+	return "en";
+};
 
 export default function ResourcesPage() {
 	const reduceMotion = useReducedMotion();
+
+	// pick content based on page lang
+	const docLang = (detectLang() || "en").toLowerCase();
+	const content = docLang.startsWith("fr")
+		? RESOURCES_CONTENT_FR
+		: RESOURCES_CONTENT;
+
+	const PAGE_TITLE = content.title || content.ui?.pageTitle || "Resources";
 
 	// Theme / tokens
 	const accent = "#10B981"; // emerald-500
 	const brandDark = "#064E3B";
 	const iconSize = 18;
+
+	// Data from content
+	const SECTIONS = Array.isArray(content.sections) ? content.sections : [];
 
 	// Persisted states
 	const [favorites, setFavorites] = useState(() => {
@@ -229,33 +106,47 @@ export default function ResourcesPage() {
 		setTimeout(() => (liveRegionRef.current.textContent = msg), 30);
 	};
 
-	const toggleFavorite = useCallback((url, label) => {
-		setFavorites((prev) => {
-			const next = new Set(prev);
-			if (next.has(url)) {
-				next.delete(url);
-				announce(`${label || "Link"} removed from favorites.`);
-			} else {
-				next.add(url);
-				announce(`${label || "Link"} added to favorites.`);
-			}
-			return next;
-		});
-	}, []);
+	const toggleFavorite = useCallback(
+		(url, label) => {
+			setFavorites((prev) => {
+				const next = new Set(prev);
+				if (next.has(url)) {
+					next.delete(url);
+					announce(
+						`${label || content.ui?.pageTitle || "Link"} ${
+							content.ui?.removedFromFav || "removed from favourites."
+						}`
+					);
+				} else {
+					next.add(url);
+					announce(
+						`${label || content.ui?.pageTitle || "Link"} ${
+							content.ui?.addedToFav || "added to favourites."
+						}`
+					);
+				}
+				return next;
+			});
+		},
+		[content.ui?.addedToFav, content.ui?.removedFromFav]
+	);
 
-	const markRead = useCallback((url, label) => {
-		setReadMap((prev) => {
-			if (prev.has(url)) return prev;
-			const next = new Map(prev);
-			next.set(url, Date.now());
-			announce(`${label || "Link"} marked as read.`);
-			return next;
-		});
-	}, []);
+	const markRead = useCallback(
+		(url, label) => {
+			setReadMap((prev) => {
+				if (prev.has(url)) return prev;
+				const next = new Map(prev);
+				next.set(url, Date.now());
+				announce(`${label || "Link"} ${content.ui?.read || "Read"}`);
+				return next;
+			});
+		},
+		[content.ui?.read]
+	);
 
 	const isRead = useCallback((url) => readMap.has(url), [readMap]);
 
-	// Page-level entrance animations only (no list/card animations on filter change)
+	// Page-level animation
 	const pageFade = {
 		hidden: { opacity: 0 },
 		show: { opacity: 1, transition: { duration: 0.35 } },
@@ -265,28 +156,31 @@ export default function ResourcesPage() {
 		show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
 	};
 
-	// Filter: only All + Favourites (no counts)
+	// Filter segments read from content.ui
 	const filterSegments = useMemo(
 		() => [
-			{ key: "All", label: "All" },
-			{ key: "Favourites", label: "Favourites", icon: faStarSolid },
+			{ key: "All", label: content.ui?.filterAll || "All" },
+			{
+				key: "Favourites",
+				label: content.ui?.filterFavourites || "Favourites",
+				icon: faStarSolid,
+			},
 		],
-		[]
+		[content]
 	);
 
-	// Filtered data
 	const filteredSections = useMemo(() => {
 		return typeFilter === "Favourites"
 			? SECTIONS.filter((s) =>
 					(s.links || []).some((l) => favorites.has(l.url))
 			  )
 			: SECTIONS;
-	}, [typeFilter, favorites]);
+	}, [typeFilter, favorites, SECTIONS]);
 
 	// Title click: mark read
 	const onPrimaryClick = (url, label) => markRead(url, label);
 
-	// Favorite button
+	// Favorite button (ui strings come from content)
 	const FavoriteButton = ({ url, label, size = 18 }) => {
 		const fav = isFavorite(url);
 		return (
@@ -294,7 +188,11 @@ export default function ResourcesPage() {
 				type="button"
 				onClick={() => toggleFavorite(url, label)}
 				aria-pressed={fav}
-				title={fav ? "Remove from favorites" : "Add to favorites"}
+				title={
+					fav
+						? content.ui?.unfavorite || "Unfavorite"
+						: content.ui?.favorite || "Favorite"
+				}
 				className="inline-flex items-center justify-center rounded-md border transition px-2 py-1 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
 				style={{
 					borderColor: withAlpha(accent, "33"),
@@ -307,7 +205,11 @@ export default function ResourcesPage() {
 					style={{ width: size, height: size }}
 					aria-hidden="true"
 				/>
-				<span className="sr-only">{fav ? "Unfavorite" : "Favorite"}</span>
+				<span className="sr-only">
+					{fav
+						? content.ui?.unfavorite || "Unfavorite"
+						: content.ui?.favorite || "Favorite"}
+				</span>
 			</button>
 		);
 	};
@@ -324,7 +226,7 @@ export default function ResourcesPage() {
 				}}
 			>
 				<FontAwesomeIcon icon={faCircleCheck} aria-hidden="true" />
-				Read
+				{content.ui?.read || "Read"}
 			</span>
 		);
 	};
@@ -346,9 +248,9 @@ export default function ResourcesPage() {
 		</section>
 	);
 
-	// Export (respects current filter; no tags in export)
+	// Export helpers
 	const escapeHTML = (s) =>
-		String(s)
+		String(s || "")
 			.replaceAll("&", "&amp;")
 			.replaceAll("<", "&lt;")
 			.replaceAll(">", "&gt;")
@@ -407,11 +309,16 @@ export default function ResourcesPage() {
 			.join("");
 
 		return `
-      <html lang="en">
+      <html lang="${content.lang || "en"}">
         <head><meta charset="utf-8">${style}</head>
         <body>
           <h1>${escapeHTML(PAGE_TITLE)}</h1>
-          ${sections}
+          ${
+						sections ||
+						`<p>${escapeHTML(
+							content.ui?.noResources || "No resources available."
+						)}</p>`
+					}
         </body>
       </html>
     `;
@@ -498,7 +405,6 @@ export default function ResourcesPage() {
 					animate="show"
 				>
 					<div className="flex items-center justify-center gap-3">
-						{/* Reduced weight: semibold */}
 						<h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900">
 							{PAGE_TITLE}
 						</h1>
@@ -507,11 +413,9 @@ export default function ResourcesPage() {
 							className="shrink-0"
 							style={{ color: accent, width: iconSize, height: iconSize }}
 							aria-hidden="true"
-							title="Resources"
+							title={PAGE_TITLE}
 						/>
 					</div>
-
-					{/* Concise tip */}
 
 					{/* Actions */}
 					<div className="mt-1 flex flex-wrap items-center justify-center gap-2">
@@ -522,7 +426,9 @@ export default function ResourcesPage() {
 							onClick={exportPdf}
 							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white text-sm font-medium transition hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
 							style={{ borderColor: withAlpha(accent, "66"), color: brandDark }}
-							title="Open print dialog to save as PDF"
+							title={
+								content.ui?.openPrintAria || "Open print dialog to save as PDF"
+							}
 						>
 							<FontAwesomeIcon
 								icon={faPrint}
@@ -530,7 +436,7 @@ export default function ResourcesPage() {
 								style={{ color: accent, width: iconSize, height: iconSize }}
 								aria-hidden="true"
 							/>
-							<span>Export PDF</span>
+							<span>{content.ui?.exportPdf || "Export PDF"}</span>
 						</motion.button>
 
 						<motion.button
@@ -540,7 +446,7 @@ export default function ResourcesPage() {
 							onClick={exportWord}
 							className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border bg-white text-sm font-medium transition hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer"
 							style={{ borderColor: withAlpha(accent, "66"), color: brandDark }}
-							title="Download a Word document"
+							title={content.ui?.exportWordAria || "Download a Word document"}
 						>
 							<FontAwesomeIcon
 								icon={faFileArrowDown}
@@ -548,11 +454,11 @@ export default function ResourcesPage() {
 								style={{ color: accent, width: iconSize, height: iconSize }}
 								aria-hidden="true"
 							/>
-							<span>Export Word</span>
+							<span>{content.ui?.exportWord || "Export Word"}</span>
 						</motion.button>
 					</div>
 
-					{/* Segmented Filter: All + Favourites (no counts) */}
+					{/* Segmented Filter */}
 					<nav
 						className="mt-3 flex items-center justify-center"
 						aria-label="Resource filters"
@@ -596,9 +502,15 @@ export default function ResourcesPage() {
 					</nav>
 				</motion.header>
 
-				{/* Cards (no animation on filter change) */}
+				{/* Cards */}
 				<section>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+						{filteredSections.length === 0 ? (
+							<div className="col-span-full text-center text-slate-600">
+								{content.ui?.noResources || "No resources available."}
+							</div>
+						) : null}
+
 						{filteredSections.map(({ title, summary, links }) => {
 							const [primary, ...rest] = links || [];
 							const primaryUrl = primary?.url || null;
@@ -636,7 +548,7 @@ export default function ResourcesPage() {
 													rel="noreferrer noopener"
 													onClick={() => onPrimaryClick(primaryUrl, title)}
 													className="text-lg font-semibold text-slate-900 underline underline-offset-2 decoration-emerald-600 hover:decoration-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-sm"
-													title={primary.label || primaryUrl}
+													title={primary?.label || primaryUrl}
 												>
 													{title}
 												</a>
@@ -679,9 +591,13 @@ export default function ResourcesPage() {
 												style={{ borderColor: withAlpha(accent, "33") }}
 												aria-expanded={open}
 												aria-controls={`expanel-${cardKey}`}
+												title={`${content.ui?.moreLinks || "More links"} (${
+													rest.length
+												})`}
 											>
 												<span className="text-sm font-medium text-slate-900">
-													More links ({rest.length})
+													{content.ui?.moreLinks || "More links"} ({rest.length}
+													)
 												</span>
 												<FontAwesomeIcon
 													icon={faChevronDown}
@@ -727,8 +643,11 @@ export default function ResourcesPage() {
 																				style={{
 																					borderColor: withAlpha(accent, "33"),
 																				}}
-																				title={url}
-																				aria-label={`Open link: ${l.label}`}
+																				title={l.label}
+																				aria-label={`${
+																					content.ui?.openLinkAriaPrefix ||
+																					"Open link:"
+																				} ${l.label}`}
 																			>
 																				<FontAwesomeIcon
 																					icon={faArrowUpRightFromSquare}

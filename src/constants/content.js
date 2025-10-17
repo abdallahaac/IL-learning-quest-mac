@@ -112,8 +112,30 @@ export const PREPARATION_CONTENT = {
 	},
 };
 
+// src/constants/teamContent.js (or wherever you keep content)
 export const TEAM_CONTENT = {
 	title: "Team Reflection",
+	// Use instructionsHtml if you want markup. Keep plain text in instructionText otherwise.
+	instructionPill: "Instruction",
+	instructionsHtml:
+		"<p>To make the most of your team discussions during the learning quest, follow these steps to create a safe, respectful, and reflective learning environment.</p>",
+	stepsHeading: "Steps",
+	savedLabel: "Saved",
+	clickToMark: "Click to mark",
+	stepsCompleteMessage: "Great—steps complete!",
+	quickPrompts: [
+		"One thing that surprised me…",
+		"A perspective I hadn’t considered…",
+		"Where I might follow up…",
+		"How this connects to my work…",
+	],
+	reflectionPrompt:
+		"Based on what I’ve learned so far, one thing I want to carry forward in my role is...",
+	reflectionPlaceholder: "Write a few sentences…",
+	notesSaveTip: "Tip: notes save automatically in this lesson.",
+	wordsLabelSingular: "word",
+	wordsLabelPlural: "words",
+	// Steps: headings + items as plain strings (no bullet glyphs)
 	steps: [
 		{
 			heading: "Set the tone for respectful dialogue",
@@ -127,20 +149,23 @@ export const TEAM_CONTENT = {
 			items: [
 				"Ask each team member to share highlights from one or more activities they completed.",
 				"Encourage them to discuss what surprised them, challenged their assumptions, or left a lasting impression.",
-				"Use open-ended prompts, such as: What did you learn that shifted your perspective? How did this activity connect to your personal or professional life? What questions do you still have?",
+				"What did you learn that shifted your perspective?",
+				"How did this activity connect to your personal or professional life?",
+				"What questions do you still have?",
 			],
 		},
 		{
 			heading: "Connect learning to the workplace",
 			items: [
 				"Discuss how insights from the quest relate to your team’s work and the public service more broadly.",
-				"Ask: How can this knowledge help build better relationships with Indigenous communities? What changes—big or small—can we make to support reconciliation in our daily work?",
+				"How can this knowledge help build better relationships with Indigenous communities?",
+				"What changes—big or small—can we make to support reconciliation in our daily work?",
 			],
 		},
 		{
 			heading: "Make a commitment",
 			items: [
-				"Invite each team member to identify one action they will take to continue learning or contribute to reconciliation:",
+				"Invite each team member to identify one action they will take to continue learning or contribute to reconciliation.",
 				"This could include using Indigenous-owned resources, incorporating Indigenous perspectives into work, or continuing personal education.",
 			],
 		},
@@ -152,33 +177,182 @@ export const TEAM_CONTENT = {
 			],
 		},
 	],
-	reflectionPrompt:
-		"Based on what I’ve learned so far, one thing I want to carry forward in my role is...",
 };
-
 export const CONCLUSION_CONTENT = {
+	lang: "en",
 	title: "Conclusion",
 	paragraphs: [
 		"As your team wraps up the Learning Quest on Indigenous Cultures, take a moment to recognize the learning, reflection, and conversations you’ve shared. Each activity was an opportunity to explore new perspectives, challenge assumptions, and grow together.",
 		"This quest was designed to be flexible and personal. Whether you completed every step or focused on a few, what matters most is the awareness and understanding you’ve built along the way.",
 		"Your team discussions helped bring the learning to life through open dialogue, shared insights, and thoughtful questions. These conversations are just the beginning.",
-		"As you move forward, think about how you can carry this learning into your daily work. What actions will you take? What commitments will you make? Reconciliation is an ongoing journey. Thank you for taking these important steps together and with openness, respect, and intention.",
+		"As you move forward, think about how you can carry this learning into your daily work. What actions will you take? What commitments will you make?",
+		"Reconciliation is an ongoing journey. Thank you for taking these important steps together and with openness, respect, and intention.",
 	],
+	// optional override for the feedback button label
+	feedbackLabel: "Feedback",
 };
-
+// content/resourcesContent.js
 export const RESOURCES_CONTENT = {
+	lang: "en",
 	title: "Resources",
-	items: [
-		"Best media by Indigenous voices: “mural” created by Parks Canada team members",
-		"The Reconciliation Path: interactive job aid from the Canada School of Public Service",
-		"Indigenous Awareness, Cultural Safety and Capacity Building: GCpedia page created by Environment and Climate Change Canada",
-		"Conservation Through Reconciliation Partnership resources: Indigenous-led conservation reading list; Virtual Campfire Series webinars; Indigenous protected and conserved areas knowledge basket",
-		"Striking Balance: Tsá Tué Biosphere Reserve: film on Indigenous conservation",
-		"Fundamentals of OCAP® (ownership, control, access and possession): First Nations Information Governance Centre training",
-		"Inuit societal values: Government of Nunavut resource",
-		"Métis governance practices: BCcampus Open Publishing resource, part of Indigenous Digital Literacies",
-		"Public education: resources on legal subjects such as rights, treaties and land claims",
-		"4 Seasons of Indigenous Learning: training offered by Outdoor Learning School and Store",
+	ui: {
+		exportPdf: "Export PDF",
+		exportWord: "Export Word",
+		filterAll: "All",
+		filterFavourites: "Favourites",
+		moreLinks: "More links",
+		openLink: "Open link",
+		favorite: "Favorite",
+		unfavorite: "Unfavorite",
+		read: "Read",
+		addedToFav: "added to favourites.",
+		removedFromFav: "removed from favourites.",
+		openPrintAria: "Open print dialog to save as PDF",
+		exportWordAria: "Download a Word document",
+		openLinkAriaPrefix: "Open link:",
+		pageTitle: "Resources",
+		noResources: "No resources available.",
+	},
+	sections: [
+		{
+			title: "Best media by Indigenous voices",
+			summary: "A mural collection curated by Parks Canada team members.",
+			type: "Media",
+			links: [
+				{
+					label: "Best media by Indigenous voices (mural — Parks Canada team)",
+					url: "https://app.mural.co/t/indigenousaffairsbranchdirce6046/m/indigenousaffairsbranchdirce6046/1733400932867/26fd87eadffbefc3c535b15c45c067d7811364f",
+				},
+			],
+			tags: ["Parks Canada"],
+		},
+		{
+			title: "The Reconciliation Path (CSPS)",
+			summary: "Interactive job aid from the Canada School of Public Service.",
+			type: "Job aid",
+			links: [
+				{
+					label: "The Reconciliation Path (CSPS job aid)",
+					url: "https://catalogue.csps-efpc.gc.ca/product?catalog=IRA1-J16&cm_locale=en",
+				},
+			],
+			tags: ["CSPS"],
+		},
+		{
+			title: "Indigenous Awareness, Cultural Safety and Capacity Building",
+			summary:
+				"GCpedia page compiled by Environment and Climate Change Canada.",
+			type: "Government resource",
+			links: [
+				{
+					label:
+						"Indigenous Awareness, Cultural Safety and Capacity Building (GCpedia – ECCC)",
+					url: "https://www.gcpedia.gc.ca/wiki/Sensibilisation_%C3%A0_la_culture_autochtone_la_s%C3%A9curit%C3%A9_culturelle_et_le_renforcement_des_capacit%C3%A9s_autochtones_%C3%A0_ECCC",
+				},
+			],
+			tags: ["ECCC"],
+		},
+		{
+			title: "Conservation Through Reconciliation Partnership",
+			summary:
+				"Indigenous-led conservation reading list, Virtual Campfire webinars, and a knowledge basket for Indigenous protected and conserved areas.",
+			type: "Conservation",
+			links: [
+				{
+					label: "Indigenous-led conservation reading list (short link)",
+					url: "https://bit.ly/IndLedConsRL",
+				},
+				{
+					label:
+						"Virtual Campfire (Conservation Through Reconciliation Partnership)",
+					url: "https://conservation-reconciliation.ca/virtual-campfire",
+				},
+				{
+					label:
+						"IPCA knowledge basket (Indigenous protected and conserved areas)",
+					url: "https://ipacknowledgebasket.ca/",
+				},
+			],
+			tags: ["Conservation"],
+		},
+		{
+			title: "Striking Balance: Tsá Tué Biosphere Reserve",
+			summary: "Documentary on Indigenous conservation (TVO).",
+			type: "Documentary",
+			links: [
+				{
+					label: "Striking Balance: Tsá Tué Biosphere Reserve (TVO film)",
+					url: "https://www.tvo.org/video/documentaries/tsa-tue-biosphere-reserve",
+				},
+			],
+			tags: ["TVO"],
+		},
+		{
+			title: "Fundamentals of OCAP® (FNIGC)",
+			summary:
+				"Training on OCAP® (ownership, control, access and possession) from the First Nations Information Governance Centre.",
+			type: "Training",
+			links: [
+				{
+					label: "Fundamentals of OCAP® (FNIGC course)",
+					url: "https://fnigc.ca/fr/les-principes-de-pcap-des-premieres-nations/suivre-le-cours/",
+				},
+			],
+			tags: ["FNIGC"],
+		},
+		{
+			title: "Inuit societal values (Government of Nunavut)",
+			summary:
+				"Reference on Inuit societal values from the Government of Nunavut.",
+			type: "Values",
+			links: [
+				{
+					label: "Inuit societal values (Government of Nunavut)",
+					url: "https://www.gov.nu.ca/fr/culture-langue-patrimoine-et-art/valeurs-societales-inuites",
+				},
+			],
+			tags: ["Nunavut"],
+		},
+		{
+			title: "Métis governance practices (open access)",
+			summary:
+				"BCcampus / OpenTextBC chapter on Métis governance — part of Indigenous Digital Literacies (open access).",
+			type: "Governance",
+			links: [
+				{
+					label: "Métis governance practices (OpentextBC / BCcampus)",
+					url: "https://opentextbc.ca/indigenousdigitalliteracies/chapter/metis-governance/",
+				},
+			],
+			tags: ["BCcampus"],
+		},
+		{
+			title: "Public education (First Peoples Law)",
+			summary:
+				"Resources on legal topics such as rights, treaties and land claims (public education).",
+			type: "Law",
+			links: [
+				{
+					label: "Public education (First Peoples Law)",
+					url: "https://www.firstpeopleslaw.com/public-education",
+				},
+			],
+			tags: ["Law"],
+		},
+		{
+			title: "4 Seasons of Indigenous Learning",
+			summary:
+				"4 Seasons training offered by Outdoor Learning School & Store (program + learning resources).",
+			type: "Training",
+			links: [
+				{
+					label:
+						"4 Seasons of Indigenous Learning (Outdoor Learning School & Store)",
+					url: "https://outdoorlearning.com/4-seasons/",
+				},
+			],
+			tags: ["Outdoor Learning"],
+		},
 	],
 };
 
@@ -234,11 +408,54 @@ export const INTRO_INFO_CONTENT_FR = {
 		{
 			heading: "Fonctionnement",
 			items: [
-				"Rassemblez votre équipe :\n•\tSi votre équipe de travail ne peut pas participer à la quête d’apprentissage, formez votre propre équipe ou trouvez-vous un ou une partenaire d’étude.",
-				"Déterminez en équipe les paramètres de la quête. Voici quelques points de départ pour vous orienter :\n•\tAllez-vous vous concentrer sur des nations et communautés particulières ou allez-vous plutôt adopter une approche régionale et chercher à apprendre quelque chose au sujet des peuples autochtones de chaque région du pays?\n•\tAllez-vous étudier à la fois les Premières Nations, de même que les peuples inuits et métis?",
-				"Donnez-vous du temps pour avancer dans votre quête :\n•\tEncouragez vos collègues, publiez des mises à jour et envoyez-leur des ressources dans Teams.\n•\tSi des sujets secondaires piquent votre curiosité, explorez-les!",
-				"Prévoyez une rencontre d’équipe pour discuter de vos expériences :\n•\tÉtablissez des protocoles pour créer un espace sécuritaire. De quoi les gens ont-ils besoin pour se sentir respectés, écoutés et soutenus, et ainsi être en mesure de s’exprimer librement pendant la rencontre?\n•\tQue retenez-vous de l’expérience?",
-				"Résumez vos apprentissages et poursuivez votre quête :\n•\tPubliez vos ressources en ligne sur la « murale » Les meilleurs médias par les voix autochtones, créée par des membres de l’équipe de Parcs Canada.\n•\tPoursuivez votre parcours d’apprentissage toute l’année durant.\n•\tFaites partie du changement en participant activement aux efforts de réconciliation!",
+				`
+      <div class="bullet-item">
+        <p class="bullet-body">
+          Si votre équipe de travail ne peut pas participer à la quête d’apprentissage,
+          formez votre propre équipe ou trouvez-vous un(e) partenaire d’étude.
+        </p>
+      </div>
+      `,
+				`
+      <div class="bullet-item">
+        <p class="bullet-body">
+          Quelques pistes pour vous orienter : allez-vous vous concentrer sur des nations et
+          communautés particulières, ou adopter une approche régionale pour découvrir les
+          peuples autochtones de chaque région du pays ? Allez-vous étudier les Premières
+          Nations, les peuples inuits et les Métis ?
+        </p>
+      </div>
+      `,
+				`
+      <div class="bullet-item">
+        <p class="bullet-body">
+          Encouragez vos collègues, publiez des mises à jour et partagez des ressources dans Teams.
+          Si des sujets secondaires piquent votre curiosité, prenez le temps de les explorer.
+        </p>
+      </div>
+      `,
+				`
+      <div class="bullet-item">
+        <p class="bullet-body">
+          Établissez des protocoles pour un espace sécuritaire : de quoi les participant·e·s
+          ont-ils besoin pour se sentir respectés, écoutés et soutenus ? Que retenez-vous de
+          l’expérience ?
+        </p>
+      </div>
+      `,
+				`
+      <div class="bullet-item">
+        <p class="bullet-body">
+          Publiez vos ressources en ligne sur la murale
+          « <a href="https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f"
+                 target="_blank" rel="noopener noreferrer" aria-label="Murale - Les meilleurs médias par les voix autochtones">
+                 Les meilleurs médias par les voix autochtones
+              </a> », créée par des membres de l’équipe de Parcs Canada.
+          Poursuivez votre parcours d’apprentissage toute l’année et participez activement
+          aux efforts de réconciliation.
+        </p>
+      </div>
+      `,
 			],
 		},
 	],
@@ -306,52 +523,74 @@ export const PREPARATION_CONTENT_FR = {
 		},
 	},
 };
-
 export const TEAM_CONTENT_FR = {
 	title: "Réunion d’équipe : étapes et questions potentielles",
+	instructionPill: "Instruction",
+	// kept as HTML per your request (paragraphs, formatting)
+	instructionsHtml: `<p>Suivez les étapes ci-dessous pour créer un environnement d’apprentissage sécuritaire, respectueux et propice à la réflexion afin de tirer le maximum de vos discussions d’équipe durant votre quête.</p>`,
+	stepsHeading: "Étapes",
+	savedLabel: "Enregistré",
+	clickToMark: "Cliquez pour marquer",
+	stepsCompleteMessage: "Super — toutes les étapes sont complétées !",
+	quickPrompts: [
+		"Une chose qui m’a surpris…",
+		"Une perspective que je n’avais pas considérée…",
+		"Où je pourrais faire un suivi…",
+		"Comment cela se relie à mon travail…",
+	],
+	reflectionPrompt:
+		"« Compte tenu de ce que j’ai appris jusqu’à présent, une chose que je souhaite mettre en pratique au travail, c’est… »",
+	reflectionPlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+	notesSaveTip:
+		"Astuce : les notes s’enregistrent automatiquement dans cette leçon.",
+	wordsLabelSingular: "mot",
+	wordsLabelPlural: "mots",
 	steps: [
 		{
 			heading: "Donner le ton pour un dialogue respectueux",
 			items: [
-				"•\tCommencez chaque rencontre en passant en revue les ententes ou les valeurs de l’équipe, comme le respect, l’ouverture d’esprit et la confidentialité.",
-				"•\tInvitez les membres de l’équipe à faire part de leurs impressions jusqu’ici.",
+				"Commencez chaque rencontre en passant en revue les ententes ou les valeurs de l’équipe, comme le respect, l’ouverture d’esprit et la confidentialité.",
+				"Invitez les membres de l’équipe à faire part de leurs impressions jusqu’ici.",
 			],
 		},
 		{
 			heading: "Échanger sur vos apprentissages et réflexions",
 			items: [
-				"•\tDemandez à chaque membre de l’équipe de présenter les faits saillants d’au moins une activité qu’il ou elle a accomplie.",
-				"•\tEncouragez chaque personne à parler de ce qui l’a surprise, de ce qui a remis en question ses façons de voir les choses ou de ce qui l’a particulièrement marquée.",
-				"•\tPosez des questions ouvertes :\no\tQuel apprentissage a modifié votre perspective?\no\tDe quelle manière l’activité était-elle liée à votre vie personnelle ou professionnelle?\no\tQuelles questions vous posez-vous encore?",
+				"Demandez à chaque membre de l’équipe de présenter les faits saillants d’au moins une activité qu’il ou elle a accomplie.",
+				"Encouragez chaque personne à parler de ce qui l’a surprise, de ce qui a remis en question ses façons de voir les choses ou de ce qui l’a particulièrement marquée.",
+				"Quel apprentissage a modifié votre perspective?",
+				"De quelle manière l’activité était-elle liée à votre vie personnelle ou professionnelle?",
+				"Quelles questions vous posez-vous encore?",
 			],
 		},
 		{
 			heading:
 				"Établir des liens entre vos apprentissages et votre milieu de travail",
 			items: [
-				"•\tDiscutez de la manière dont les apprentissages faits durant la quête se rapportent au travail de votre équipe et à la fonction publique dans son ensemble.",
-				"•\tPosez les questions suivantes :\no\tComment ce savoir peut-il renforcer les relations avec les communautés autochtones?\no\tQuels changements – grands ou petits – peut-on apporter pour soutenir les efforts de réconciliation au quotidien?",
+				"Discutez de la manière dont les apprentissages faits durant la quête se rapportent au travail de votre équipe et à la fonction publique dans son ensemble.",
+				"Comment ce savoir peut-il renforcer les relations avec les communautés autochtones?",
+				"Quels changements — grands ou petits — peut-on apporter pour soutenir les efforts de réconciliation au quotidien?",
 			],
 		},
 		{
 			heading: "Prendre un engagement",
 			items: [
-				"•\tInvitez chaque membre de l’équipe à cibler une mesure à prendre pour poursuivre ses apprentissages ou contribuer aux efforts de réconciliation :\no\tIl pourrait notamment s’agir d’utiliser des ressources autochtones, de tenir compte des perspectives autochtones pour effectuer un travail, ou de poursuivre sa formation personnelle.",
+				"Invitez chaque membre de l’équipe à cibler une mesure à prendre pour poursuivre ses apprentissages ou contribuer aux efforts de réconciliation.",
+				"Il pourrait notamment s’agir d’utiliser des ressources autochtones, de tenir compte des perspectives autochtones pour effectuer un travail, ou de poursuivre sa formation personnelle.",
 			],
 		},
 		{
 			heading: "Continuer la conversation",
 			items: [
-				"•\tPlanifiez d’autres rencontres de suivi ou réunions informelles pour continuer la conversation.",
-				"•\tEncouragez les membres de l’équipe à publier des ressources, des réflexions ou des questions dans Teams.",
+				"Planifiez d’autres rencontres de suivi ou réunions informelles pour continuer la conversation.",
+				"Encouragez les membres de l’équipe à publier des ressources, des réflexions ou des questions dans Teams.",
 			],
 		},
 	],
-	reflectionPrompt:
-		"« Compte tenu de ce que j’ai appris jusqu’à présent, une chose que je souhaite mettre en pratique au travail, c’est… »",
 };
 
 export const CONCLUSION_CONTENT_FR = {
+	lang: "fr",
 	title: "Conclusion",
 	paragraphs: [
 		"Prenez un moment au terme de votre quête d’apprentissage sur les cultures autochtones pour récapituler en équipe vos apprentissages, vos réflexions et vos discussions. Chaque activité vous a donné l’occasion de découvrir de nouvelles perspectives, de remettre en question vos hypothèses et de grandir ensemble.",
@@ -359,21 +598,174 @@ export const CONCLUSION_CONTENT_FR = {
 		"Par le dialogue ouvert, l’échange de points de vue et les questions réfléchies, les discussions d’équipe ont fait fleurir vos apprentissages. Ce n’est là que le début.",
 		"Pensez maintenant aux différentes façons d’intégrer ces apprentissages dans votre travail quotidien. Quelles mesures et quels engagements prendrez-vous? La réconciliation n’a pas de fin. Merci de participer à ces efforts importants avec ouverture, respect et volonté.",
 	],
+	// optional override:
+	feedbackLabel: "Rétroaction",
 };
 
 export const RESOURCES_CONTENT_FR = {
+	lang: "fr",
 	title: "Ressources",
-	items: [
-		"•\tLes meilleurs médias par les voix autochtones, « murale » créée par les membres de l’équipe de Parcs Canada",
-		"•\tLe sentier de la réconciliation, outil de travail interactif conçu par l’École de la fonction publique du Canada",
-		"•\tSensibilisation aux cultures autochtones, sécurité culturelle et renforcement des capacités autochtones, page GCpédia créée par Environnement et Changement climatique Canada",
-		"•\tRessources du Conservation Through Reconciliation Partnership (en anglais) :\no\tListe de lecture sur la conservation par les Autochtones\no\tSérie de webinaires au coin du feu\no\tPanier de savoir sur les aires protégées et de conservation autochtones",
-		"•\tStriking Balance : réserve de biosphère Tsá Tué, film sur la conservation autochtone (en anglais)",
-		"•\tFondamentaux des principes de PCAP (propriété, contrôle, accès et possession), formation donnée par le Centre de gouvernance de l’information des Premières Nations",
-		"•\tValeurs sociétales inuites, ressource du gouvernement du Nunavut",
-		"•\tPratiques de gouvernance métisses, ressource de BCcampus en accès ouvert faisant partie de la littératie numérique autochtone (en anglais)",
-		"•\tÉducation du public, ressources sur les affaires juridiques, comme les droits, les traités et les revendications territoriales (en anglais)",
-		"•\tApprentissage autochtone en 4 saisons, formation offerte par l’Outdoor Learning School and Store (en anglais)",
+	ui: {
+		exportPdf: "Exporter en PDF",
+		exportWord: "Exporter Word",
+		filterAll: "Tous",
+		filterFavourites: "Favoris",
+		moreLinks: "Plus de liens",
+		openLink: "Ouvrir le lien",
+		favorite: "Ajouter aux favoris",
+		unfavorite: "Retirer des favoris",
+		read: "Lu",
+		addedToFav: "ajouté aux favoris.",
+		removedFromFav: "retiré des favoris.",
+		openPrintAria: "Ouvrir la boîte d'impression pour enregistrer en PDF",
+		exportWordAria: "Télécharger un document Word",
+		openLinkAriaPrefix: "Ouvrir le lien:",
+		pageTitle: "Ressources",
+		noResources: "Aucune ressource disponible.",
+	},
+	sections: [
+		{
+			title: "Les meilleurs médias par des voix autochtones",
+			summary:
+				"Murale créée par les membres de l’équipe de Parcs Canada — collection de médias et ressources.",
+			type: "Média",
+			links: [
+				{
+					label:
+						"Murale — Les meilleurs médias par des voix autochtones (Parcs Canada)",
+					url: "https://app.mural.co/t/indigenousaffairsbranchdirce6046/m/indigenousaffairsbranchdirce6046/1733400932867/26fd87eadffbefc3c535b15c45c067d7811364f",
+				},
+			],
+			tags: ["Parcs Canada"],
+		},
+		{
+			title: "Outil — Le sentier de la réconciliation (ÉFPC)",
+			summary:
+				"Outil interactif créé par l’École de la fonction publique du Canada (IRA1-J16).",
+			type: "Outil",
+			links: [
+				{
+					label:
+						"Le sentier de la réconciliation (outil — École de la fonction publique du Canada)",
+					url: "https://catalogue.csps-efpc.gc.ca/product?catalog=IRA1-J16&cm_locale=fr",
+				},
+			],
+			tags: ["ÉFPC"],
+		},
+		{
+			title: "Sensibilisation aux cultures autochtones (GCpedia — ECCC)",
+			summary:
+				"Page GCpedia : sensibilisation à la culture autochtone, sécurité culturelle et renforcement des capacités (ECCC).",
+			type: "Ressource gouvernementale",
+			links: [
+				{
+					label: "Sensibilisation aux cultures autochtones (GCpedia — ECCC)",
+					url: "https://www.gcpedia.gc.ca/wiki/Sensibilisation_%C3%A0_la_culture_autochtone_la_s%C3%A9curit%C3%A9_culturelle_et_le_renforcement_des_capacit%C3%A9s_autochtones_%C3%A0_ECCC",
+				},
+			],
+			tags: ["ECCC"],
+		},
+		{
+			title: "Conservation Through Reconciliation Partnership",
+			summary:
+				"Ressources : liste de lecture sur la conservation autochtone, webinaires Virtual Campfire et Panier de savoir sur les aires protégées autochtones.",
+			type: "Conservation",
+			links: [
+				{
+					label: "Liste de lecture sur la conservation (lien court)",
+					url: "https://bit.ly/IndLedConsRL",
+				},
+				{
+					label:
+						"Virtual Campfire (Conservation Through Reconciliation Partnership)",
+					url: "https://conservation-reconciliation.ca/virtual-campfire",
+				},
+				{
+					label:
+						"Panier de savoir (aires protégées et conservation autochtones)",
+					url: "https://ipacknowledgebasket.ca/",
+				},
+			],
+			tags: ["Conservation"],
+		},
+		{
+			title: "Striking Balance : réserve de biosphère Tsá Tué",
+			summary: "Documentaire sur la conservation autochtone (TVO).",
+			type: "Documentaire",
+			links: [
+				{
+					label: "Striking Balance : réserve de biosphère Tsá Tué (TVO)",
+					url: "https://www.tvo.org/video/documentaries/tsa-tue-biosphere-reserve",
+				},
+			],
+			tags: ["TVO"],
+		},
+		{
+			title: "Fondamentaux des principes de PCAP (FNIGC)",
+			summary:
+				"Formation sur les principes de PCAP (propriété, contrôle, accès et possession) — FNIGC.",
+			type: "Formation",
+			links: [
+				{
+					label: "Fondamentaux des principes de PCAP (formation FNIGC)",
+					url: "https://fnigc.ca/fr/les-principes-de-pcap-des-premieres-nations/suivre-le-cours/",
+				},
+			],
+			tags: ["FNIGC"],
+		},
+		{
+			title: "Valeurs sociétales inuites (Gouvernement du Nunavut)",
+			summary:
+				"Ressource du gouvernement du Nunavut sur les valeurs sociétales inuites.",
+			type: "Ressource",
+			links: [
+				{
+					label: "Valeurs sociétales inuites (Gouvernement du Nunavut)",
+					url: "https://www.gov.nu.ca/fr/culture-langue-patrimoine-et-art/valeurs-societales-inuites",
+				},
+			],
+			tags: ["Nunavut"],
+		},
+		{
+			title: "Pratiques de gouvernance métisses (BCcampus)",
+			summary:
+				"Ressource Open Access de BCcampus — chapitre sur les pratiques de gouvernance métisses.",
+			type: "Gouvernance",
+			links: [
+				{
+					label: "Pratiques de gouvernance métisses (BCcampus / OpenTextBC)",
+					url: "https://opentextbc.ca/indigenousdigitalliteracies/chapter/metis-governance/",
+				},
+			],
+			tags: ["BCcampus"],
+		},
+		{
+			title: "Éducation du public (First Peoples Law)",
+			summary:
+				"Ressources juridiques et pédagogiques sur les droits, traités et revendications territoriales.",
+			type: "Loi",
+			links: [
+				{
+					label: "Éducation du public (First Peoples Law)",
+					url: "https://www.firstpeopleslaw.com/public-education",
+				},
+			],
+			tags: ["First Peoples Law"],
+		},
+		{
+			title: "Apprentissage autochtone en 4 saisons",
+			summary:
+				"Formation 4 Seasons offerte par l’Outdoor Learning School & Store.",
+			type: "Formation",
+			links: [
+				{
+					label:
+						"Apprentissage autochtone en 4 saisons (Outdoor Learning School & Store)",
+					url: "https://outdoorlearning.com/4-seasons/",
+				},
+			],
+			tags: ["Outdoor Learning"],
+		},
 	],
 };
 
@@ -863,18 +1255,168 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Learn to say three words in an Indigenous language. Share them with your team and use them often.",
 			notePlaceholder: "Words/phrases and where they’re used…",
 			resourcesHeading: "Resources",
-			links: [],
+			// links used for export & the resource cards UI (label + url)
+			links: [
+				{ label: "FirstVoices", url: "https://www.firstvoices.com/" },
+				{
+					label: "Inuktut glossary (Inuktut Tusaalanga)",
+					url: "https://tusaalanga.ca/glossary",
+				},
+				{
+					label: "Michif Language Revitalization Circle (resources)",
+					url: "https://speakmichif.ca/learn/resources",
+				},
+				{
+					label: "Métis languages resources (Louis Riel Institute)",
+					url: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
+				},
+			],
+			// optional richer objects for UI outlet tiles
+			outlets: [
+				{
+					href: "https://www.firstvoices.com/",
+					title: "FirstVoices",
+					desc: "A hub for Indigenous languages and learning resources.",
+				},
+				{
+					href: "https://tusaalanga.ca/glossary",
+					title: "Inuktut glossary (Inuktut Tusaalanga)",
+					desc: "Glossary and language resources for Inuktut.",
+				},
+				{
+					href: "https://speakmichif.ca/learn/resources",
+					title: "Michif Language Revitalization Circle (resources)",
+					desc: "Michif language learning materials and links.",
+				},
+				{
+					href: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
+					title: "Métis languages resources (Louis Riel Institute)",
+					desc: "Resources to learn Métis languages.",
+				},
+			],
+			// small HTML instructions for the callout (optional; used if present)
+			instructionsHtml: null,
+			// UI labels and small strings used across the page & export (all editable here)
+			ui: {
+				instructionsPill: "Instructions",
+				editorHeading: "Add your words (Flip Cards)",
+				editorTip: "Tip: press Enter in the Back field to add quickly.",
+				frontPlaceholder: "Front (word / phrase)",
+				backPlaceholder: "Back (meaning / translation)",
+				addCardButton: "Add card",
+				removeButton: "Remove",
+				cardsCountSuffix: "cards",
+				noCardsPrimary: "No cards yet — add your first above.",
+				noCardsSecondary:
+					"Add word cards below (word on the front, meaning on the back). Click a card to flip it and practice anytime.",
+				newWordLabel: "New word",
+				meaningLabel: "Meaning / Translation",
+				openLinkLabel: "Open link",
+				downloadButton: "Download (.docx)",
+				downloadCardsIntro: "New word → Meaning",
+				doc: {
+					activityTipHeader: "Activity tip",
+					resourcesHeader: "Resources",
+					savedResponseHeader: "Saved response",
+					bulletPointsHeader: "Bullet points",
+					wordCardsHeader: "Word cards",
+					wordColumn: "Word",
+					meaningColumn: "Meaning",
+				},
+				celebrateTitle: "Nice! You added 3 words 🎉",
+				celebrateBody:
+					"Keep going—add more and practice by flipping the cards.",
+			},
 		},
+
 		fr: {
 			id: "a7",
 			number: 7,
 			title: "Apprenez à prononcer trois mots dans une langue autochtone.",
-			tip: "Apprenez à prononcer trois mots dans une langue autochtone.\nPrésentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.\nVous ne savez pas par où commencer? Consultez les ressources suivantes :\n•\tFirstVoices (en anglais)\n•\tGlossaire inuktut (en anglais)\n•\tRessources numériques du Michif Language Revitalization Circle (en anglais)\n•\tRessources du Louis Riel Institute pour apprendre les langues métisses (en anglais)",
+			tip: "Apprenez à prononcer trois mots dans une langue autochtone. Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.",
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
-			links: [],
+			links: [
+				{
+					label: "FirstVoices (en anglais)",
+					url: "https://www.firstvoices.com/",
+				},
+				{
+					label: "Glossaire Inuktut (en anglais)",
+					url: "https://tusaalanga.ca/glossary",
+				},
+				{
+					label:
+						"Michif Language Revitalization Circle (ressources) (en anglais)",
+					url: "https://speakmichif.ca/learn/resources",
+				},
+				{
+					label:
+						"Ressources pour les langues métisses (Louis Riel Institute) (en anglais)",
+					url: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
+				},
+			],
+			outlets: [
+				{
+					href: "https://www.firstvoices.com/",
+					title: "FirstVoices",
+					desc: "Centre de ressources pour les langues autochtones.",
+				},
+				{
+					href: "https://tusaalanga.ca/glossary",
+					title: "Glossaire Inuktut",
+					desc: "Glossaire et ressources linguistiques Inuktut.",
+				},
+				{
+					href: "https://speakmichif.ca/learn/resources",
+					title: "Michif Language Revitalization Circle",
+					desc: "Matériel d’apprentissage du Michif.",
+				},
+				{
+					href: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
+					title: "Ressources langues métisses (Louis Riel Institute)",
+					desc: "Ressources pour apprendre les langues métisses.",
+				},
+			],
+			instructionsHtml: `
+      <p>Apprenez à prononcer trois mots dans une langue autochtone et partagez-les avec votre équipe.</p>
+      <p><strong>Conseil :</strong> Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.</p>
+    `,
+			ui: {
+				instructionsPill: "Consignes",
+				editorHeading: "Ajoutez vos mots (cartes à retourner)",
+				editorTip:
+					"Astuce : appuyez sur Entrée dans le champ « Retour » pour ajouter rapidement.",
+				frontPlaceholder: "Recto (mot / expression)",
+				backPlaceholder: "Verso (sens / traduction)",
+				addCardButton: "Ajouter la carte",
+				removeButton: "Supprimer",
+				cardsCountSuffix: "cartes",
+				noCardsPrimary:
+					"Aucune carte pour l’instant — ajoutez la première au-dessus.",
+				noCardsSecondary:
+					"Ajoutez des cartes-mots ci-dessous (mot au recto, sens au verso). Cliquez sur une carte pour la retourner et vous entraîner.",
+				newWordLabel: "Nouveau mot",
+				meaningLabel: "Sens / Traduction",
+				openLinkLabel: "Ouvrir le lien",
+				downloadButton: "Télécharger (.docx)",
+				downloadCardsIntro: "Nouveau mot → Sens",
+				doc: {
+					activityTipHeader: "Conseil d’activité",
+					resourcesHeader: "Ressources",
+					savedResponseHeader: "Réponse enregistrée",
+					bulletPointsHeader: "Points clés",
+					wordCardsHeader: "Cartes-mots",
+					wordColumn: "Mot",
+					meaningColumn: "Sens",
+				},
+				celebrateTitle: "Bravo ! Vous avez ajouté 3 mots 🎉",
+				celebrateBody:
+					"Continuez — ajoutez-en davantage et entraînez-vous en retournant les cartes.",
+			},
 		},
 	},
+
 	// src/constants/content.js (add or replace a8)
 	// src/constants/content.js (add/replace this a8 entry inside ACTIVITIES_CONTENT)
 	a8: {

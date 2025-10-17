@@ -38,18 +38,18 @@ export default function ConclusionSection({
 	content = {},
 	accent = "#8B5CF6",
 }) {
-	const defaultContent = {
+	// Expectation: full textual content comes via `content` (from content.js)
+	// Minimal fallback just in case content is empty — but primary source is content.
+	const fallback = {
 		title: "Conclusion",
-		paragraphs: [
-			"As your team wraps up the Learning Quest on Indigenous Cultures, take a moment to recognize the learning, reflection, and conversations you’ve shared. Each activity was an opportunity to explore new perspectives, challenge assumptions, and grow together.",
-			"This quest was designed to be flexible and personal. Whether you completed every step or focused on a few, what matters most is the awareness and understanding you’ve built along the way.",
-			"Your team discussions helped bring the learning to life through open dialogue, shared insights, and thoughtful questions. These conversations are just the beginning.",
-			"As you move forward, think about how you can carry this learning into your daily work. What actions will you take? What commitments will you make?",
-			"Reconciliation is an ongoing journey. Thank you for taking these important steps together and with openness, respect, and intention.",
-		],
+		paragraphs: [],
+		lang: "en",
 	};
 
-	const { title, paragraphs = [] } = { ...defaultContent, ...content };
+	const merged = { ...fallback, ...content };
+	const { title, paragraphs = [], lang } = merged;
+
+	// Highlights: first three paragraphs (if present)
 	const highlights = [paragraphs[0], paragraphs[1], paragraphs[2]].filter(
 		Boolean
 	);
@@ -84,6 +84,15 @@ export default function ConclusionSection({
 			{children}
 		</div>
 	);
+
+	// localized feedback label: prefer content.feedbackLabel, else use lang fallback
+	const isFr = (merged.lang || "").toString().toLowerCase() === "fr";
+	const feedbackLabel =
+		merged.feedbackLabel || (isFr ? "Rétroaction" : "Feedback");
+	const feedbackAria =
+		merged.feedbackAria ||
+		(isFr ? "Ouvrir le formulaire de rétroaction" : "Open feedback form");
+	const feedbackTitle = merged.feedbackTitle || feedbackLabel;
 
 	return (
 		<motion.div
@@ -134,7 +143,7 @@ export default function ConclusionSection({
 								color: accent,
 							}}
 							aria-hidden="true"
-							title="Conclusion"
+							title={title}
 						>
 							<FontAwesomeIcon icon={faFlagCheckered} className="w-4 h-4" />
 						</span>
@@ -197,16 +206,21 @@ export default function ConclusionSection({
 					</section>
 				)}
 
-				{/* █████ Feedback — single pill, WHITE background, darker on hover, more circular █████ */}
+				{/* Feedback pill */}
 				<div className="py-8 flex justify-center">
-					<FeedbackPill accent={accent} />
+					<FeedbackPill
+						accent={accent}
+						label={feedbackLabel}
+						ariaLabel={feedbackAria}
+						title={feedbackTitle}
+					/>
 				</div>
 			</div>
 		</motion.div>
 	);
 }
 
-/* dashed tip box */
+/* dashed tip box (unchanged) */
 function TipCard({ accent = "#8B5CF6", children }) {
 	return (
 		<section
@@ -259,8 +273,13 @@ function ClosingCallout({ text, accent }) {
 	);
 }
 
-/* --- WHITE pill with darker hover, extra roundness --- */
-function FeedbackPill({ accent = "#8B5CF6" }) {
+/* Feedback pill — label and aria/title are passed in so copy comes from content */
+function FeedbackPill({
+	accent = "#8B5CF6",
+	label = "Feedback",
+	ariaLabel,
+	title,
+}) {
 	const [hover, setHover] = useState(false);
 	const [active, setActive] = useState(false);
 
@@ -282,16 +301,16 @@ function FeedbackPill({ accent = "#8B5CF6" }) {
 			rel="noopener noreferrer"
 			className="
         group inline-flex items-center gap-4
-        rounded-full            /* ⟵ more circular */
+        rounded-full
         px-7 sm:px-8 py-4
         text-[18px] font-semibold
         transition-all duration-200 ease-out
         focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
       "
 			style={{
-				backgroundColor: "#FFFFFF", // ⟵ stays white always
+				backgroundColor: "#FFFFFF",
 				color: accentHex,
-				border: `3px solid ${borderColor}`, // ⟵ darkens on hover/active
+				border: `3px solid ${borderColor}`,
 				boxShadow: hover
 					? "0 10px 26px rgba(2,6,23,0.14)"
 					: "0 8px 22px rgba(2,6,23,0.10)",
@@ -304,17 +323,16 @@ function FeedbackPill({ accent = "#8B5CF6" }) {
 			}}
 			onMouseDown={() => setActive(true)}
 			onMouseUp={() => setActive(false)}
-			aria-label="Open feedback form"
-			title="Feedback"
+			aria-label={ariaLabel || label}
+			title={title || label}
 		>
-			{/* circular icon badge inside the same pill */}
 			<span
 				className="grid place-items-center rounded-full shrink-0 transition-all duration-200"
 				style={{
-					width: 52, // bigger
-					height: 52, // bigger
-					backgroundColor: "#FFFFFF", // stays white too
-					border: `3px solid ${iconBorder}`, // darkens on hover/active
+					width: 52,
+					height: 52,
+					backgroundColor: "#FFFFFF",
+					border: `3px solid ${iconBorder}`,
 					color: active ? accentDarker : hover ? accentDark : accentHex,
 				}}
 				aria-hidden="true"
@@ -322,7 +340,7 @@ function FeedbackPill({ accent = "#8B5CF6" }) {
 				<FontAwesomeIcon className="text-[22px]" icon={faMessage} />
 			</span>
 
-			<span className="whitespace-nowrap text-2xl">Feedback</span>
+			<span className="whitespace-nowrap text-2xl">{label}</span>
 		</a>
 	);
 }
