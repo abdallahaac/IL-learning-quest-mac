@@ -1,4 +1,4 @@
-// src/pages/activities/Activity03.jsx
+// src/pages/Activity03.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Utensils } from "lucide-react";
@@ -18,6 +18,32 @@ import {
 import { downloadAllDocx, downloadOne } from "../utils/downloadRecipes.js";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
+import DownloadButton from "../components/DownloadButton.jsx";
+
+/* ---------- small language sniff (same pattern as others) ---------- */
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
+/* sanitize filename: remove diacritics, collapse whitespace, remove bad chars */
+function sanitizeFilename(input = "") {
+	return String(input || "")
+		.normalize("NFKD") // decompose accents
+		.replace(/[\u0300-\u036f]/g, "") // strip diacritics
+		.replace(/[^0-9A-Za-z.\-_ ]+/g, "") // remove weird chars (keep ., -, _, space)
+		.trim()
+		.replace(/\s+/g, "-") // spaces -> dashes
+		.replace(/-+/g, "-") // collapse repeated dashes
+		.replace(/^\-+|\-+$/g, ""); // trim leading/trailing dash
+}
 
 export default function Activity03({
 	content,
@@ -295,18 +321,73 @@ export default function Activity03({
 		window.setTimeout(() => setJustSavedId(null), 1400);
 	};
 
-	// EXPORT handlers
-	const handleDownloadAll = async () =>
-		downloadAllDocx({
-			items: Array.isArray(model.recipes) ? model.recipes : [],
-			strings,
-			activityNumber,
-			accent,
-			referenceLink,
-		});
+	// ---------- Download guards (modular) ----------
+	const lang = detectLang() === "fr" ? "fr" : "en";
+	const docLocale = {
+		en: {
+			allSuffix: "Recipes",
+			singleSuffix: "Recipe",
+			downloading: "Downloading...",
+		},
+		fr: {
+			allSuffix: "Recettes",
+			singleSuffix: "Recette",
+			downloading: "Téléchargement...",
+		},
+	}[lang];
 
-	const handleDownloadOne = (r) =>
-		downloadOne(r, strings, activityNumber, accent, referenceLink);
+	const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+	const [downloadingRecipeId, setDownloadingRecipeId] = useState(null);
+
+	// IMPORTANT: do NOT create a .zip filename here. Let the download helper build a localized .docx filename.
+	const handleDownloadAll = async () => {
+		if (!started || isDownloadingAll) return;
+		if (!Array.isArray(model.recipes) || model.recipes.length === 0) return;
+
+		setIsDownloadingAll(true);
+		try {
+			await downloadAllDocx({
+				items: Array.isArray(model.recipes) ? model.recipes : [],
+				strings,
+				activityNumber,
+				accent,
+				referenceLink,
+				locale: lang, // <- tell the util which language to use for filename
+			});
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error("downloadAllDocx failed:", err);
+		} finally {
+			// little delay so UI doesn't flicker and user can't hammer the button
+			setTimeout(() => setIsDownloadingAll(false), 700);
+		}
+	};
+
+	const handleDownloadOne = async (recipe) => {
+		if (!started) return;
+		if (!recipe || !recipe.id) return;
+		// if a global download-all is in progress, skip
+		if (isDownloadingAll || downloadingRecipeId) return;
+
+		setDownloadingRecipeId(recipe.id);
+		try {
+			await downloadOne(
+				recipe,
+				strings,
+				activityNumber,
+				accent,
+				referenceLink,
+				{
+					locale: lang, // <- localized filename generation happens inside the util
+				}
+			);
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error("downloadOne failed:", err);
+		} finally {
+			setTimeout(() => setDownloadingRecipeId(null), 700);
+		}
+	};
 
 	// render tip helper
 	const renderTip = (text) => {
@@ -401,7 +482,6 @@ export default function Activity03({
 					</div>
 				</motion.header>
 
-				{/* Reference card (pulled from content.links[0] if present) */}
 				{referenceLink ? (
 					<motion.section
 						className="flex justify-center"
@@ -419,7 +499,6 @@ export default function Activity03({
 					</motion.section>
 				) : null}
 
-				{/* Builder */}
 				<section className="mx-auto max-w-3xl w-full">
 					<motion.div
 						className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm"
@@ -463,7 +542,6 @@ export default function Activity03({
 					</motion.div>
 				</section>
 
-				{/* Saved recipes */}
 				<section className="mx-auto max-w-3xl w-full">
 					<motion.div
 						className="rounded-2xl border bg-white p-4 sm:p-5 shadow-sm"
@@ -513,6 +591,10 @@ export default function Activity03({
 							labelForGroupLocalized={(id) =>
 								strings.groupLabels?.[id] || labelForGroup(id)
 							}
+							// new props so the child can show per-recipe "busy" states
+							isDownloadingAll={isDownloadingAll}
+							downloadingRecipeId={downloadingRecipeId}
+							started={started}
 						/>
 					</motion.div>
 				</section>
@@ -525,19 +607,16 @@ export default function Activity03({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
+
+					<DownloadButton
 						onClick={handleDownloadAll}
-						className="px-4 py-2 rounded-lg border text-sm font-medium transition-colors"
-						style={{
-							backgroundColor: accent,
-							color: "#fff",
-							borderColor: withAlpha(accent, "66"),
-						}}
-						title={strings.downloadAllBtn || "Download all (.docx)"}
-					>
-						{strings.downloadAllBtn || "Download all (.docx)"}
-					</button>
+						disabled={!started || isDownloadingAll || !model.recipes.length}
+						isDownloading={isDownloadingAll}
+						accent={accent}
+						label={strings.downloadAllBtn || "Download all (.docx)"}
+						downloadingLabel={docLocale.downloading}
+						ariaLabel={strings.downloadAllBtn || "Download all (.docx)"}
+					/>
 				</div>
 			</div>
 		</motion.div>

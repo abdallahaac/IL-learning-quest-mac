@@ -5,6 +5,7 @@ import { Leaf, ExternalLink } from "lucide-react";
 import NoteComposer, {
 	downloadNotesAsWord,
 } from "../components/NoteComposer.jsx";
+import DownloadButton from "../components/DownloadButton.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 import { ACTIVITY_UI } from "../constants/content.js";
@@ -146,26 +147,53 @@ export default function Activity02({
 	const exportLinksHeading =
 		content?.resourcesHeading || (lang === "fr" ? "Ressources" : "Resources");
 
-	// download
-	const handleDownload = () => {
-		const html =
-			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
-		downloadNotesAsWord({
-			html,
-			downloadFileName: `Activity-${
+	// modular download state + handler
+	const [isDownloading, setIsDownloading] = useState(false);
+
+	// localized labels for the document (you can expand these if needed)
+	const docLocale = {
+		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
+		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
+	}[lang];
+
+	// async download handler that prevents duplicates and localizes filename
+	const handleDownload = async () => {
+		// guard: must have notes and not be already downloading
+		if (!started || isDownloading) return;
+
+		setIsDownloading(true);
+
+		try {
+			const html =
+				typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+			const suffix = (docLocale?.suffix || "Reflection").replace(/\s+/g, "-");
+			const filename = `Activity-${
 				content?.id || String(activityNumber).padStart(2, "0")
-			}-Reflection.doc`,
-			docTitle: title,
-			docSubtitle: content?.subtitle,
-			activityNumber,
-			docIntro: tipText,
-			includeLinks: hasRealLinks,
-			linksHeading: exportLinksHeading,
-			// keep original labels in the exported DOC unless you want the suffix there too
-			pageLinks: linkItems,
-			headingColor: accent,
-			accent,
-		});
+			}-${suffix}.doc`;
+
+			await Promise.resolve(
+				downloadNotesAsWord({
+					html,
+					downloadFileName: filename,
+					docTitle: title,
+					docSubtitle: content?.subtitle,
+					activityNumber,
+					docIntro: tipText,
+					includeLinks: hasRealLinks,
+					linksHeading: exportLinksHeading,
+					pageLinks: linkItems,
+					headingColor: accent,
+					accent,
+					locale: lang,
+				})
+			);
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error("downloadNotesAsWord failed:", err);
+		} finally {
+			// keep button disabled briefly to avoid accidental repeat-clicks
+			setTimeout(() => setIsDownloading(false), 700);
+		}
 	};
 
 	return (
@@ -374,6 +402,7 @@ export default function Activity02({
 					pageLinks={linkItems}
 					headingColor={EMERALD_700}
 					showDownloadButton={false}
+					onRequestDownload={handleDownload} // <- parent-managed download handler
 				/>
 
 				{/* actions */}
@@ -384,15 +413,16 @@ export default function Activity02({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
+
+					<DownloadButton
 						onClick={handleDownload}
-						className="px-4 py-2 rounded-lg text-white"
-						style={{ backgroundColor: accent }}
-						title={L.downloadDoc}
-					>
-						{L.downloadDoc}
-					</button>
+						disabled={!started || isDownloading}
+						isDownloading={isDownloading}
+						accent={accent}
+						label={L.downloadDoc}
+						downloadingLabel={docLocale.downloadingLabel}
+						ariaLabel={L.downloadDoc}
+					/>
 				</div>
 			</div>
 		</motion.div>

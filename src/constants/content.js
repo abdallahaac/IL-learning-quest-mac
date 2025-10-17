@@ -1038,7 +1038,7 @@ export const ACTIVITIES_CONTENT = {
 				"Ajoutez une étape et appuyez sur Entrée (ex.: Rincer le riz sauvage jusqu'à ce que l'eau soit claire)",
 			addBtn: "Ajouter",
 			saveRecipeBtn: "Enregistrer la recette",
-			downloadAllBtn: "Télécharger tout (.docx)",
+			downloadAllBtn: "Télécharger  (.docx)",
 			savedRecipesHeading: "Recettes enregistrées",
 			nothingHere: "Rien pour l'instant. Enregistrez une recette ci-dessus.",
 			openLinkLabel: "Ouvrir le lien",

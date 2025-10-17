@@ -6,13 +6,43 @@ import {
 	safe,
 } from "./recipeUtils.js";
 
+/* sanitize filename: remove diacritics, collapse whitespace, remove bad chars */
+function sanitizeFilename(input = "") {
+	return String(input || "")
+		.normalize("NFKD") // decompose accents
+		.replace(/[\u0300-\u036f]/g, "") // strip diacritics
+		.replace(/[^0-9A-Za-z.\-_ ]+/g, "") // keep ., -, _, space
+		.trim()
+		.replace(/\s+/g, "-") // spaces -> dashes
+		.replace(/-+/g, "-") // collapse repeated dashes
+		.replace(/^\-+|\-+$/g, ""); // trim leading/trailing dash
+}
+
+function ensureExtension(filename = "", ext = ".docx") {
+	if (!filename) return `download${ext}`;
+	const hasExt = /\.[A-Za-z0-9]+$/.test(filename);
+	return hasExt ? filename : `${filename}${ext}`;
+}
+
+function detectLang() {
+	try {
+		const qs = new URLSearchParams(window.location.search);
+		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
+		const html = document.documentElement?.getAttribute("lang");
+		if (html) return html.toLowerCase().slice(0, 2);
+		const nav = navigator?.language || navigator?.languages?.[0];
+		if (nav) return nav.toLowerCase().slice(0, 2);
+	} catch {}
+	return "en";
+}
+
 /**
  * downloadAllDocx(params)
  * - items: array of recipe objects
- * - strings: localized strings
- * - activityNumber: number
- * - accent: hex color
- * - referenceLink: { label, url }
+ * - strings: localized strings (optional)
+ * - activityNumber, accent, referenceLink (optional)
+ * - filename: provided filename to use-as-is (optional)
+ * - locale: explicit locale tag ('en'|'fr', etc.) (optional) — THIS OVERRIDES auto-detect
  */
 export async function downloadAllDocx({
 	items,
@@ -20,17 +50,61 @@ export async function downloadAllDocx({
 	activityNumber = 3,
 	accent = "#b45309",
 	referenceLink = { label: "", url: "" },
-}) {
+	filename: providedFilename,
+	locale,
+} = {}) {
 	if (!Array.isArray(items) || items.length === 0) return;
 
-	const activityLabel = strings.activityLabel || "Activity";
-	const baseTitle = strings.title || "Make a Traditional Recipe";
-	const title = `${activityLabel} ${activityNumber}: ${baseTitle}`;
-	const fileName = `activity-${activityNumber}-recipes.docx`;
+	const lang = (locale || strings.lang || detectLang() || "en").toLowerCase();
 
-	const ingredientsHeading = strings.ingredientsHeading || "Ingredients";
-	const directionsHeading = strings.directionsLabel || "Directions";
-	const resourcesHeading = strings.resourcesHeading || "Resources";
+	const activityLabel =
+		strings.activityLabel || (lang === "fr" ? "Activité" : "Activity");
+
+	const baseTitle =
+		strings.title ||
+		(lang === "fr"
+			? "Préparez une recette traditionnelle"
+			: "Make a Traditional Recipe");
+	const title = `${activityLabel} ${activityNumber}: ${baseTitle}`;
+
+	const ingredientsHeading =
+		strings.ingredientsHeading ||
+		(lang === "fr" ? "Ingrédients" : "Ingredients");
+	const directionsHeading =
+		strings.directionsLabel || (lang === "fr" ? "Étapes" : "Directions");
+	const resourcesHeading =
+		strings.resourcesHeading || (lang === "fr" ? "Ressources" : "Resources");
+
+	// saved recipes header text (localized)
+	const savedHeading =
+		strings.savedRecipesHeading ||
+		(lang === "fr" ? "Recettes enregistrées" : "Saved recipes");
+
+	// Only use dedicated suffix keys for filename
+	const defaultAllSuffix =
+		strings.downloadAllSuffix || (lang === "fr" ? "Recettes" : "Recipes");
+
+	const activityTag =
+		sanitizeFilename(activityLabel).toLowerCase() || "activity";
+	const suffixTag =
+		sanitizeFilename(defaultAllSuffix).toLowerCase() ||
+		(lang === "fr" ? "recettes" : "recipes");
+
+	let fileName;
+	if (providedFilename) {
+		let candidate = String(providedFilename || "").trim();
+		const parts = candidate.split(".");
+		if (parts.length > 1) parts.pop();
+		const base =
+			sanitizeFilename(parts.join(".")).toLowerCase() ||
+			`${activityTag}-${String(activityNumber).padStart(2, "0")}-${suffixTag}`;
+		fileName = ensureExtension(base, ".docx");
+	} else {
+		fileName = `${activityTag}-${String(activityNumber).padStart(
+			2,
+			"0"
+		)}-${suffixTag}.docx`;
+	}
 
 	try {
 		const {
@@ -60,11 +134,16 @@ export async function downloadAllDocx({
 			],
 		});
 
+		const tipDefault =
+			lang === "fr"
+				? "Essayez de préparer une recette traditionnelle."
+				: "Try your hand at making a traditional recipe.";
+
 		const tip1 = new Paragraph({
 			spacing: { before: 0, after: 160 },
 			children: [
 				new TextRun({
-					text: strings.tip || "Try your hand at making a traditional recipe.",
+					text: strings.tip || tipDefault,
 					italics: true,
 					font: "Arial",
 					size: 24,
@@ -103,7 +182,21 @@ export async function downloadAllDocx({
 			],
 		});
 
-		const sections = [H1, tip1, resourceHeading, resourceLine];
+		// add saved recipes heading BEFORE listing the saved items
+		const savedHeader = new Paragraph({
+			spacing: { before: 60, after: 120 },
+			children: [
+				new TextRun({
+					text: savedHeading,
+					bold: true,
+					font: "Arial",
+					size: 32,
+					color: accent,
+				}),
+			],
+		});
+
+		const sections = [H1, tip1, resourceHeading, resourceLine, savedHeader];
 
 		items
 			.slice()
@@ -113,7 +206,9 @@ export async function downloadAllDocx({
 					spacing: { before: idx === 0 ? 200 : 300, after: 120 },
 					children: [
 						new TextRun({
-							text: r.name || "Untitled recipe",
+							text:
+								r.name ||
+								(lang === "fr" ? "Recette sans titre" : "Untitled recipe"),
 							bold: true,
 							font: "Arial",
 							size: 32,
@@ -121,7 +216,8 @@ export async function downloadAllDocx({
 						}),
 						new TextRun({ text: "  •  ", font: "Arial", size: 24 }),
 						new TextRun({
-							text: labelForGroup(r.group),
+							// use localized group label now
+							text: labelForGroup(r.group, lang),
 							font: "Arial",
 							size: 24,
 							italics: true,
@@ -133,7 +229,9 @@ export async function downloadAllDocx({
 					spacing: { before: 0, after: 120 },
 					children: [
 						new TextRun({
-							text: new Date(r.createdAt).toLocaleString(),
+							text: new Date(r.createdAt).toLocaleString(
+								lang === "fr" ? "fr-CA" : "en-CA"
+							),
 							font: "Arial",
 							size: 20,
 							color: "6B7280",
@@ -250,16 +348,10 @@ export async function downloadAllDocx({
 		});
 
 		const blob = await Packer.toBlob(doc);
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = fileName;
-		document.body.appendChild(a);
-		a.click();
-		a.remove();
-		URL.revokeObjectURL(url);
+		downloadBlob(blob, fileName);
 	} catch (err) {
-		// fallback to Word-compatible HTML (keeps behaviour from original)
+		// HTML fallback with localized filename (safer to use .doc for HTML fallback)
+		console.error("Fallback to HTML download:", err);
 		const esc = (s = "") =>
 			String(s)
 				.replaceAll("&", "&amp;")
@@ -285,9 +377,11 @@ export async function downloadAllDocx({
 				return `
           <h2 style="font-size:16pt; color:${esc(
 						accent
-					)}; margin:18pt 0 6pt;">${esc(r.name || "Untitled recipe")}</h2>
+					)}; margin:18pt 0 6pt;">${esc(
+					r.name || (lang === "fr" ? "Recette sans titre" : "Untitled recipe")
+				)}</h2>
           <p style="margin:0 0 6pt; color:#6B7280;">${esc(
-						labelForGroup(r.group)
+						labelForGroup(r.group, lang)
 					)} • ${esc(new Date(r.createdAt).toLocaleString())}</p>
           <h3 style="font-size:13pt; color:${esc(
 						accent
@@ -298,9 +392,7 @@ export async function downloadAllDocx({
 			})
 			.join("");
 
-		const title = `${activityLabel} ${activityNumber}: ${esc(
-			strings.title || "Make a Traditional Recipe"
-		)}`;
+		const title = `${activityLabel} ${activityNumber}: ${esc(baseTitle)}`;
 		const html = `
       <html>
         <head><meta charset="utf-8"><title>${esc(title)}</title></head>
@@ -323,56 +415,248 @@ export async function downloadAllDocx({
 			referenceLink.url
 		)}</a>
           </p>
+
+          <h2 style="font-size:18pt; color:${esc(
+						accent
+					)}; margin:10pt 0 8pt;">${esc(savedHeading)}</h2>
+
           ${rows}
         </body>
       </html>
     `.trim();
 
 		const blob = new Blob([html], { type: "application/msword" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `activity-${activityNumber}-recipes.doc`;
-		document.body.appendChild(a);
-		a.click();
-		a.remove();
-		URL.revokeObjectURL(url);
+		const fallbackFileName = (
+			fileName ||
+			`${activityTag}-${String(activityNumber).padStart(
+				2,
+				"0"
+			)}-${suffixTag}.docx`
+		).replace(/\.docx?$/i, ".doc");
+		downloadBlob(blob, fallbackFileName);
 	}
 }
 
 /**
- * downloadOne(r, strings, activityNumber, accent, referenceLink)
- * Writes a simple text blob (plain text) and downloads it
+ * downloadOne(r, strings, activityNumber, accent, referenceLink, options)
+ * - options: { filename?: string, locale?: 'en'|'fr' }
+ *
+ * Builds a DOCX for a single recipe (falls back to plain text).
  */
-export function downloadOne(
+export async function downloadOne(
 	r,
 	strings = {},
 	activityNumber = 3,
 	accent = "#b45309",
-	referenceLink = { url: "" }
+	referenceLink = { url: "" },
+	options = {}
 ) {
-	const activityLabel = strings.activityLabel || "Activity";
-	const ingredientsHeading = strings.ingredientsHeading || "Ingredients";
-	const directionsHeading = strings.directionsLabel || "Directions";
+	const { filename: providedFilename, locale } = options || {};
 
-	const body = [
-		`${activityLabel} ${activityNumber}: ${
-			strings.title || "Make a Traditional Recipe"
-		}`,
-		`Group: ${labelForGroup(r.group)}`,
-		`Name: ${r.name}`,
-		"",
-		`${ingredientsHeading}:`,
-		...(r.ingredients || []).map((x) => `- ${formatIngredient(x)}`),
-		"",
-		(r.directions || []).length
-			? `${directionsHeading}:\n` +
-			  (r.directions || []).map((s, i) => `${i + 1}. ${s}`).join("\n") +
-			  "\n"
-			: "",
-		`Saved: ${new Date(r.createdAt).toLocaleString()}`,
-		`Source: ${referenceLink.url}`,
-	].join("\n");
+	const lang = (locale || strings.lang || detectLang() || "en").toLowerCase();
 
-	downloadBlob(body, `Recipe-${safe(r.name)}.txt`);
+	const activityLabel =
+		strings.activityLabel || (lang === "fr" ? "Activité" : "Activity");
+	const ingredientsHeading =
+		strings.ingredientsHeading ||
+		(lang === "fr" ? "Ingrédients" : "Ingredients");
+	const directionsHeading =
+		strings.directionsLabel || (lang === "fr" ? "Étapes" : "Directions");
+
+	const defaultSingleSuffix =
+		strings.downloadOneSuffix || (lang === "fr" ? "Recette" : "Recipe");
+
+	const activityTag =
+		sanitizeFilename(activityLabel).toLowerCase() || "activity";
+	const singleTag =
+		sanitizeFilename(defaultSingleSuffix).toLowerCase() ||
+		(lang === "fr" ? "recette" : "recipe");
+	const nameTag =
+		sanitizeFilename(r?.name || "recipe").toLowerCase() || "recipe";
+
+	let fileName;
+	if (providedFilename) {
+		const parts = String(providedFilename || "").split(".");
+		if (parts.length > 1) parts.pop();
+		const base =
+			sanitizeFilename(parts.join(".")).toLowerCase() ||
+			`${activityTag}-${String(activityNumber).padStart(
+				2,
+				"0"
+			)}-${singleTag}-${nameTag}`;
+		fileName = ensureExtension(base, ".docx");
+	} else {
+		fileName = `${activityTag}-${String(activityNumber).padStart(
+			2,
+			"0"
+		)}-${singleTag}-${nameTag}.docx`;
+	}
+
+	try {
+		const { Document, Packer, Paragraph, TextRun, AlignmentType } =
+			await import("docx");
+
+		const titleP = new Paragraph({
+			alignment: AlignmentType.LEFT,
+			spacing: { before: 0, after: 200 },
+			children: [
+				new TextRun({
+					text: `${activityLabel} ${activityNumber}: ${
+						strings.title ||
+						(lang === "fr"
+							? "Préparez une recette traditionnelle"
+							: "Make a Traditional Recipe")
+					}`,
+					bold: true,
+					size: 28,
+					font: "Arial",
+					color: accent,
+				}),
+			],
+		});
+
+		const nameP = new Paragraph({
+			spacing: { before: 120, after: 120 },
+			children: [
+				new TextRun({
+					text: `${lang === "fr" ? "Nom" : "Name"}: ${r.name || "Untitled"}`,
+					bold: true,
+					size: 24,
+					font: "Arial",
+				}),
+			],
+		});
+
+		const groupP = new Paragraph({
+			spacing: { before: 0, after: 120 },
+			children: [
+				new TextRun({
+					text: `${lang === "fr" ? "Groupe" : "Group"}: ${labelForGroup(
+						r.group,
+						lang
+					)}`,
+					size: 20,
+					font: "Arial",
+				}),
+			],
+		});
+
+		const ingHeader = new Paragraph({
+			spacing: { before: 60, after: 60 },
+			children: [
+				new TextRun({
+					text: ingredientsHeading,
+					bold: true,
+					size: 22,
+					font: "Arial",
+					color: accent,
+				}),
+			],
+		});
+
+		const ingParas = (r.ingredients || []).map(
+			(it) =>
+				new Paragraph({
+					spacing: { before: 0, after: 40 },
+					children: [
+						new TextRun({
+							text: `- ${formatIngredient(it)}`,
+							size: 20,
+							font: "Arial",
+						}),
+					],
+				})
+		);
+
+		const dirHeader = new Paragraph({
+			spacing: { before: 80, after: 60 },
+			children: [
+				new TextRun({
+					text: directionsHeading,
+					bold: true,
+					size: 22,
+					font: "Arial",
+					color: accent,
+				}),
+			],
+		});
+
+		const dirParas = (r.directions || []).map(
+			(s, i) =>
+				new Paragraph({
+					spacing: { before: 0, after: 40 },
+					children: [
+						new TextRun({ text: `${i + 1}. ${s}`, size: 20, font: "Arial" }),
+					],
+				})
+		);
+
+		const savedP = new Paragraph({
+			spacing: { before: 60, after: 20 },
+			children: [
+				new TextRun({
+					text: `${lang === "fr" ? "Enregistré le" : "Saved"}: ${new Date(
+						r.createdAt
+					).toLocaleString(lang === "fr" ? "fr-CA" : "en-CA")}`,
+					size: 18,
+					font: "Arial",
+					color: "6B7280",
+				}),
+			],
+		});
+
+		const srcP = new Paragraph({
+			spacing: { before: 0, after: 20 },
+			children: [
+				new TextRun({
+					text: `${lang === "fr" ? "Source" : "Source"}: ${
+						referenceLink.url || ""
+					}`,
+					size: 18,
+					font: "Arial",
+				}),
+			],
+		});
+
+		const children = [titleP, nameP, groupP, ingHeader, ...ingParas];
+		if (dirParas.length) children.push(dirHeader, ...dirParas);
+		children.push(savedP, srcP);
+
+		const doc = new Document({ sections: [{ properties: {}, children }] });
+		const blob = await Packer.toBlob(doc);
+		downloadBlob(blob, fileName);
+	} catch (err) {
+		const body = [
+			`${activityLabel} ${activityNumber}: ${
+				strings.title ||
+				(lang === "fr"
+					? "Préparez une recette traditionnelle"
+					: "Make a Traditional Recipe")
+			}`,
+			`${lang === "fr" ? "Groupe" : "Group"}: ${labelForGroup(r.group, lang)}`,
+			`${lang === "fr" ? "Nom" : "Name"}: ${r.name}`,
+			"",
+			`${ingredientsHeading}:`,
+			...(r.ingredients || []).map((x) => `- ${formatIngredient(x)}`),
+			"",
+			(r.directions || []).length
+				? `${directionsHeading}:\n` +
+				  (r.directions || []).map((s, i) => `${i + 1}. ${s}`).join("\n") +
+				  "\n"
+				: "",
+			`${lang === "fr" ? "Enregistré le" : "Saved"}: ${new Date(
+				r.createdAt
+			).toLocaleString(lang === "fr" ? "fr-CA" : "en-CA")}`,
+			`${lang === "fr" ? "Source" : "Source"}: ${referenceLink.url || ""}`,
+		].join("\n");
+
+		const finalFileName = (
+			fileName ||
+			`${activityTag}-${String(activityNumber).padStart(
+				2,
+				"0"
+			)}-${singleTag}-${nameTag}.txt`
+		).replace(/\.(docx?|doc)$/i, ".txt");
+		downloadBlob(body, finalFileName);
+	}
 }
