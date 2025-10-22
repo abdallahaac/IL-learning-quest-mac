@@ -1,4 +1,5 @@
 // src/pages/activities/Activity08.jsx
+
 import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Rainbow } from "lucide-react";
@@ -42,20 +43,20 @@ export default function Activity08({
 
 	const cdata = a8Content?.cdata || {};
 
-	// TAKE THE TITLE FROM CONTENT (or fallback)
+	// title from content (or fallback)
 	const pageTitle =
 		a8Content?.title ||
 		cdata?.title ||
 		(lang === "fr" ? "Activité" : "Activity");
 
-	// TAKE INSTRUCTIONS FROM CONTENT (cdata.instructionsHtml preferred), otherwise use prompt/tip
+	// instructions from content (prefer HTML), else prompt/tip
 	let instructionsHtml =
 		cdata?.instructionsHtml ||
 		a8Content?.instructionsHtml ||
 		(a8Content?.prompt ? `<p>${a8Content.prompt}</p>` : "") ||
 		"";
 
-	// fallback plain tip text (used when we don't have HTML)
+	// fallback tip text if HTML missing
 	const tipText =
 		a8Content?.tip ||
 		a8Content?.prompt ||
@@ -70,9 +71,7 @@ export default function Activity08({
 
 	const pageLinks = Array.isArray(a8Content?.links) ? a8Content.links : [];
 
-	// ----- ADVOCATES parsing: build advocates array + name->bio map from content.resources -----
-	// content.resources entries are strings like:
-	//   "Dr. James Makokis — Cree Two-Spirit doctor and speaker"
+	// ----- ADVOCATES parsing: build list + name->bio map from content.resources -----
 	const rawResources = Array.isArray(a8Content?.resources)
 		? a8Content.resources
 		: [];
@@ -81,7 +80,6 @@ export default function Activity08({
 		.map((item) => {
 			if (!item) return null;
 			if (typeof item === "string") {
-				// split on em-dash, en-dash or hyphen (tolerant)
 				const parts = item
 					.split(/—|–| - /)
 					.map((s) => s.trim())
@@ -90,7 +88,6 @@ export default function Activity08({
 				const bio = parts.slice(1).join(" — ").trim() || "";
 				return { name, bio };
 			}
-			// already an object
 			return {
 				name: item.name || item.label || String(item),
 				bio: item.bio || "",
@@ -147,16 +144,16 @@ export default function Activity08({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	// decide whether to show advocates as 4th card (default: true)
+	// whether to show advocates as 4th card
 	const showAdvocatesCard =
 		a8Content?.showAdvocatesCard === undefined
 			? true
 			: Boolean(a8Content.showAdvocatesCard);
 
-	// slice first3 BEFORE using it in JSX
+	// first three links for cards
 	const first3 = pageLinks.slice(0, 3);
 
-	// card sizing config: supports array of either strings (minHeight) or objects:
+	// optional per-card sizing from content.cardHeights
 	const cardHeightsConfig = Array.isArray(a8Content?.cardHeights)
 		? a8Content.cardHeights
 		: [];
@@ -267,7 +264,11 @@ export default function Activity08({
 									>
 										{tipText}
 										<br />
-										<strong>Share what you learned with your team.</strong>
+										<strong>
+											{lang === "fr"
+												? "Partagez vos apprentissages avec votre équipe."
+												: "Share what you learned with your team."}
+										</strong>
 									</p>
 								)}
 							</div>
@@ -278,7 +279,7 @@ export default function Activity08({
 				{/* ===== Resources + Advocates as LinkCards (grid) ===== */}
 				<motion.section variants={gridStagger} initial="hidden" animate="show">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-stretch">
-						{/* Explicit LinkCard 1 */}
+						{/* LinkCard 1 */}
 						<motion.div variants={cardPop}>
 							{first3[0] ? (
 								<LinkCard
@@ -299,7 +300,7 @@ export default function Activity08({
 							)}
 						</motion.div>
 
-						{/* Explicit LinkCard 2 */}
+						{/* LinkCard 2 */}
 						<motion.div variants={cardPop}>
 							{first3[1] ? (
 								<LinkCard
@@ -320,7 +321,7 @@ export default function Activity08({
 							)}
 						</motion.div>
 
-						{/* Explicit LinkCard 3 */}
+						{/* LinkCard 3 */}
 						<motion.div variants={cardPop}>
 							{first3[2] ? (
 								<LinkCard
@@ -401,7 +402,7 @@ export default function Activity08({
 					<button
 						type="button"
 						onClick={() => {
-							/* reuse existing downloadPageDocx logic if you keep it */
+							/* hook up a page-level .docx export if/when you add it */
 						}}
 						className="px-4 py-2 rounded-lg text-white"
 						style={{ backgroundColor: accent }}

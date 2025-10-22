@@ -281,6 +281,7 @@ export default function Activity04({
 										Icon={Globe2}
 										enOnlySuffix={enOnlySuffix}
 										variants={cardPop}
+										cardHeight={"170px"}
 									/>
 								</motion.div>
 							))}

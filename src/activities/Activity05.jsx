@@ -265,6 +265,7 @@ export default function Activity05({
 											Icon={Film}
 											enOnlySuffix={enOnlySuffix}
 											variants={cardPop}
+											cardHeight={"160px"}
 										/>
 									</motion.div>
 								);

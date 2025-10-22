@@ -495,6 +495,8 @@ export default function Activity03({
 							Icon={Utensils}
 							openLinkLabel={strings.openLinkLabel}
 							variants={cardPop}
+							cardHeight={"140px"}
+							enOnlySuffix="(en anglais seulement)"
 						/>
 					</motion.section>
 				) : null}

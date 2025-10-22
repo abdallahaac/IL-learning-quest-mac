@@ -1,7 +1,9 @@
 // src/pages/activities/Activity07.jsx
+
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { Feather, BookOpen, ExternalLink } from "lucide-react";
+import { Feather, BookOpen } from "lucide-react";
+import LinkCard from "../components/LinkCard.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 import { ACTIVITIES_CONTENT } from "../constants/content.js";
@@ -22,7 +24,7 @@ function detectLang() {
 }
 
 export default function Activity07({
-	content, // still accepted but we prefer ACTIVITIES_CONTENT source
+	// content prop is ignored on purpose; canonical source is ACTIVITIES_CONTENT
 	notes,
 	onNotes,
 	completed,
@@ -32,15 +34,13 @@ export default function Activity07({
 	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
 	const reduceMotion = useReducedMotion();
 
-	// canonical source: ACTIVITIES_CONTENT.a7[lang] or fallback to provided prop
+	// canonical source: ACTIVITIES_CONTENT.a7[lang] with fallback to .en
 	const a7Content =
-		(ACTIVITIES_CONTENT &&
-			ACTIVITIES_CONTENT.a7 &&
+		(ACTIVITIES_CONTENT?.a7 &&
 			(ACTIVITIES_CONTENT.a7[lang] || ACTIVITIES_CONTENT.a7.en)) ||
-		content ||
 		{};
 
-	// UI strings grouped under a7Content.ui
+	// UI strings from content (with safe fallbacks)
 	const ui = a7Content.ui || {};
 	const uiSafe = {
 		instructionsPill:
@@ -124,12 +124,13 @@ export default function Activity07({
 		(lang === "fr"
 			? "Apprenez à prononcer trois mots..."
 			: "Learn to say three words...");
-	const placeholder =
-		a7Content?.notePlaceholder ||
-		(lang === "fr"
-			? "Cliquez ou tapez ici pour saisir du texte."
-			: "Words/phrases and where they’re used…");
 	const instructionsHtml = a7Content?.instructionsHtml ?? null;
+
+	// outlets for UI from a7Content.outlets
+	const outletTiles = Array.isArray(a7Content?.outlets)
+		? a7Content.outlets
+		: [];
+	const exportLinks = Array.isArray(a7Content?.links) ? a7Content.links : [];
 
 	// normalize notes -> object with cards
 	const initialModel = useMemo(() => {
@@ -150,14 +151,9 @@ export default function Activity07({
 	};
 
 	useEffect(() => {
-		if (!notes) {
-			setModel({ text: "", bullets: [], cards: [] });
-			return;
-		}
-		if (typeof notes === "string") {
-			setModel({ text: notes, bullets: [], cards: [] });
-			return;
-		}
+		if (!notes) return setModel({ text: "", bullets: [], cards: [] });
+		if (typeof notes === "string")
+			return setModel({ text: notes, bullets: [], cards: [] });
 		setModel({
 			text: notes.text || "",
 			bullets: Array.isArray(notes.bullets) ? notes.bullets : [],
@@ -190,9 +186,14 @@ export default function Activity07({
 				TableCell,
 				WidthType,
 				TextRun,
-				AlignmentType,
 				BorderStyle,
 			} = await import("docx");
+
+			const Body = (t) =>
+				new Paragraph({
+					spacing: { before: 0, after: 120, line: 360 },
+					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
+				});
 
 			const heading = new Paragraph({
 				children: [
@@ -215,34 +216,8 @@ export default function Activity07({
 
 			const headerRow = new TableRow({
 				children: [
-					new TableCell({
-						children: [
-							new Paragraph({
-								children: [
-									new TextRun({
-										text: wordHeader,
-										bold: true,
-										font: "Arial",
-										size: 24,
-									}),
-								],
-							}),
-						],
-					}),
-					new TableCell({
-						children: [
-							new Paragraph({
-								children: [
-									new TextRun({
-										text: meaningHeader,
-										bold: true,
-										font: "Arial",
-										size: 24,
-									}),
-								],
-							}),
-						],
-					}),
+					new TableCell({ children: [Body(wordHeader)] }),
+					new TableCell({ children: [Body(meaningHeader)] }),
 				],
 				tableHeader: true,
 			});
@@ -251,32 +226,8 @@ export default function Activity07({
 				({ front, back }) =>
 					new TableRow({
 						children: [
-							new TableCell({
-								children: [
-									new Paragraph({
-										children: [
-											new TextRun({
-												text: String(front),
-												font: "Arial",
-												size: 24,
-											}),
-										],
-									}),
-								],
-							}),
-							new TableCell({
-								children: [
-									new Paragraph({
-										children: [
-											new TextRun({
-												text: String(back),
-												font: "Arial",
-												size: 24,
-											}),
-										],
-									}),
-								],
-							}),
+							new TableCell({ children: [Body(String(front))] }),
+							new TableCell({ children: [Body(String(back))] }),
 						],
 					})
 			);
@@ -316,31 +267,30 @@ export default function Activity07({
 			a.click();
 			a.remove();
 			URL.revokeObjectURL(url);
-		} catch (err) {
-			// fallback HTML
+		} catch {
+			// HTML fallback
 			const esc = (s = "") =>
 				String(s)
 					.replaceAll("&", "&amp;")
 					.replaceAll("<", "&lt;")
 					.replaceAll(">", "&gt;");
-			const rowsHtml = (Array.isArray(model.cards) ? model.cards : [])
-				.filter((c) => c?.front?.trim() && c?.back?.trim())
+			const rowsHtml = cards
 				.map((c) => `<tr><td>${esc(c.front)}</td><td>${esc(c.back)}</td></tr>`)
 				.join("");
 			const html = `
-        <html>
-          <head><meta charset="utf-8"><title>${esc(baseTitle)}</title></head>
-          <body style="font-family:Arial;">
-            <h1>${esc(baseTitle)}</h1>
-            <p><em>${esc(introText)}</em></p>
-            <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;">
-              <thead><tr><th>${esc(wordHeader)}</th><th>${esc(
+        <html><head><meta charset="utf-8"><title>${esc(
+					baseTitle
+				)}</title></head>
+        <body style="font-family:Arial;">
+          <h1>${esc(baseTitle)}</h1>
+          <p><em>${esc(introText)}</em></p>
+          <table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;">
+            <thead><tr><th>${esc(wordHeader)}</th><th>${esc(
 				meaningHeader
 			)}</th></tr></thead>
-              <tbody>${rowsHtml}</tbody>
-            </table>
-          </body>
-        </html>`.trim();
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </body></html>`.trim();
 			const blob = new Blob([html], { type: "application/msword" });
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
@@ -353,15 +303,6 @@ export default function Activity07({
 		}
 	};
 
-	const downloadOneCardDocx = async (i) => {
-		const c = model.cards?.[i];
-		if (!c?.front?.trim() || !c?.back?.trim()) return;
-		const original = Array.isArray(model.cards) ? [...model.cards] : [];
-		saveNotes({ ...model, cards: [c] });
-		await downloadCardsDocx();
-		saveNotes({ ...model, cards: original });
-	};
-
 	/* ------- full page export (docx) ------- */
 	const downloadPageDocx = async () => {
 		const baseTitle = pageTitle;
@@ -369,8 +310,8 @@ export default function Activity07({
 		const subtitle = a7Content?.subtitle || "";
 		const headingHex = accent;
 
-		// use content.links for resources
-		const resources = Array.isArray(a7Content?.links) ? a7Content.links : [];
+		// use content.links for resources (export)
+		const resources = exportLinks;
 
 		const bullets = (model.bullets || []).filter(Boolean);
 		const cards = (model.cards || []).filter(
@@ -393,7 +334,6 @@ export default function Activity07({
 				ExternalHyperlink,
 			} = await import("docx");
 
-			// helpers
 			const Title = (t) =>
 				new Paragraph({
 					alignment: AlignmentType.LEFT,
@@ -408,7 +348,6 @@ export default function Activity07({
 						}),
 					],
 				});
-
 			const SubtitleP = (t) =>
 				new Paragraph({
 					spacing: { before: 0, after: 240 },
@@ -416,7 +355,6 @@ export default function Activity07({
 						new TextRun({ text: t, italics: true, size: 28, font: "Arial" }),
 					],
 				});
-
 			const H2 = (t) =>
 				new Paragraph({
 					spacing: { before: 280, after: 160 },
@@ -430,20 +368,17 @@ export default function Activity07({
 						}),
 					],
 				});
-
 			const Body = (t) =>
 				new Paragraph({
 					spacing: { before: 0, after: 120, line: 360 },
 					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
 				});
-
 			const BulletP = (t) =>
 				new Paragraph({
 					spacing: { before: 0, after: 60 },
 					bullet: { level: 0 },
 					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
 				});
-
 			const BulletLink = (label, url) =>
 				new Paragraph({
 					spacing: { before: 0, after: 60 },
@@ -470,7 +405,7 @@ export default function Activity07({
 			children.push(Title(title));
 			if (subtitle) children.push(SubtitleP(subtitle));
 
-			// Activity tip (from content)
+			// Activity tip
 			children.push(H2(uiSafe.doc.activityTipHeader));
 			children.push(Body(tipText));
 
@@ -508,7 +443,6 @@ export default function Activity07({
 					],
 					tableHeader: true,
 				});
-
 				const bodyRows = cards.map((c) => {
 					const f = (c?.front || "").trim();
 					const b = (c?.back || "").trim();
@@ -519,7 +453,6 @@ export default function Activity07({
 						],
 					});
 				});
-
 				const table = new Table({
 					width: { size: 100, type: WidthType.PERCENTAGE },
 					rows: [headerRow, ...bodyRows],
@@ -540,7 +473,6 @@ export default function Activity07({
 						},
 					},
 				});
-
 				children.push(table);
 			}
 
@@ -565,14 +497,14 @@ export default function Activity07({
 			a.click();
 			a.remove();
 			URL.revokeObjectURL(url);
-		} catch (err) {
-			// fallback HTML (keeps same order and headings)
+		} catch {
+			// dead-simple HTML fallback
 			const esc = (s = "") =>
 				String(s)
 					.replaceAll("&", "&amp;")
 					.replaceAll("<", "&lt;")
 					.replaceAll(">", "&gt;");
-			const resHtml = (Array.isArray(a7Content?.links) ? a7Content.links : [])
+			const resHtml = exportLinks
 				.map(
 					(r) =>
 						`<li><a href="${
@@ -596,52 +528,46 @@ export default function Activity07({
 				)
 				.join("");
 			const html = `
-        <html>
-          <head><meta charset="utf-8"><title>${esc(title)}</title></head>
-          <body style="font-family:Arial; line-height:1.5;">
-            ${
-							subtitle
-								? `<p style="font-style:italic">${esc(subtitle)}</p>`
-								: ""
-						}
-            <h2 style="color:${esc(accent)}">${esc(
+        <html><head><meta charset="utf-8"><title>${esc(title)}</title></head>
+        <body style="font-family:Arial; line-height:1.5;">
+          ${subtitle ? `<p style="font-style:italic">${esc(subtitle)}</p>` : ""}
+          <h2 style="color:${esc(accent)}">${esc(
 				uiSafe.doc.activityTipHeader
 			)}</h2>
-            <p>${esc(tipText)}</p>
-            ${
-							resHtml
-								? `<h2 style="color:${esc(accent)}">${esc(
-										uiSafe.doc.resourcesHeader
-								  )}</h2><ul>${resHtml}</ul>`
-								: ""
-						}
-            ${
-							model.text?.trim()
-								? `<h2 style="color:${esc(accent)}">${esc(
-										uiSafe.doc.savedResponseHeader
-								  )}</h2><p>${esc(model.text).replace(/\n/g, "<br/>")}</p>`
-								: ""
-						}
-            ${
-							bulletsHtml
-								? `<h2 style="color:${esc(accent)}">${esc(
-										uiSafe.doc.bulletPointsHeader
-								  )}</h2><ul>${bulletsHtml}</ul>`
-								: ""
-						}
-            ${
-							cardsHtml
-								? `<h2 style="color:${esc(accent)}">${esc(
-										uiSafe.doc.wordCardsHeader
-								  )}</h2><table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;"><thead><tr><th>${esc(
-										uiSafe.doc.wordColumn
-								  )}</th><th>${esc(
-										uiSafe.doc.meaningColumn
-								  )}</th></tr></thead><tbody>${cardsHtml}</tbody></table>`
-								: ""
-						}
-          </body>
-        </html>`.trim();
+          <p>${esc(tipText)}</p>
+          ${
+						resHtml
+							? `<h2 style="color:${esc(accent)}">${esc(
+									uiSafe.doc.resourcesHeader
+							  )}</h2><ul>${resHtml}</ul>`
+							: ""
+					}
+          ${
+						model.text?.trim()
+							? `<h2 style="color:${esc(accent)}">${esc(
+									uiSafe.doc.savedResponseHeader
+							  )}</h2><p>${esc(model.text).replace(/\n/g, "<br/>")}</p>`
+							: ""
+					}
+          ${
+						bulletsHtml
+							? `<h2 style="color:${esc(accent)}">${esc(
+									uiSafe.doc.bulletPointsHeader
+							  )}</h2><ul>${bulletsHtml}</ul>`
+							: ""
+					}
+          ${
+						cardsHtml
+							? `<h2 style="color:${esc(accent)}">${esc(
+									uiSafe.doc.wordCardsHeader
+							  )}</h2><table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;"><thead><tr><th>${esc(
+									uiSafe.doc.wordColumn
+							  )}</th><th>${esc(
+									uiSafe.doc.meaningColumn
+							  )}</th></tr></thead><tbody>${cardsHtml}</tbody></table>`
+							: ""
+					}
+        </body></html>`.trim();
 			const blob = new Blob([html], { type: "application/msword" });
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement("a");
@@ -657,7 +583,6 @@ export default function Activity07({
 	/* ----- flashcard editor state ----- */
 	const [newFront, setNewFront] = useState("");
 	const [newBack, setNewBack] = useState("");
-
 	const addCard = () => {
 		const f = newFront.trim();
 		const b = newBack.trim();
@@ -670,20 +595,17 @@ export default function Activity07({
 		setNewFront("");
 		setNewBack("");
 	};
-
 	const updateCard = (i, field, val) => {
 		const list = Array.isArray(model.cards) ? [...model.cards] : [];
 		if (!list[i]) return;
 		list[i] = { ...list[i], [field]: val };
 		saveNotes({ ...model, cards: list });
 	};
-
 	const removeCard = (i) => {
 		const list = Array.isArray(model.cards) ? [...model.cards] : [];
 		list.splice(i, 1);
 		saveNotes({ ...model, cards: list });
 	};
-
 	const handleNewKey = (e) => {
 		if (e.key === "Enter") {
 			e.preventDefault();
@@ -694,7 +616,6 @@ export default function Activity07({
 	const validCount = (model.cards || []).filter(
 		(c) => c?.front?.trim() && c?.back?.trim()
 	).length;
-
 	const [celebrate, setCelebrate] = useState(false);
 	const prevValidRef = useRef(validCount);
 	useEffect(() => {
@@ -703,34 +624,8 @@ export default function Activity07({
 		prevValidRef.current = validCount;
 	}, [validCount]);
 
-	// determine started based on cards (same gating as before)
+	// determine started based on cards
 	const started = hasActivityStarted(model, "cards");
-
-	// shared style classes
-	const linkCardBase =
-		"group block w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
-	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
-	const linkFooterBase =
-		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
-
-	const TitleRow = ({ Icon, children }) => (
-		<div className="relative flex items-center pl-14">
-			<div
-				className={badgeBase + " absolute left-0 top-1/2 -translate-y-1/2"}
-				style={{ backgroundColor: withAlpha(accent, "1A"), color: accent }}
-			>
-				<Icon className="w-5 h-5" />
-			</div>
-			<div className="w-full text-center font-medium text-slate-900 group-hover:underline">
-				{children}
-			</div>
-		</div>
-	);
-
-	// outlets for UI from a7Content.outlets
-	const outletTiles = Array.isArray(a7Content?.outlets)
-		? a7Content.outlets
-		: [];
 
 	return (
 		<motion.div
@@ -836,49 +731,59 @@ export default function Activity07({
 					</div>
 				</motion.header>
 
-				<motion.section
-					className="grid grid-cols-1 sm:grid-cols-2 gap-6"
-					initial="hidden"
-					animate="show"
-					variants={{
-						hidden: {},
-						show: {
-							transition: {
-								delayChildren: reduceMotion ? 0 : 0.1,
-								staggerChildren: reduceMotion ? 0 : 0.14,
+				{/* resource tiles */}
+				{(Array.isArray(outletTiles) && outletTiles.length) ||
+				(Array.isArray(exportLinks) && exportLinks.length) ? (
+					<motion.section
+						className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+						initial="hidden"
+						animate="show"
+						variants={{
+							hidden: {},
+							show: {
+								transition: {
+									delayChildren: reduceMotion ? 0 : 0.1,
+									staggerChildren: 0,
+								},
 							},
-						},
-					}}
-				>
-					{outletTiles.map((o, idx) => (
-						<motion.a
-							key={o.href || idx}
-							href={o.href}
-							target="_blank"
-							rel="noreferrer"
-							className={linkCardBase}
-							style={{ outlineColor: accent }}
-							title={`Open: ${o.title}`}
-							aria-label={`Open ${o.title} in a new tab`}
-							variants={{
-								hidden: { opacity: 0, y: 8 },
-								show: { opacity: 1, y: 0, transition: { duration: 0.35 } },
-							}}
-						>
-							<TitleRow Icon={BookOpen}>{o.title}</TitleRow>
-							{o.desc ? (
-								<p className="mt-2 text-sm text-gray-600 text-center max-w-sm mx-auto">
-									{o.desc}
-								</p>
-							) : null}
-							<div className={linkFooterBase} style={{ color: accent }}>
-								<ExternalLink className="w-4 h-4" />
-								<span>{uiSafe.openLinkLabel}</span>
-							</div>
-						</motion.a>
-					))}
-				</motion.section>
+						}}
+					>
+						{(() => {
+							const pick = (i) =>
+								(outletTiles && outletTiles[i]) ||
+								(exportLinks &&
+									exportLinks[i] && {
+										href: exportLinks[i].url,
+										title: exportLinks[i].label,
+										desc: "",
+									});
 
+							const items = [pick(0), pick(1), pick(2), pick(3)].filter(
+								Boolean
+							);
+
+							return items.map((r, idx) => {
+								const label = r.title || r.label || r.href || r.url || "Link";
+								const url = r.href || r.url;
+								const enOnly = Boolean(r.enOnly);
+								return (
+									<LinkCard
+										key={idx}
+										link={{ label, url }}
+										accent={accent}
+										Icon={BookOpen}
+										enOnlySuffix={enOnly ? " (en anglais seulement)" : ""}
+										openLinkLabel={uiSafe.openLinkLabel}
+										noMaxWidth
+										cardHeight={"150px"}
+									/>
+								);
+							});
+						})()}
+					</motion.section>
+				) : null}
+
+				{/* editor + preview */}
 				<section className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div className="bg-white/95 backdrop-blur border border-gray-200 rounded-xl shadow p-4">
 						<div className="flex items-center justify-between">
@@ -1117,10 +1022,9 @@ function Flashcards({ cards = [], accent = "#0D9488", uiSafe = {} }) {
 	);
 }
 
-// small i18n helper for Back/Next (keeps small UI localized)
+// small i18n helper for Back/Next
 function langLabel(key) {
 	if (typeof key !== "string") return key;
-	// only Back/Next localized here; other text comes from content
 	const map = {
 		Back: { en: "Back", fr: "Précédent" },
 		Next: { en: "Next", fr: "Suivant" },
@@ -1136,12 +1040,7 @@ function langLabel(key) {
 }
 
 /* ---- Celebration overlay ---- */
-function Celebration({
-	onClose,
-	accent = "#0D9488",
-	title = "Nice! You added 3 words 🎉",
-	body = "Keep going—add more and practice by flipping the cards.",
-}) {
+function Celebration({ onClose, accent = "#0D9488", title, body }) {
 	useEffect(() => {
 		const onEsc = (e) => e.key === "Escape" && onClose?.();
 		window.addEventListener("keydown", onEsc);

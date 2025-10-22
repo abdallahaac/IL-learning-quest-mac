@@ -614,7 +614,7 @@ export const RESOURCES_CONTENT_FR = {
 		openLink: "Ouvrir le lien",
 		favorite: "Ajouter aux favoris",
 		unfavorite: "Retirer des favoris",
-		read: "Lu",
+		read: "Visité",
 		addedToFav: "ajouté aux favoris.",
 		removedFromFav: "retiré des favoris.",
 		openPrintAria: "Ouvrir la boîte d'impression pour enregistrer en PDF",
@@ -633,7 +633,7 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label:
 						"Murale — Les meilleurs médias par des voix autochtones (Parcs Canada)",
-					url: "https://app.mural.co/t/indigenousaffairsbranchdirce6046/m/indigenousaffairsbranchdirce6046/1733400932867/26fd87eadffbefc3c535b15c45c067d7811364f",
+					url: "https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f",
 				},
 			],
 			tags: ["Parcs Canada"],
@@ -660,7 +660,7 @@ export const RESOURCES_CONTENT_FR = {
 			links: [
 				{
 					label: "Sensibilisation aux cultures autochtones (GCpedia — ECCC)",
-					url: "https://www.gcpedia.gc.ca/wiki/Sensibilisation_%C3%A0_la_culture_autochtone_la_s%C3%A9curit%C3%A9_culturelle_et_le_renforcement_des_capacit%C3%A9s_autochtones_%C3%A0_ECCC",
+					url: "https://www.gcpedia.gc.ca/wiki/Sensibilisation_%C3%A0_la_culture_autochtone,_la_s%C3%A9curit%C3%A9_culturelle_et_le_renforcement_des_capacit%C3%A9s_autochtones_%C3%A0_ECCC",
 				},
 			],
 			tags: ["ECCC"],
@@ -674,16 +674,19 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label: "Liste de lecture sur la conservation (lien court)",
 					url: "https://bit.ly/IndLedConsRL",
+					enOnly: true,
 				},
 				{
 					label:
 						"Virtual Campfire (Conservation Through Reconciliation Partnership)",
 					url: "https://conservation-reconciliation.ca/virtual-campfire",
+					enOnly: true,
 				},
 				{
 					label:
 						"Panier de savoir (aires protégées et conservation autochtones)",
 					url: "https://ipacknowledgebasket.ca/",
+					enOnly: true,
 				},
 			],
 			tags: ["Conservation"],
@@ -696,6 +699,7 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label: "Striking Balance : réserve de biosphère Tsá Tué (TVO)",
 					url: "https://www.tvo.org/video/documentaries/tsa-tue-biosphere-reserve",
+					enOnly: true,
 				},
 			],
 			tags: ["TVO"],
@@ -735,6 +739,7 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label: "Pratiques de gouvernance métisses (BCcampus / OpenTextBC)",
 					url: "https://opentextbc.ca/indigenousdigitalliteracies/chapter/metis-governance/",
+					enOnly: true,
 				},
 			],
 			tags: ["BCcampus"],
@@ -748,6 +753,7 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label: "Éducation du public (First Peoples Law)",
 					url: "https://www.firstpeopleslaw.com/public-education",
+					enOnly: true,
 				},
 			],
 			tags: ["First Peoples Law"],
@@ -762,6 +768,7 @@ export const RESOURCES_CONTENT_FR = {
 					label:
 						"Apprentissage autochtone en 4 saisons (Outdoor Learning School & Store)",
 					url: "https://outdoorlearning.com/4-seasons/",
+					enOnly: true,
 				},
 			],
 			tags: ["Outdoor Learning"],
@@ -888,7 +895,7 @@ export const ACTIVITIES_CONTENT = {
 				},
 				{
 					label: "Sélection de musiciens autochtones au Canada",
-					url: "https://thecanadianencyclopedia.ca/fr/article/musiciens-autochtones-influents",
+					url: "https://thecanadianencyclopedia.ca/fr/article/musiciens-autochtones-d-influence-au-canada",
 					icon: "music",
 				},
 			],
@@ -1030,6 +1037,7 @@ export const ACTIVITIES_CONTENT = {
 				{
 					label: "Recettes autochtones",
 					url: "https://www.firstnations.org/knowledge-center/recipes/",
+					enOnly: true,
 				},
 			],
 			namePlaceholder: "Nom de la recette",
@@ -1247,6 +1255,8 @@ export const ACTIVITIES_CONTENT = {
 		},
 	},
 
+	// content.js (excerpt) — ACTIVITIES_CONTENT.a7
+
 	a7: {
 		en: {
 			id: "a7",
@@ -1339,7 +1349,7 @@ export const ACTIVITIES_CONTENT = {
 			links: [
 				{
 					label: "FirstVoices (en anglais)",
-					url: "https://www.firstvoices.com/",
+					url: "https://wstvoices.com/",
 				},
 				{
 					label: "Glossaire Inuktut (en anglais)",
@@ -1359,23 +1369,27 @@ export const ACTIVITIES_CONTENT = {
 			outlets: [
 				{
 					href: "https://www.firstvoices.com/",
-					title: "FirstVoices",
+					title: "FirstVoices ",
 					desc: "Centre de ressources pour les langues autochtones.",
+					enOnly: true, // will trigger the FR-only suffix in the UI
 				},
 				{
 					href: "https://tusaalanga.ca/glossary",
 					title: "Glossaire Inuktut",
 					desc: "Glossaire et ressources linguistiques Inuktut.",
+					enOnly: true, // will trigger the FR-only suffix in the UI
 				},
 				{
 					href: "https://speakmichif.ca/learn/resources",
 					title: "Michif Language Revitalization Circle",
 					desc: "Matériel d’apprentissage du Michif.",
+					enOnly: true, // will trigger the FR-only suffix in the UI
 				},
 				{
 					href: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
 					title: "Ressources langues métisses (Louis Riel Institute)",
 					desc: "Ressources pour apprendre les langues métisses.",
+					enOnly: true, // will trigger the FR-only suffix in the UI
 				},
 			],
 			instructionsHtml: `
@@ -1419,6 +1433,8 @@ export const ACTIVITIES_CONTENT = {
 
 	// src/constants/content.js (add or replace a8)
 	// src/constants/content.js (add/replace this a8 entry inside ACTIVITIES_CONTENT)
+	// content.js (excerpt) — ACTIVITIES_CONTENT.a8
+
 	a8: {
 		en: {
 			id: "a8",
@@ -1467,8 +1483,7 @@ export const ACTIVITIES_CONTENT = {
 			cdata: {
 				instructionsHtml: `
         <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
-        <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</p>
-    
+        <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</strong></p>
       `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
@@ -1504,6 +1519,8 @@ export const ACTIVITIES_CONTENT = {
 		},
 	},
 
+	// content.js (excerpt) — ACTIVITIES_CONTENT.a9 with enOnly flags on FR outlets
+
 	a9: {
 		en: {
 			id: "a9",
@@ -1512,7 +1529,6 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Uncover a news story with an Indigenous focus and reflect on its scope. What challenges or biases are visible?",
 			notePlaceholder: "Story link, your reflections…",
 			resourcesHeading: "Suggested Indigenous-Led Outlets",
-			// used by doc export and by Activity09 when building pageLinks
 			links: [
 				{ label: "APTN", url: "https://www.aptntv.ca/" },
 				{
@@ -1524,7 +1540,6 @@ export const ACTIVITIES_CONTENT = {
 				{ label: "Ha-Shilth-Sa", url: "https://hashilthsa.com/" },
 				{ label: "Windspeaker", url: "https://windspeaker.com/" },
 			],
-			// optional: richer objects for the UI cards (title + desc + url)
 			outlets: [
 				{
 					href: "https://www.aptntv.ca/",
@@ -1566,7 +1581,6 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Découvrez un reportage axé sur les réalités autochtones et réfléchissez à la portée du récit : quelles difficultés apparaissent? Quels biais sont présents?",
 			notePlaceholder: "Lien vers l’article, vos réflexions…",
 			resourcesHeading: "Ressources autochtones proposées",
-			// links used for export (labels kept short and friendly)
 			links: [
 				{ label: "APTN (en anglais)", url: "https://www.aptntv.ca/" },
 				{
@@ -1578,48 +1592,53 @@ export const ACTIVITIES_CONTENT = {
 				{ label: "Ha-Shilth-Sa (en anglais)", url: "https://hashilthsa.com/" },
 				{ label: "Windspeaker (en anglais)", url: "https://windspeaker.com/" },
 			],
-			// richer outlets for UI (fr descriptions where useful)
 			outlets: [
 				{
 					href: "https://www.aptntv.ca/",
 					title: "APTN",
 					desc: "Réseau national de télévision autochtone avec couverture d’actualités.",
+					enOnly: true,
 				},
 				{
 					href: "https://theturtleislandnews.com/",
 					title: "The Turtle Island News",
 					desc: "Reportages communautaires couvrant Turtle Island.",
+					enOnly: true,
 				},
 				{
 					href: "https://kukukwes.com/",
 					title: "Ku'ku'kwes News",
 					desc: "Actualités autochtones indépendantes de l’Atlantique canadien.",
+					enOnly: true,
 				},
 				{
 					href: "https://indiginews.com/",
 					title: "IndigiNews",
 					desc: "Voix locales autochtones et reportages d’investigation.",
+					enOnly: true,
 				},
 				{
 					href: "https://hashilthsa.com/",
 					title: "Ha-Shilth-Sa",
 					desc: "Journaux du Nuu-chah-nulth Tribal Council.",
+					enOnly: true,
 				},
 				{
 					href: "https://windspeaker.com/",
 					title: "Windspeaker",
 					desc: "Actualités, analyses et opinions autochtones.",
+					enOnly: true,
 				},
 			],
-			// optional HTML instructions for the callout (keeps formatting)
 			instructionsHtml: `
       <p>Découvrez un reportage qui porte sur des sujets autochtones et réfléchissez à sa portée.</p>
       <p><strong>Quels défis la communauté rencontre-t-elle?</strong></p>
-
     `,
 		},
 	},
+
 	// add this under ACTIVITIES_CONTENT (or replace existing a10)
+	// add/replace under ACTIVITIES_CONTENT
 	a10: {
 		en: {
 			id: "a10",
@@ -1671,11 +1690,13 @@ export const ACTIVITIES_CONTENT = {
 				{
 					label: "Shop First Nations (en anglais)",
 					url: "https://shopfirstnations.com/",
+					enOnly: true,
 				},
 				{
 					label:
 						"17 entreprises canadiennes appartenant à des Autochtones (2025) (en anglais)",
 					url: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
+					enOnly: true,
 				},
 				{
 					label: "Répertoire des entreprises autochtones (ISC)",
@@ -1687,12 +1708,14 @@ export const ACTIVITIES_CONTENT = {
 					href: "https://shopfirstnations.com/",
 					title: "Shop First Nations",
 					desc: "Place de marché regroupant des marques et artisans autochtones.",
+					enOnly: true,
 				},
 				{
 					href: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
 					title:
 						"17 entreprises canadiennes appartenant à des Autochtones (2025)",
 					desc: "Sélection d’entreprises autochtones au Canada.",
+					enOnly: true,
 				},
 				{
 					href: "https://www.sac-isc.gc.ca/rea-ibd",

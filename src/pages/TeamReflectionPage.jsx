@@ -426,10 +426,12 @@ export default function TeamReflectionPage({
 				</section>
 
 				{/* Downloads — EXACTLY like Contents: driven by parent/reflection gate */}
-				<DownloadsPanel
-					reflectionsReady={reflectionsReady}
-					onDownloadAllReflections={onDownloadAllReflections}
-				/>
+				<section className="pt-2">
+					<DownloadsPanel
+						reflectionsReady={reflectionsGate}
+						onDownloadAllReflections={onDownloadAllReflections}
+					/>
+				</section>
 			</div>
 		</div>
 	);

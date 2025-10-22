@@ -27,45 +27,48 @@ export default function Activity09({
 	completed,
 	onNotes,
 	onToggleComplete,
-	accent = "#934D6C", // theming control
+	accent = "#934D6C",
 }) {
-	// language (mirror pattern used in other activities)
 	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
 	const reduceMotion = useReducedMotion();
 
-	// pick activity content from ACTIVITIES_CONTENT (lang-aware)
 	const a9Content =
 		(ACTIVITIES_CONTENT &&
 			ACTIVITIES_CONTENT.a9 &&
 			(ACTIVITIES_CONTENT.a9[lang] || ACTIVITIES_CONTENT.a9.en)) ||
 		{};
 
-	// small helpers / fallbacks pulled from content
 	const activityNumber = Number.isFinite(a9Content?.number)
 		? a9Content.number
 		: 9;
-	const pageTitle = a9Content?.title || "Indigenous-Focused News Story";
+
+	const pageTitle =
+		a9Content?.title ||
+		(lang === "fr"
+			? "Reportage axé sur les réalités autochtones"
+			: "Indigenous-Focused News Story");
+
 	const tipText =
 		a9Content?.tip ||
 		(lang === "fr"
 			? "Découvrez un reportage axé sur les réalités autochtones et réfléchissez à sa portée."
 			: "Uncover a news story with an Indigenous focus and reflect on the scope of the story.");
+
 	const placeholder =
 		a9Content?.notePlaceholder ||
 		(lang === "fr"
 			? "Lien vers l’article, vos réflexions…"
 			: "Story link; your reflections…");
+
 	const linksHeading =
 		a9Content?.resourcesHeading ||
 		(lang === "fr" ? "Ressources" : "Suggested Indigenous-Led Outlets");
 
-	// instructionsHtml (support formatted instructions from content)
 	const instructionsHtml =
 		a9Content?.instructionsHtml ||
 		(a9Content?.cdata && a9Content.cdata.instructionsHtml) ||
 		null;
 
-	// keep local state in sync with incoming prop
 	const [localNotes, setLocalNotes] = useState(notes ?? "");
 	useEffect(() => setLocalNotes(notes ?? ""), [notes]);
 	const saveNotes = (v) => {
@@ -75,7 +78,7 @@ export default function Activity09({
 
 	const started = hasActivityStarted(localNotes);
 
-	// --- animations (same pattern) ---
+	// animations
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
 	const pageFade = {
@@ -104,26 +107,19 @@ export default function Activity09({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	// --- shared classes (mirrors other pages) ---
-	const linkCardBase =
-		"group relative block w-full rounded-2xl border border-gray-200 bg-white p-5 " +
-		"shadow-sm transition hover:shadow-md hover:-translate-y-0.5 " +
-		"cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2";
-	const badgeBase =
-		"absolute left-5 top-5 w-10 h-10 rounded-xl grid place-items-center";
-	const linkFooterBase =
-		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
-
-	// pageLinks for exports — prefer content.links, fallback to sensible defaults
+	// Export links for .docx
 	const pageLinks = useMemo(() => {
 		if (Array.isArray(a9Content?.links) && a9Content.links.length > 0) {
 			return a9Content.links.map((l) =>
 				typeof l === "string"
 					? { label: l, url: "" }
-					: { label: l.label || l.title || "", url: l.url || l.href || "" }
+					: {
+							label: l.label || l.title || "",
+							url: l.url || l.href || "",
+							enOnly: !!l.enOnly,
+					  }
 			);
 		}
-		// fallback list (keeps previous UX if content not provided)
 		return [
 			{ label: "APTN", url: "https://www.aptntv.ca/" },
 			{
@@ -137,13 +133,14 @@ export default function Activity09({
 		];
 	}, [a9Content]);
 
-	// outlet tiles (UI) — prefer content.outlets, else derive from links or use fallback
+	// UI tiles; keep enOnly so we can suffix the title in FR
 	const outletTiles = useMemo(() => {
 		if (Array.isArray(a9Content?.outlets) && a9Content.outlets.length > 0) {
 			return a9Content.outlets.map((o) => ({
 				href: o.href || o.url || o.link || "",
 				title: o.title || o.label || "",
 				desc: o.desc || o.description || "",
+				enOnly: !!o.enOnly,
 			}));
 		}
 		if (Array.isArray(a9Content?.links) && a9Content.links.length > 0) {
@@ -151,46 +148,53 @@ export default function Activity09({
 				href: l.url || l.href || "",
 				title: l.label || l.title || l.url || "",
 				desc: l.desc || "",
+				enOnly: !!l.enOnly,
 			}));
 		}
-		// fallback
 		return [
 			{
 				href: "https://www.aptntv.ca/",
 				title: "APTN",
 				desc: "National Indigenous television network with news coverage.",
+				enOnly: false,
 			},
 			{
 				href: "https://theturtleislandnews.com/",
 				title: "The Turtle Island News",
 				desc: "Community-focused reporting across Turtle Island.",
+				enOnly: false,
 			},
 			{
 				href: "https://kukukwes.com/",
 				title: "Ku'ku'kwes News",
 				desc: "Independent Atlantic Canada Indigenous news.",
+				enOnly: false,
 			},
 			{
 				href: "https://indiginews.com/",
 				title: "IndigiNews",
 				desc: "Local Indigenous voices and investigative features.",
+				enOnly: false,
 			},
 			{
 				href: "https://hashilthsa.com/",
 				title: "Ha-Shilth-Sa",
 				desc: "Nuu-chah-nulth Tribal Council newspaper.",
+				enOnly: false,
 			},
 			{
 				href: "https://windspeaker.com/",
 				title: "Windspeaker",
 				desc: "Independent Indigenous news and opinion.",
+				enOnly: false,
 			},
 		];
 	}, [a9Content]);
 
-	/* ------- External Download (.docx) — always enabled, next to Complete ------- */
 	const downloadPageDocx = async () => {
-		const title = `Activity ${activityNumber}: ${pageTitle}`;
+		const title = `${
+			lang === "fr" ? "Activité" : "Activity"
+		} ${activityNumber}: ${pageTitle}`;
 		const fileName = `activity-a${activityNumber}-reflection.docx`;
 
 		try {
@@ -305,7 +309,6 @@ export default function Activity09({
 			a.remove();
 			URL.revokeObjectURL(url);
 		} catch {
-			// HTML fallback
 			const esc = (s = "") =>
 				String(s)
 					.replaceAll("&", "&amp;")
@@ -370,17 +373,14 @@ export default function Activity09({
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft, accessible gradient (matches A01/A08 style) */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
 				style={{
-					backgroundImage: `linear-gradient(
-            to bottom,
-            ${withAlpha(accent, "3D")},
-            rgba(255,255,255,0.65),
-            rgba(248,250,252,0.8)
-          )`,
+					backgroundImage: `linear-gradient(to bottom, ${withAlpha(
+						accent,
+						"3D"
+					)}, rgba(255,255,255,0.65), rgba(248,250,252,0.8))`,
 				}}
 				initial={{ opacity: 0 }}
 				animate={{ opacity: 0.35 }}
@@ -388,7 +388,7 @@ export default function Activity09({
 			/>
 
 			<div className="max-w-6xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* ===== HEADER (homogeneous with other activities) ===== */}
+				{/* HEADER */}
 				<motion.header
 					className="text-center"
 					variants={titleFade}
@@ -396,15 +396,13 @@ export default function Activity09({
 					animate="show"
 				>
 					<div className="mx-auto space-y-4 sm:space-y-5">
-						{/* Activity number */}
 						<p
 							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
 						>
-							Activity {activityNumber}
+							{lang === "fr" ? "Activité" : "Activity"} {activityNumber}
 						</p>
 
-						{/* H1 + icon row */}
 						<div className="inline-flex items-center justify-center gap-3">
 							<h1 className="text-4xl font-bold text-slate-900 leading-tight">
 								{pageTitle}
@@ -417,7 +415,6 @@ export default function Activity09({
 							/>
 						</div>
 
-						{/* Instructions callout (use content.instructionsHtml if present) */}
 						<aside
 							role="note"
 							aria-label="Activity instructions"
@@ -433,7 +430,7 @@ export default function Activity09({
 									}}
 									aria-hidden="true"
 								>
-									Instructions
+									{lang === "fr" ? "Consignes" : "Instructions"}
 								</div>
 
 								{instructionsHtml ? (
@@ -461,56 +458,71 @@ export default function Activity09({
 					</div>
 				</motion.header>
 
-				{/* ===== Outlets (cards) ===== */}
+				{/* OUTLET CARDS */}
 				<motion.section variants={gridStagger} initial="hidden" animate="show">
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-						{outletTiles.map(({ href, title, desc }) => (
-							<motion.a
-								key={href || title}
-								href={href || "#"}
-								target="_blank"
-								rel="noreferrer"
-								className={linkCardBase}
-								style={{ outlineColor: accent }}
-								title={`Open: ${title} (new tab)`}
-								aria-label={`Open ${title} in a new tab`}
-								variants={cardPop}
-							>
-								{/* top-left icon badge (accent tint) */}
-								<div
-									className={badgeBase}
-									aria-hidden="true"
-									style={{
-										backgroundColor: withAlpha(accent, "1A"),
-										color: accent,
-									}}
-								>
-									<Newspaper className="w-5 h-5" />
-								</div>
+						{outletTiles.map(({ href, title, desc, enOnly }) => {
+							const showSuffix = lang === "fr" && enOnly;
+							const suffixText = " (en anglais seulement)";
+							const ariaTitle = showSuffix ? `${title}${suffixText}` : title;
 
-								{/* centered content */}
-								<div className="min-h-[108px] flex flex-col items-center justify-center text-center">
-									<div className="font-medium text-slate-900 group-hover:underline">
-										{title}
+							return (
+								<motion.a
+									key={(href || "") + ariaTitle}
+									href={href || "#"}
+									target="_blank"
+									rel="noreferrer"
+									className="group relative block w-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+									style={{ outlineColor: accent }}
+									title={`Open: ${ariaTitle} (new tab)`}
+									aria-label={`Open ${ariaTitle} in a new tab`}
+									variants={cardPop}
+								>
+									<div
+										className="absolute left-5 top-5 w-10 h-10 rounded-xl grid place-items-center"
+										aria-hidden="true"
+										style={{
+											backgroundColor: withAlpha(accent, "1A"),
+											color: accent,
+										}}
+									>
+										<Newspaper className="w-5 h-5" />
 									</div>
-									{desc ? (
-										<p className="mt-1 text-sm text-gray-600 max-w-sm">
-											{desc}
-										</p>
-									) : null}
-									<div className={linkFooterBase} style={{ color: accent }}>
-										<ExternalLink className="w-4 h-4" aria-hidden="true" />
-										<span>
-											{lang === "fr" ? "Ouvrir le lien" : "Open link"}
-										</span>
+
+									<div className="min-h-[108px] flex flex-col items-center justify-center text-center">
+										<div className="font-medium text-slate-900 group-hover:underline">
+											{title}
+											{showSuffix && (
+												<span
+													className="ml-1 font-semibold"
+													style={{ color: accent }}
+												>
+													(en anglais seulement)
+												</span>
+											)}
+										</div>
+										{desc ? (
+											<p className="mt-1 text-sm text-gray-600 max-w-sm">
+												{desc}
+											</p>
+										) : null}
+										<div
+											className="mt-2 flex items-center justify-center gap-1 text-xs font-medium"
+											style={{ color: accent }}
+										>
+											<ExternalLink className="w-4 h-4" aria-hidden="true" />
+											<span>
+												{lang === "fr" ? "Ouvrir le lien" : "Open link"}
+											</span>
+										</div>
 									</div>
-								</div>
-							</motion.a>
-						))}
+								</motion.a>
+							);
+						})}
 					</div>
 				</motion.section>
 
-				{/* ===== Notes (NoteComposer) ===== */}
+				{/* NOTES */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -535,7 +547,7 @@ export default function Activity09({
 					showDownloadButton={false}
 				/>
 
-				{/* ===== Complete + Download (always enabled) ===== */}
+				{/* COMPLETE + DOWNLOAD */}
 				<div className="flex justify-end gap-2">
 					<CompleteButton
 						started={started}
@@ -562,7 +574,7 @@ export default function Activity09({
 	);
 }
 
-/* kept for parity, but not used in the header anymore */
+/* Optional keep-around */
 function TipCard({ accent = "#934D6C", children }) {
 	return (
 		<section

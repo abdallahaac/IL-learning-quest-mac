@@ -3,8 +3,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
 	Store, // header icon
-	ShoppingBag, // Shop First Nations
-	Newspaper, // roundup/article
 	Landmark, // government directory
 	ExternalLink,
 } from "lucide-react";
@@ -121,7 +119,11 @@ export default function Activity10({
 			return a10Content.links.map((l) =>
 				typeof l === "string"
 					? { label: l, url: "" }
-					: { label: l.label || "", url: l.url || l.href || "" }
+					: {
+							label: l.label || "",
+							url: l.url || l.href || "",
+							enOnly: !!l.enOnly,
+					  }
 			);
 		}
 		return [];
@@ -134,12 +136,13 @@ export default function Activity10({
 				href: o.href || o.url || o.link || "",
 				title: o.title || o.label || "",
 				desc: o.desc || o.description || "",
+				enOnly: !!o.enOnly,
 				Icon:
 					o.icon === "shopping"
-						? ShoppingBag
+						? Store
 						: o.icon === "directory"
 						? Landmark
-						: Newspaper,
+						: Store,
 			}));
 		}
 		return [];
@@ -216,7 +219,7 @@ export default function Activity10({
 							className="font-semibold uppercase tracking-wider text-2xl sm:text-3xl"
 							style={{ color: accent }}
 						>
-							Activity {activityNumber}
+							{lang === "fr" ? "Activité" : "Activity"} {activityNumber}
 						</p>
 
 						<div className="inline-flex items-center justify-center gap-3">
@@ -246,7 +249,7 @@ export default function Activity10({
 									}}
 									aria-hidden="true"
 								>
-									Instructions
+									{lang === "fr" ? "Consignes" : "Instructions"}
 								</div>
 
 								{instructionsHtml ? (
@@ -279,8 +282,14 @@ export default function Activity10({
 						{outletTiles.length > 0
 							? outletTiles
 									.filter((t) => t.href)
-									.map(({ href, title, desc, Icon }, i) => {
-										const TheIcon = Icon || Newspaper;
+									.map(({ href, title, desc, Icon, enOnly }, i) => {
+										const TheIcon = Icon || Store;
+										const showSuffix = lang === "fr" && enOnly;
+										const suffixText = " (en anglais seulement)";
+										const ariaTitle = showSuffix
+											? `${title}${suffixText}`
+											: title;
+
 										return (
 											<motion.a
 												key={href + i}
@@ -289,11 +298,34 @@ export default function Activity10({
 												rel="noreferrer"
 												className={linkCardBase}
 												style={{ outlineColor: accent }}
-												title={`Open: ${title}`}
-												aria-label={`Open ${title} in a new tab`}
+												title={`Open: ${ariaTitle}`}
+												aria-label={`Open ${ariaTitle} in a new tab`}
 												variants={cardPop}
 											>
-												<TitleRow Icon={TheIcon}>{title}</TitleRow>
+												<div className="relative flex items-center pl-14">
+													<div
+														className={`${badgeBase} absolute left-0 top-1/2 -translate-y-1/2`}
+														style={{
+															backgroundColor: withAlpha(accent, "1A"),
+															color: accent,
+														}}
+														aria-hidden="true"
+													>
+														<TheIcon className="w-5 h-5" />
+													</div>
+													<div className="w-full text-center font-medium text-gray-800 group-hover:underline">
+														{title}
+														{showSuffix && (
+															<span
+																className="ml-1 font-semibold"
+																style={{ color: accent }}
+															>
+																(en anglais seulement)
+															</span>
+														)}
+													</div>
+												</div>
+
 												{desc ? (
 													<p className="mt-2 text-sm text-gray-600 text-center max-w-sm mx-auto">
 														{desc}
@@ -314,8 +346,7 @@ export default function Activity10({
 											</motion.a>
 										);
 									})
-							: // nothing hard-coded — show nothing if content lacks outlets
-							  null}
+							: null}
 					</div>
 				</motion.section>
 

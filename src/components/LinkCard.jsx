@@ -58,7 +58,7 @@ export default function LinkCard({
 
 	// when showAdvocates === true we want no card-level hover transform/scale or pointer
 	const hoverAndCursor = showAdvocates
-		? "" // no hover classes; pointer disabled via inlineStyle below
+		? ""
 		: " hover:shadow-md hover:-translate-y-0.5 cursor-pointer";
 
 	// base width classes: conditional max-w-md removal via `noMaxWidth`
@@ -160,17 +160,15 @@ export default function LinkCard({
 			}
 			variants={variants}
 		>
-			{/* TOP: icon absolutely positioned top-left inside the card content area.
-          Text is centered vertically and horizontally using flexbox (column). */}
+			{/* TOP */}
 			<div
 				className="relative flex-1 flex items-center justify-center"
 				style={{
-					// add left padding so centered text doesn't overlap the icon
-					paddingLeft: BADGE_LEFT + BADGE_SIZE_PX + 8, // badge left + badge width + gap
+					paddingLeft: BADGE_LEFT + BADGE_SIZE_PX + 8,
 					minHeight: 0,
 				}}
 			>
-				{/* icon (absolutely positioned) - visual top-left */}
+				{/* icon (absolute) */}
 				<div
 					className={badgeBase}
 					style={{
@@ -187,7 +185,7 @@ export default function LinkCard({
 					) : null}
 				</div>
 
-				{/* centered text column */}
+				{/* centered text */}
 				<div className="text-center min-w-0 px-2">
 					{showAdvocates ? (
 						<>
@@ -229,7 +227,7 @@ export default function LinkCard({
 				</div>
 			</div>
 
-			{/* MIDDLE: advocates grid (uniform chips), chips centered and responsive */}
+			{/* MIDDLE: advocates grid */}
 			{showAdvocates && advocatesList.length > 0 ? (
 				<div className="mt-3">
 					<ul
@@ -242,7 +240,6 @@ export default function LinkCard({
 							const name = a.name || `Advocate ${i + 1}`;
 							const bio = mergedBios[name] || a.bio || "No details available.";
 
-							// visual states
 							const bgColor =
 								isOpen || isHover ? withAlpha(accent, "0F") : "#fff";
 							const borderColor = withAlpha(accent, isOpen ? "66" : "33");
@@ -265,26 +262,19 @@ export default function LinkCard({
 										aria-expanded={isOpen}
 										aria-controls={`adv-pop-${i}`}
 									>
-										{/* red dot: fixed absolute left so looks consistent across chips */}
 										<span
 											className="absolute left-3 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full"
 											style={{ backgroundColor: accent }}
 											aria-hidden="true"
 										/>
-
-										{/* name — centered, clamped to 2 lines, responsive width */}
 										<span
 											className="min-w-0 block px-4 text-center"
-											style={{
-												...twoLineClampStyle,
-												lineHeight: "1.1rem",
-											}}
+											style={{ ...twoLineClampStyle, lineHeight: "1.1rem" }}
 										>
 											{name}
 										</span>
 									</button>
 
-									{/* popover: positioned centered under the chip (li is relative) */}
 									<AnimatePresence>
 										{isOpen && (
 											<motion.div
@@ -294,7 +284,6 @@ export default function LinkCard({
 												className="absolute z-10 mt-2 w-72 rounded-2xl border bg-white p-3 text-sm shadow-lg"
 												style={{
 													borderColor: withAlpha(accent, "33"),
-
 													transform: "translateX(-50%)",
 												}}
 												variants={popVariants}
@@ -325,19 +314,15 @@ export default function LinkCard({
 				</div>
 			) : null}
 
-			{/* FOOTER: keep a fixed spacer equal to the badge width so icon-column & text-column remain aligned */}
+			{/* FOOTER: centered across the card */}
 			<div className="mt-3" aria-hidden={!isAnchor} style={{ color: accent }}>
 				{!showAdvocates ? (
-					<div className="flex items-center">
-						{/* spacer matching badge visual area so footer text sits centered under content */}
-						<div style={{ width: BADGE_LEFT + BADGE_SIZE_PX + 8 }} />
-						<div className="flex-1 text-center text-sm font-medium">
-							<ExternalLink
-								className="inline-block w-4 h-4 mr-2 align-middle"
-								aria-hidden="true"
-							/>
-							<span>{footerLabel}</span>
-						</div>
+					<div className={linkFooterBase}>
+						<ExternalLink
+							className="inline-block w-4 h-4 mr-2 align-middle"
+							aria-hidden="true"
+						/>
+						<span>{footerLabel}</span>
 					</div>
 				) : null}
 			</div>

@@ -302,11 +302,12 @@ export default function ContentsPage({
 					</div>
 				</div>
 			</nav>
-
-			<DownloadsPanel
-				reflectionsReady={reflectionsReady}
-				onDownloadAllReflections={onDownloadAllReflections}
-			/>
+			<section className="px-10">
+				<DownloadsPanel
+					reflectionsReady={reflectionsReady}
+					onDownloadAllReflections={onDownloadAllReflections}
+				/>
+			</section>
 		</div>
 	);
 }

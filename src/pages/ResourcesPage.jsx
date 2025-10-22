@@ -38,6 +38,15 @@ const detectLang = () => {
 	return "en";
 };
 
+// detect/strip “(en anglais)” markers in labels/titles so we can render a styled suffix
+const hasEnglishMarker = (s = "") =>
+	/\(en anglais(?: seulement)?\)/i.test(String(s));
+
+const stripEnglishMarker = (s = "") =>
+	String(s)
+		.replace(/\s*\(en anglais(?: seulement)?\)\s*/gi, "")
+		.trim();
+
 export default function ResourcesPage() {
 	const reduceMotion = useReducedMotion();
 
@@ -257,6 +266,8 @@ export default function ResourcesPage() {
 			.replaceAll('"', "&quot;")
 			.replaceAll("'", "&#039;");
 
+	const enSuffixHTML = ` <strong style="color:${accent};">(en&nbsp;anglais seulement)</strong>`;
+
 	const composeHTML = () => {
 		const style = `
       <style>
@@ -281,30 +292,38 @@ export default function ResourcesPage() {
 		const sections = filteredSections
 			.map(({ title, summary, links }) => {
 				const [primary, ...rest] = links || [];
+
+				const primaryIsEn =
+					!!primary?.enOnly || hasEnglishMarker(primary?.label || "");
+
 				const restMarkup = rest?.length
 					? `<ul class="list">${rest
-							.map(
-								(l) =>
-									`<li><a href="${escapeHTML(
-										l.url
-									)}" target="_blank" rel="noreferrer noopener">${escapeHTML(
-										l.label
-									)}</a></li>`
-							)
+							.map((l) => {
+								const en = !!l.enOnly || hasEnglishMarker(l.label || "");
+								const cleanLabel = stripEnglishMarker(l.label || "");
+								return `<li><a href="${escapeHTML(
+									l.url
+								)}" target="_blank" rel="noreferrer noopener">${escapeHTML(
+									cleanLabel
+								)}</a>${en ? enSuffixHTML : ""}</li>`;
+							})
 							.join("")}</ul>`
 					: "";
 
+				const titleHasEn = hasEnglishMarker(title) || primaryIsEn;
+				const displayTitle = stripEnglishMarker(title);
+
 				return `
-          <div class="section">
-            <h2><a href="${escapeHTML(
-							primary?.url || "#"
-						)}" target="_blank" rel="noreferrer noopener">${escapeHTML(
-					title
-				)}</a></h2>
-            ${summary ? `<p>${escapeHTML(summary)}</p>` : ""}
-            ${restMarkup}
-          </div>
-        `;
+      <div class="section">
+        <h2><a href="${escapeHTML(
+					primary?.url || "#"
+				)}" target="_blank" rel="noreferrer noopener">${escapeHTML(
+					displayTitle
+				)}</a>${titleHasEn ? enSuffixHTML : ""}</h2>
+        ${summary ? `<p>${escapeHTML(summary)}</p>` : ""}
+        ${restMarkup}
+      </div>
+    `;
 			})
 			.join("");
 
@@ -517,6 +536,13 @@ export default function ResourcesPage() {
 							const cardKey = title;
 							const open = openCardKey === cardKey;
 
+							const primaryIsEn =
+								!!primary?.enOnly || hasEnglishMarker(primary?.label || "");
+
+							const titleHasEn = hasEnglishMarker(title) || primaryIsEn;
+
+							const displayTitle = stripEnglishMarker(title);
+
 							return (
 								<article
 									key={cardKey}
@@ -540,21 +566,39 @@ export default function ResourcesPage() {
 										</span>
 
 										<div className="flex-1 min-w-0">
-											{/* Title: always underlined */}
+											{/* Title: underlined + optional EN suffix */}
 											{primaryUrl ? (
 												<a
 													href={primaryUrl}
 													target="_blank"
 													rel="noreferrer noopener"
-													onClick={() => onPrimaryClick(primaryUrl, title)}
+													onClick={() =>
+														onPrimaryClick(primaryUrl, displayTitle)
+													}
 													className="text-lg font-semibold text-slate-900 underline underline-offset-2 decoration-emerald-600 hover:decoration-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-sm"
 													title={primary?.label || primaryUrl}
 												>
-													{title}
+													{displayTitle}
+													{titleHasEn ? (
+														<span
+															className="ml-1 font-semibold"
+															style={{ color: accent }}
+														>
+															(en anglais seulement)
+														</span>
+													) : null}
 												</a>
 											) : (
 												<h3 className="text-lg font-semibold text-slate-900 underline underline-offset-2 decoration-emerald-600">
-													{title}
+													{displayTitle}
+													{titleHasEn ? (
+														<span
+															className="ml-1 font-semibold"
+															style={{ color: accent }}
+														>
+															(en anglais seulement)
+														</span>
+													) : null}
 												</h3>
 											)}
 
@@ -571,7 +615,7 @@ export default function ResourcesPage() {
 										{primaryUrl ? (
 											<FavoriteButton
 												url={primaryUrl}
-												label={title}
+												label={displayTitle}
 												size={16}
 											/>
 										) : null}
@@ -629,6 +673,12 @@ export default function ResourcesPage() {
 															<ul className="space-y-2">
 																{rest.map((l, idx) => {
 																	const url = l.url;
+																	const en =
+																		!!l.enOnly ||
+																		hasEnglishMarker(l.label || "");
+																	const cleanLabel = stripEnglishMarker(
+																		l.label || ""
+																	);
 																	return (
 																		<li
 																			key={`${title}-more-${idx}`}
@@ -638,16 +688,18 @@ export default function ResourcesPage() {
 																				href={url}
 																				target="_blank"
 																				rel="noreferrer noopener"
-																				onClick={() => markRead(url, l.label)}
+																				onClick={() =>
+																					markRead(url, cleanLabel)
+																				}
 																				className="group flex-1 min-w-0 items-start gap-2 rounded-lg border px-3 py-2 bg-white hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition cursor-pointer"
 																				style={{
 																					borderColor: withAlpha(accent, "33"),
 																				}}
-																				title={l.label}
+																				title={cleanLabel}
 																				aria-label={`${
 																					content.ui?.openLinkAriaPrefix ||
 																					"Open link:"
-																				} ${l.label}`}
+																				} ${cleanLabel}`}
 																			>
 																				<FontAwesomeIcon
 																					icon={faArrowUpRightFromSquare}
@@ -661,7 +713,15 @@ export default function ResourcesPage() {
 																				/>
 																				<div className="min-w-0">
 																					<div className="font-medium text-slate-900 group-hover:underline truncate">
-																						{l.label}
+																						{cleanLabel}
+																						{en ? (
+																							<span
+																								className="ml-1 font-semibold"
+																								style={{ color: accent }}
+																							>
+																								(en anglais seulement)
+																							</span>
+																						) : null}
 																					</div>
 																					<div className="text-xs break-all text-emerald-800/90 underline decoration-transparent group-hover:decoration-inherit">
 																						{url}
@@ -672,7 +732,7 @@ export default function ResourcesPage() {
 																				<ReadBadge url={url} />
 																				<FavoriteButton
 																					url={url}
-																					label={l.label}
+																					label={cleanLabel}
 																					size={16}
 																				/>
 																			</div>
