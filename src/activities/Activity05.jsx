@@ -13,6 +13,9 @@ import { ACTIVITIES_CONTENT } from "../constants/content.js";
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
 
+/* naive HTML detector for small CMS strings */
+const isHtml = (s) => typeof s === "string" && /<[^>]+>/.test(s);
+
 function detectLang() {
 	try {
 		const qs = new URLSearchParams(window.location.search);
@@ -53,13 +56,21 @@ export default function Activity05({
 
 	const cdata = a5Content?.cdata || {};
 	const title = cdata.title || a5Content?.title || "Film, TV, or Podcast";
+
+	// Prefer any provided HTML, otherwise fall back to text
+	const rawTip = a5Content?.tip || a5Content?.prompt || "";
 	const instructionsHtml =
 		cdata.instructionsHtml ||
+		a5Content?.instructionsHtml ||
+		(isHtml(rawTip) ? rawTip : "") ||
 		(a5Content?.prompt ? `<p>${a5Content.prompt}</p>` : "");
+
+	// Plain-text version for export/placeholders
 	const tipText =
-		a5Content?.tip ||
-		a5Content?.prompt ||
-		(instructionsHtml ? instructionsHtml.replace(/<[^>]*>/g, "").trim() : "");
+		(instructionsHtml
+			? instructionsHtml.replace(/<[^>]*>/g, "").trim()
+			: String(rawTip || "").trim()) || "";
+
 	const placeholder =
 		a5Content?.notePlaceholder ||
 		(lang === "fr"
@@ -129,7 +140,7 @@ export default function Activity05({
 			docTitle: title,
 			docSubtitle: a5Content?.subtitle,
 			activityNumber,
-			docIntro: tipText,
+			docIntro: tipText, // use plain text in the document intro
 			includeLinks: hasLinks,
 			linksHeading: exportLinksHeading,
 			pageLinks,
@@ -230,11 +241,6 @@ export default function Activity05({
 									>
 										{tipText}
 										<br />
-										<strong>
-											{lang === "fr"
-												? "Qu’avez-vous appris?"
-												: "What did you learn?"}
-										</strong>
 									</p>
 								)}
 							</div>

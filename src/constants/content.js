@@ -1143,7 +1143,7 @@ export const ACTIVITIES_CONTENT = {
 			id: "a5",
 			number: 5,
 			title: "Film, TV, or Podcast",
-			tip: "Watch an Indigenous film or TV show, or listen to an Indigenous-focused podcast. What did you learn?",
+			tip: "Watch an Indigenous film or TV show, or listen to an Indigenous-focused podcast.<br><strong> What did you learn?</strong>",
 			notePlaceholder: "Title, creator(s), insights…",
 			resourcesHeading: "Resources",
 			links: [
