@@ -185,8 +185,7 @@ export const CONCLUSION_CONTENT = {
 		"As your team wraps up the Learning Quest on Indigenous Cultures, take a moment to recognize the learning, reflection, and conversations you’ve shared. Each activity was an opportunity to explore new perspectives, challenge assumptions, and grow together.",
 		"This quest was designed to be flexible and personal. Whether you completed every step or focused on a few, what matters most is the awareness and understanding you’ve built along the way.",
 		"Your team discussions helped bring the learning to life through open dialogue, shared insights, and thoughtful questions. These conversations are just the beginning.",
-		"As you move forward, think about how you can carry this learning into your daily work. What actions will you take? What commitments will you make?",
-		"Reconciliation is an ongoing journey. Thank you for taking these important steps together and with openness, respect, and intention.",
+		"As you move forward, think about how you can carry this learning into your daily work. What actions will you take? What commitments will you make? Reconciliation is an ongoing journey. Thank you for taking these important steps together and with openness, respect, and intention.",
 	],
 	// optional override for the feedback button label
 	feedbackLabel: "Feedback",
