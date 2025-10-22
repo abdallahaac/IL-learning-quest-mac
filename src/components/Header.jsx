@@ -1,7 +1,7 @@
 // src/components/Header.jsx
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTableColumns, faHouse } from "@fortawesome/free-solid-svg-icons";
+import { faHouse } from "@fortawesome/free-solid-svg-icons";
 import ActivityDock from "./ActivityDock.jsx";
 
 /* --- tiny color utils (for hover/active shades) --- */
@@ -41,8 +41,7 @@ export default function Header({
 	onJumpToPage,
 	accent = "#67AAF9",
 	primaryBtnClassOverride = null,
-	// labels
-	homeLabel = "Home",
+	homeLabel = "Home", // pass "Accueil" when FR
 }) {
 	const accentHex = normalizeHex(accent) || "#67AAF9";
 	const hover = shadeHex(accentHex, -0.08);
@@ -57,20 +56,21 @@ export default function Header({
 		>
 			<div
 				className="
-          relative max-w-8xl mx-auto w-full
-          px-6 sm:px-8
-          h-[88px]
-          grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto]
-          items-center
+          relative mx-auto w-full max-w-8xl
+          px-4 sm:px-6 md:px-8
+          h-[64px] sm:h-[72px] md:h-[88px]
+          grid grid-cols-[minmax(0,1fr)_auto_auto]
+          items-center gap-3
           pointer-events-auto"
 			>
-				{/* Left: Title */}
-				<div className="min-w-0 ml-20">
+				{/* Title */}
+				{/* Title */}
+				<div className="min-w-0">
 					{onHome ? (
 						<button
 							type="button"
 							onClick={onHome}
-							className="block text-left text-[1.15rem] sm:text-lg md:text-xl font-semibold text-slate-900 leading-tight tracking-tight max-w-[36ch] line-clamp-1 focus:outline-none focus-visible:ring-2"
+							className="block text-left md:text-inherit text-base sm:text-lg md:text-xl font-semibold text-slate-900 leading-tight tracking-tight max-w-[39ch] ml-0 md:ml-40 truncate focus:outline-none focus-visible:ring-2"
 							style={{ boxShadow: `0 0 0 0 transparent` }}
 							onFocus={(e) =>
 								(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
@@ -82,80 +82,78 @@ export default function Header({
 							{siteTitle}
 						</button>
 					) : (
-						<h1 className="text-[1.15rem] sm:text-lg md:text-xl font-semibold text-slate-900 leading-tight tracking-tight max-w-[36ch] line-clamp-1">
+						<h1 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900 leading-tight tracking-tight max-w-[36ch] ml-0 md:ml-40 truncate">
 							{siteTitle}
 						</h1>
 					)}
 				</div>
 
-				{/* Right cluster */}
-				<div className="justify-self-end w-full max-w-[460px]">
-					<div className="flex items-center justify-between gap-3">
-						{/* Home / TOC pill */}
-						{onContents && (
-							<button
-								type="button"
-								onClick={onContents}
-								className={
-									primaryBtnClassOverride
-										? `inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 rounded-full text-sm md:text-base font-medium text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition bg-sky-600 hover:bg-sky-700 focus:ring-sky-400`
-										: `inline-flex items-center gap-2 h-11 md:h-12 px-4 md:px-5 rounded-full text-sm md:text-base font-medium text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition`
-								}
-								style={
-									primaryBtnClassOverride
-										? undefined
-										: {
-												backgroundColor: accentHex,
-												color: "#FFFFFF",
-												border: "1px solid transparent",
-										  }
-								}
-								onMouseEnter={(e) => {
-									if (!primaryBtnClassOverride)
-										e.currentTarget.style.backgroundColor = hover;
-								}}
-								onMouseLeave={(e) => {
-									if (!primaryBtnClassOverride)
-										e.currentTarget.style.backgroundColor = accentHex;
-								}}
-								onMouseDown={(e) => {
-									if (!primaryBtnClassOverride)
-										e.currentTarget.style.backgroundColor = active;
-								}}
-								onMouseUp={(e) => {
-									if (!primaryBtnClassOverride)
-										e.currentTarget.style.backgroundColor = hover;
-								}}
-								onFocus={(e) =>
-									(e.currentTarget.style.boxShadow = primaryBtnClassOverride
-										? ""
-										: `0 0 0 2px ${accentHex}`)
-								}
-								onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
-								aria-label={homeLabel}
-								title={homeLabel}
-							>
-								<FontAwesomeIcon
-									className="w-5 h-5"
-									icon={faHouse}
-									aria-hidden="true"
-								/>
-								<span className="hidden sm:inline text-center">
-									{homeLabel}
-								</span>
-								<span className="sm:hidden">TOC</span>
-							</button>
-						)}
+				{/* Home button: icon-only on mobile, icon + label on md+ */}
+				<div className="justify-self-end">
+					{onContents && (
+						<button
+							type="button"
+							onClick={onContents}
+							className={
+								primaryBtnClassOverride
+									? "inline-flex items-center justify-center h-10 w-10 md:h-12 md:w-auto md:px-4 rounded-full text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition bg-sky-600 hover:bg-sky-700 focus:ring-sky-400"
+									: "inline-flex items-center justify-center h-10 w-10 md:h-12 md:w-auto md:px-4 rounded-full text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition"
+							}
+							style={
+								primaryBtnClassOverride
+									? undefined
+									: {
+											backgroundColor: accentHex,
+											color: "#FFFFFF",
+											border: "1px solid transparent",
+									  }
+							}
+							onMouseEnter={(e) => {
+								if (!primaryBtnClassOverride)
+									e.currentTarget.style.backgroundColor = hover;
+							}}
+							onMouseLeave={(e) => {
+								if (!primaryBtnClassOverride)
+									e.currentTarget.style.backgroundColor = accentHex;
+							}}
+							onMouseDown={(e) => {
+								if (!primaryBtnClassOverride)
+									e.currentTarget.style.backgroundColor = active;
+							}}
+							onMouseUp={(e) => {
+								if (!primaryBtnClassOverride)
+									e.currentTarget.style.backgroundColor = hover;
+							}}
+							onFocus={(e) =>
+								(e.currentTarget.style.boxShadow = primaryBtnClassOverride
+									? ""
+									: `0 0 0 2px ${accentHex}`)
+							}
+							onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
+							aria-label={homeLabel}
+							title={homeLabel}
+						>
+							<FontAwesomeIcon
+								className="w-5 h-5"
+								icon={faHouse}
+								aria-hidden="true"
+							/>
+							<span className="hidden md:inline ml-2 font-semibold">
+								{homeLabel}
+							</span>
+						</button>
+					)}
+				</div>
 
-						{/* Activity menu */}
-						<ActivityDock
-							steps={activitySteps}
-							currentPageIndex={currentPageIndex}
-							onJump={onJumpToPage}
-							contentMaxWidth={1200}
-							defaultAccent={accentHex}
-						/>
-					</div>
+				{/* ActivityDock — hidden on mobile, visible md+ */}
+				<div className="hidden md:block justify-self-end">
+					<ActivityDock
+						steps={activitySteps}
+						currentPageIndex={currentPageIndex}
+						onJump={onJumpToPage}
+						contentMaxWidth={1200}
+						defaultAccent={accentHex}
+					/>
 				</div>
 			</div>
 		</div>

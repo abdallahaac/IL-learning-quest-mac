@@ -1,8 +1,7 @@
-// src/pages/ContentsPage.jsx
 import React, { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHouse } from "@fortawesome/free-solid-svg-icons";
+import { faHouse, faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
 import { buildTocItems } from "../utils/tocItems.js";
 import { hslToHex } from "../utils/color.js";
@@ -35,6 +34,184 @@ function detectLang() {
 	return "en";
 }
 
+/* ---------- Stacked card item (matches desktop icons & colors) ---------- */
+function StackedCardItem({
+	i,
+	item,
+	isVisited,
+	isActivities,
+	allActivitiesCompleted,
+	activitiesVisitedCount,
+	activitiesTotal,
+	onClick,
+	labels,
+	prefersReduced,
+}) {
+	const STR = labels;
+	const hue = item?.hue ?? 210;
+	const nodeHex = hslToHex(hue, 64, 55); // same as TocItem
+	const emerald = "#10B981"; // same check color as TocItem
+
+	const statusText = isActivities
+		? allActivitiesCompleted
+			? `${labels.activities} • ${labels.completed}`
+			: `${labels.activities} • ${activitiesVisitedCount}/${activitiesTotal}`
+		: isVisited
+		? labels.visited
+		: labels.notVisited || "";
+
+	const srStatus = isActivities
+		? allActivitiesCompleted
+			? `${labels.activities} (${labels.completed})`
+			: `${labels.activities} (${activitiesVisitedCount}/${activitiesTotal})`
+		: isVisited
+		? `(${labels.visited})`
+		: "";
+
+	const showActivitiesBadge =
+		isActivities &&
+		(allActivitiesCompleted || activitiesVisitedCount >= activitiesTotal);
+
+	return (
+		<li className="w-full">
+			<motion.button
+				type="button"
+				onClick={onClick}
+				initial={prefersReduced ? false : { opacity: 0, y: 8 }}
+				animate={prefersReduced ? {} : { opacity: 1, y: 0 }}
+				transition={{ duration: 0.35, delay: 0.04 * i }}
+				className="
+          group relative w-full text-left rounded-2xl border border-slate-200 bg-white/90
+          shadow-[0_6px_24px_rgba(2,6,23,0.06)]
+          hover:shadow-[0_8px_30px_rgba(2,6,23,0.09)]
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-sky-400
+          px-4 py-4 sm:px-5 sm:py-5
+        "
+				aria-describedby={`toc-card-meta-${i}`}
+			>
+				<div className="flex items-start gap-3">
+					{/* Leading icon circle — mirrors TocItem node */}
+					<span
+						className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full border-2"
+						aria-hidden="true"
+						style={{
+							borderColor: nodeHex,
+							background: isVisited
+								? `hsla(${hue}, 70%, 92%, 0.95)`
+								: `hsla(${hue}, 70%, 97%, 0.85)`,
+							boxShadow: isVisited
+								? "0 8px 20px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7)"
+								: "0 6px 18px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.7)",
+							filter: isVisited ? "grayscale(0.1)" : "none",
+						}}
+					>
+						<FontAwesomeIcon
+							icon={item.icon}
+							className="text-base"
+							style={{ color: nodeHex, opacity: isVisited ? 0.9 : 1 }}
+						/>
+					</span>
+
+					<div className="min-w-0 flex-1">
+						<div className="flex items-center gap-2">
+							<h3 className="text-base sm:text-lg font-semibold text-slate-900 truncate">
+								<span className="sr-only">
+									{srStatus ? `${srStatus} — ` : ""}
+								</span>
+								{item.label}
+							</h3>
+
+							{/* Activities / visited chips — identical emerald styling */}
+							{isActivities ? (
+								allActivitiesCompleted ? (
+									<span
+										className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+										style={{
+											backgroundColor: "rgba(16,185,129,0.12)",
+											border: "1px solid rgba(16,185,129,0.25)",
+										}}
+										aria-label={STR.ariaAllActivitiesCompleted}
+									>
+										<FontAwesomeIcon
+											icon={faCircleCheck}
+											className="text-[10px]"
+										/>
+										{STR.completed}
+									</span>
+								) : activitiesVisitedCount >= activitiesTotal ? (
+									<span
+										className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+										style={{
+											backgroundColor: "rgba(16,185,129,0.12)",
+											border: "1px solid rgba(16,185,129,0.25)",
+										}}
+										aria-label={STR.ariaAllActivitiesVisited}
+									>
+										<FontAwesomeIcon
+											icon={faCircleCheck}
+											className="text-[10px]"
+										/>
+										{STR.visited}
+									</span>
+								) : (
+									<span
+										className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+										style={{
+											backgroundColor: "rgba(16,185,129,0.12)",
+											border: "1px solid rgba(16,185,129,0.25)",
+										}}
+										aria-hidden
+									>
+										{activitiesVisitedCount}/{activitiesTotal}
+									</span>
+								)
+							) : (
+								isVisited && (
+									<span
+										className="ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium text-emerald-700"
+										style={{
+											backgroundColor: "rgba(16,185,129,0.12)",
+											border: "1px solid rgba(16,185,129,0.25)",
+										}}
+										aria-hidden
+									>
+										<FontAwesomeIcon
+											icon={faCircleCheck}
+											className="text-[10px]"
+										/>
+										{STR.visitedChip}
+									</span>
+								)
+							)}
+						</div>
+
+						<p
+							id={`toc-card-meta-${i}`}
+							className="mt-1 text-sm text-slate-600"
+						>
+							{statusText}
+						</p>
+					</div>
+				</div>
+
+				{/* trailing check badge identical to node badge, for quick scan on mobile */}
+				{((!isActivities && isVisited) || showActivitiesBadge) && (
+					<span
+						className="absolute right-3 top-3 w-5 h-5 rounded-full grid place-items-center text-white"
+						style={{
+							backgroundColor: emerald,
+							boxShadow: "0 2px 6px rgba(16,185,129,0.45)",
+						}}
+						aria-hidden
+					>
+						<FontAwesomeIcon icon={faCircleCheck} className="text-[11px]" />
+					</span>
+				)}
+			</motion.button>
+		</li>
+	);
+}
+
 export default function ContentsPage({
 	onNavigate,
 	progress = 0,
@@ -56,7 +233,7 @@ export default function ContentsPage({
 	activitiesTotal = 10,
 	allActivitiesCompleted = false,
 
-	// Layout / positioning
+	// Layout / positioning (still used for lg+ rail)
 	cardPosOverrides,
 	cardWidth = 210,
 	autoScaleCards = true,
@@ -103,7 +280,7 @@ export default function ContentsPage({
 		[items, nodeYOffsetOverrides]
 	);
 
-	// Measure path & positions
+	// Measure path & positions (only used on lg+)
 	const { railRef, measurePathRef, nodePos, d } = useRailPositions(
 		items.length
 	);
@@ -126,7 +303,7 @@ export default function ContentsPage({
 	const allActivitiesVisited =
 		activitiesTotal > 0 && activitiesVisitedCount >= activitiesTotal;
 
-	// Keyboard focus cycling (kept)
+	// Keyboard focus cycling for lg+ rail (kept)
 	const cycleFocus = (current, dir) => {
 		const n = items.length;
 		const next = (current + dir + n) % n;
@@ -159,7 +336,7 @@ export default function ContentsPage({
 						</div>
 					</div>
 
-					{/* accessible progressbar */}
+					{/* accessible progressbar (kept for SR) */}
 					<div
 						role="progressbar"
 						aria-label={STR.ariaCourseProgress}
@@ -181,7 +358,58 @@ export default function ContentsPage({
 					/>
 				</div>
 
-				<div className="relative px-6 pt-8 pb-10">
+				{/* --------- Mobile / smaller-desktop: stacked cards --------- */}
+				<div
+					className="px-6 pt-6 pb-8 block lg:hidden"
+					aria-describedby="tocHelp"
+				>
+					<ul
+						role="list"
+						className="space-y-3 sm:space-y-4"
+						aria-label={STR.sectionsAriaLabel}
+					>
+						{items.map((it, i) => {
+							const isVisited = visitedSet.has(it.index);
+							const isActivities =
+								it.key === "activities" ||
+								it.slug === "activities" ||
+								it.type === "activities" ||
+								it.label === STR.activities;
+
+							return (
+								<StackedCardItem
+									key={`${it.label}-${i}`}
+									i={i}
+									item={it}
+									isVisited={isVisited}
+									isActivities={isActivities}
+									allActivitiesCompleted={allActivitiesCompleted}
+									activitiesVisitedCount={activitiesVisitedCount}
+									activitiesTotal={activitiesTotal}
+									onClick={() => onNavigate?.(it.index)}
+									labels={STR}
+									prefersReduced={prefersReduced}
+								/>
+							);
+						})}
+					</ul>
+
+					{/* tiny hint under the list */}
+					<div className="mt-6 text-center" aria-hidden="true">
+						<motion.div
+							className="text-slate-600 text-xs"
+							initial={{ opacity: 0, y: 6 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.4, delay: 0.05 }}
+						>
+							{STR.moveHint}
+						</motion.div>
+					</div>
+				</div>
+
+				{/* --------- Large screens: original SVG rail layout --------- */}
+				<div className="relative px-6 pt-8 pb-10 hidden lg:block">
+					{/* Hide the SVG rail on small/smaller-desktop via hidden lg:block. */}
 					<div className="relative w-full" style={{ minHeight: 360 }}>
 						<svg
 							ref={railRef}
@@ -246,7 +474,7 @@ export default function ContentsPage({
 									cardLeft = Math.min(Math.max(cardLeft, minCenter), maxCenter);
 								}
 
-								// identify Activities without relying on English label only
+								// identify Activities
 								const isActivities =
 									it.key === "activities" ||
 									it.slug === "activities" ||
@@ -285,7 +513,7 @@ export default function ContentsPage({
 						</ul>
 					</div>
 
-					<div className="mt-6 text-center">
+					<div className="mt-6 text-center" aria-hidden="true">
 						<motion.div
 							className="text-slate-600 text-xs md:text-sm"
 							initial={{ opacity: 0, y: 6 }}
@@ -295,14 +523,14 @@ export default function ContentsPage({
 								delay:
 									TOC_ANIM.cardDelay0 + items.length * TOC_ANIM.cardStagger,
 							}}
-							aria-hidden="true"
 						>
 							{STR.moveHint}
 						</motion.div>
 					</div>
 				</div>
 			</nav>
-			<section className="px-10">
+
+			<section className="">
 				<DownloadsPanel
 					reflectionsReady={reflectionsReady}
 					onDownloadAllReflections={onDownloadAllReflections}
