@@ -343,8 +343,12 @@ export default function Activity08({
 						</motion.div>
 
 						{/* Advocates card (fourth) */}
+						{/* Advocates card (fourth) */}
 						{showAdvocatesCard ? (
-							<motion.div variants={cardPop}>
+							<motion.div
+								variants={cardPop}
+								className="[--card-h:290px] sm:[--card-h:250px]"
+							>
 								<LinkCard
 									showAdvocates={true}
 									advocates={advocates}
@@ -353,8 +357,8 @@ export default function Activity08({
 									noMaxWidth={true}
 									Icon={Rainbow}
 									variants={cardPop}
-									cardHeight={"220px"}
-									{...getCardProps(3)}
+									{...getCardProps(3)} // keep config
+									cardHeight="var(--card-h)" // responsive height via CSS var
 								/>
 							</motion.div>
 						) : (

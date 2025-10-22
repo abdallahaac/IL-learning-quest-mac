@@ -1,6 +1,6 @@
 // src/pages/activities/Activity07.jsx
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useId } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { Feather, BookOpen } from "lucide-react";
 import LinkCard from "../components/LinkCard.jsx";
@@ -21,6 +21,15 @@ function detectLang() {
 		if (nav) return nav.toLowerCase().slice(0, 2);
 	} catch {}
 	return "en";
+}
+
+/** sr-only helper */
+function SrOnly({ children }) {
+	return (
+		<span className="absolute overflow-hidden w-px h-px p-0 m-[-1px] border-0 whitespace-nowrap clip-[rect(0,0,0,0)]">
+			{children}
+		</span>
+	);
 }
 
 export default function Activity07({
@@ -111,6 +120,23 @@ export default function Activity07({
 			(lang === "fr"
 				? "Continuez — ajoutez-en davantage et entraînez-vous en retournant les cartes."
 				: "Keep going—add more and practice by flipping the cards."),
+		// a11y strings for flip-card behavior (mirrors Preparation)
+		sr: {
+			flip:
+				lang === "fr"
+					? "Appuyez sur Entrée pour retourner la carte et lire la description."
+					: "Press Enter to flip and read the description.",
+			flipBack:
+				lang === "fr"
+					? "Appuyez sur Entrée pour revenir au recto."
+					: "Press Enter to flip back.",
+			readMore:
+				lang === "fr"
+					? "Contenu défilant. Utilisez Espace ou Page Haut/Bas pour faire défiler."
+					: "Scrollable content. Use Space or Page Up/Down to scroll.",
+			cardOpen: lang === "fr" ? "Carte ouverte." : "Card opened.",
+			cardClosed: lang === "fr" ? "Carte fermée." : "Card closed.",
+		},
 	};
 
 	const activityNumber = Number.isFinite(a7Content?.number)
@@ -801,16 +827,16 @@ export default function Activity07({
 								value={newFront}
 								onChange={(e) => setNewFront(e.target.value)}
 								placeholder={uiSafe.frontPlaceholder}
-								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2"
-								style={{ outlineColor: accent }}
+								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+								style={{ boxShadow: "0 0 #0000", outline: "none" }}
 							/>
 							<input
 								value={newBack}
 								onChange={(e) => setNewBack(e.target.value)}
 								onKeyDown={handleNewKey}
 								placeholder={uiSafe.backPlaceholder}
-								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2"
-								style={{ outlineColor: accent }}
+								className="w-full rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+								style={{ boxShadow: "0 0 #0000", outline: "none" }}
 							/>
 						</div>
 
@@ -819,8 +845,8 @@ export default function Activity07({
 								type="button"
 								onClick={addCard}
 								disabled={!newFront.trim() || !newBack.trim()}
-								className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-								style={{ backgroundColor: accent, outlineColor: accent }}
+								className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+								style={{ backgroundColor: accent }}
 							>
 								{uiSafe.addCardButton}
 							</button>
@@ -838,8 +864,7 @@ export default function Activity07({
 												value={c.front}
 												onChange={(e) => updateCard(i, "front", e.target.value)}
 												aria-label={`Front ${i + 1}`}
-												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2"
-												style={{ outlineColor: accent }}
+												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
 												placeholder={uiSafe.frontPlaceholder}
 											/>
 											<span className="hidden sm:block text-xs text-slate-500 px-1 text-center">
@@ -849,8 +874,7 @@ export default function Activity07({
 												value={c.back}
 												onChange={(e) => updateCard(i, "back", e.target.value)}
 												aria-label={`Back ${i + 1}`}
-												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2"
-												style={{ outlineColor: accent }}
+												className="rounded-lg border border-gray-300 bg-gray-50 px-3 py-2 text-sm leading-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
 												placeholder={uiSafe.backPlaceholder}
 											/>
 											<div className="flex items-center gap-2 sm:ml-2">
@@ -911,25 +935,175 @@ export default function Activity07({
 	);
 }
 
-/* ----- Flashcards ----- */
+/* ----- Flashcards (Preparation flip logic, verbatim behavior) ----- */
 function Flashcards({ cards = [], accent = "#0D9488", uiSafe = {} }) {
+	const reduceMotion = useReducedMotion();
 	const safeCards = Array.isArray(cards) ? cards : [];
 	const [i, setI] = useState(0);
 	const [flipped, setFlipped] = useState(false);
+	const [srStatus, setSrStatus] = useState("");
+
+	const uid = useId();
+	const frontId = `${uid}-front`;
+	const backId = `${uid}-back`;
+	const scrollId = `${uid}-scroll`;
+	const liveId = `${uid}-live`;
 
 	const count = safeCards.length;
 	const curr = count ? safeCards[Math.max(0, Math.min(i, count - 1))] : null;
+
+	const btnRef = useRef(null);
+	const scrollRef = useRef(null);
+
+	// announce open/close state
+	useEffect(() => {
+		setSrStatus(
+			flipped
+				? uiSafe.sr?.cardOpen || "Card opened."
+				: uiSafe.sr?.cardClosed || "Card closed."
+		);
+	}, [flipped, uiSafe?.sr]);
+
+	// pointer movement tolerance to avoid accidental flips
+	const DRAG_TOLERANCE = 6;
+	const startPos = useRef({ x: 0, y: 0 });
+	const moved = useRef(false);
+
+	const isFromScrollArea = (target) =>
+		target?.closest?.('[data-scroll-area="true"]');
+
+	const tryFlip = (e) => {
+		if (!curr) return;
+		if (isFromScrollArea(e.target)) return;
+		if (moved.current) return;
+		setFlipped((v) => !v);
+	};
+
+	const handlePointerDown = (e) => {
+		if (isFromScrollArea(e.target)) return;
+		const pt = "touches" in e ? e.touches?.[0] : e;
+		startPos.current = { x: pt?.clientX ?? 0, y: pt?.clientY ?? 0 };
+		moved.current = false;
+	};
+	const handlePointerMove = (e) => {
+		const pt = "touches" in e ? e.touches?.[0] : e;
+		const dx = Math.abs((pt?.clientX ?? 0) - startPos.current.x);
+		const dy = Math.abs((pt?.clientY ?? 0) - startPos.current.y);
+		if (dx > DRAG_TOLERANCE || dy > DRAG_TOLERANCE) moved.current = true;
+	};
+	const handlePointerUp = () => {
+		moved.current = false;
+		startPos.current = { x: 0, y: 0 };
+	};
+
+	// Wheel: route to inner scroller when it can scroll
+	const routeWheelToInner = (e) => {
+		const el = scrollRef.current;
+		if (!el) return;
+		const delta = e.deltaY;
+		const atTop = el.scrollTop <= 0;
+		const atBottom =
+			Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
+		const canScrollUp = !atTop && delta < 0;
+		const canScrollDown = !atBottom && delta > 0;
+		if (canScrollUp || canScrollDown) {
+			e.preventDefault();
+			el.scrollTop += delta;
+		}
+	};
+
+	// Touch: allow inner scroll, block body only when inner can scroll in that direction
+	const swallowTouchMove = (e) => {
+		const el = scrollRef.current;
+		if (!el) return;
+		const touch = e.touches?.[0];
+		if (!touch) return;
+		const prev = el.__lastTouchY ?? touch.clientY;
+		const dy = prev - touch.clientY; // positive = scroll down
+		el.__lastTouchY = touch.clientY;
+
+		const atTop = el.scrollTop <= 0;
+		const atBottom =
+			Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
+
+		const scrollingUp = dy < 0;
+		const scrollingDown = dy > 0;
+
+		const canScrollUp = !atTop && scrollingUp;
+		const canScrollDown = !atBottom && scrollingDown;
+
+		if (canScrollUp || canScrollDown) {
+			if (e.cancelable) e.preventDefault();
+			el.scrollTop += dy;
+		}
+	};
+	const clearLastTouch = () => {
+		if (scrollRef.current) delete scrollRef.current.__lastTouchY;
+	};
+
+	// Keyboard on the button (exactly like Preparation):
+	// Enter toggles flip; while flipped, Space/PageUp/PageDown/Arrows scroll the back content.
+	const handleButtonKeyDown = (e) => {
+		if (e.currentTarget !== e.target) return;
+		if (!curr) return;
+
+		if (e.key === "Enter") {
+			e.preventDefault();
+			setFlipped((v) => !v);
+			return;
+		}
+		if (e.key.toLowerCase() === "f") {
+			e.preventDefault();
+			setFlipped((v) => !v);
+			return;
+		}
+
+		if (flipped && scrollRef.current) {
+			const el = scrollRef.current;
+			const page = Math.max(24, Math.floor(el.clientHeight * 0.9));
+			switch (e.key) {
+				case " ":
+					e.preventDefault();
+					if (e.shiftKey) el.scrollTop = Math.max(el.scrollTop - page, 0);
+					else el.scrollTop = Math.min(el.scrollTop + page, el.scrollHeight);
+					break;
+				case "PageDown":
+					e.preventDefault();
+					el.scrollTop = Math.min(el.scrollTop + page, el.scrollHeight);
+					break;
+				case "PageUp":
+					e.preventDefault();
+					el.scrollTop = Math.max(el.scrollTop - page, 0);
+					break;
+				case "ArrowDown":
+					e.preventDefault();
+					el.scrollTop = Math.min(el.scrollTop + 40, el.scrollHeight);
+					break;
+				case "ArrowUp":
+					e.preventDefault();
+					el.scrollTop = Math.max(el.scrollTop - 40, 0);
+					break;
+				default:
+					break;
+			}
+		}
+	};
 
 	const next = () => {
 		if (!count) return;
 		setFlipped(false);
 		setI((v) => (v + 1) % count);
+		// keep focus on the same button so Tab flow stays sane
+		btnRef.current?.focus?.({ preventScroll: true });
 	};
 	const prev = () => {
 		if (!count) return;
 		setFlipped(false);
 		setI((v) => (v - 1 + count) % count);
+		btnRef.current?.focus?.({ preventScroll: true });
 	};
+
+	const goldRing = "#D4AF37"; // 2px gold ring like Preparation
 
 	return (
 		<div className="grid gap-4 place-items-center w-full">
@@ -937,71 +1111,124 @@ function Flashcards({ cards = [], accent = "#0D9488", uiSafe = {} }) {
 				{count ? `${i + 1} / ${count}` : uiSafe.noCardsPrimary}
 			</div>
 
-			<button
-				disabled={!curr}
-				onClick={() => curr && setFlipped(!flipped)}
-				className={`relative w-full aspect-[4/3] rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden ${
-					curr ? "cursor-pointer" : "opacity-60 cursor-not-allowed"
-				}`}
-				style={{ perspective: 1000 }}
-				title={curr ? uiSafe.newWordLabel : undefined}
-				type="button"
-			>
-				<motion.div
-					animate={{ rotateY: flipped ? 180 : 0 }}
-					transition={{ duration: 0.45 }}
+			<div className="relative isolate [perspective:1200px] w-full">
+				<button
+					ref={btnRef}
+					disabled={!curr}
+					onClick={tryFlip}
+					onKeyDown={handleButtonKeyDown}
+					onMouseDown={handlePointerDown}
+					onMouseMove={handlePointerMove}
+					onMouseUp={handlePointerUp}
+					onTouchStart={handlePointerDown}
+					onTouchMove={handlePointerMove}
+					onTouchEnd={handlePointerUp}
+					onWheel={routeWheelToInner}
+					type="button"
+					className={[
+						"group relative w-full aspect-[4/3] rounded-2xl shadow-sm border bg-white",
+						curr ? "cursor-pointer" : "opacity-60 cursor-not-allowed",
+						"focus:outline-none",
+						"focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+						"transition-transform", // animate transforms
+						reduceMotion ? "duration-0" : "duration-500",
+					].join(" ")}
 					style={{
 						transformStyle: "preserve-3d",
-						width: "100%",
-						height: "100%",
-						willChange: "transform",
+						// the flip — inline so it wins over any transform utility
+						transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+						transition: reduceMotion ? "none" : "transform 500ms ease",
+						borderColor: "#e5e7eb",
 					}}
-					className="relative"
 				>
+					{/* FRONT */}
 					<div
-						className="absolute inset-0 grid place-items-center"
+						id={frontId}
+						aria-hidden={flipped}
+						className="absolute inset-0 grid place-items-center px-4 rounded-2xl"
 						style={{
 							backfaceVisibility: "hidden",
 							WebkitBackfaceVisibility: "hidden",
+							backgroundColor: accent,
+							color: "#FFFFFF",
 						}}
 					>
-						<div
-							className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium"
-							style={{ color: accent }}
-						>
+						<div className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[18px] font-semibold">
 							{uiSafe.newWordLabel}
 						</div>
 						<div className="h-full w-full grid place-items-center px-6 pt-8">
-							<div className="text-2xl font-semibold text-gray-800 text-center">
+							<div className="text-2xl font-semibold text-center select-none">
 								{curr ? curr.front : uiSafe.noCardsPrimary}
 							</div>
 						</div>
+						<SrOnly>{uiSafe.sr?.flip}</SrOnly>
 					</div>
 
+					{/* BACK */}
 					<div
-						className="absolute inset-0 grid place-items-center"
+						id={backId}
+						aria-hidden={!flipped}
+						className="absolute inset-0 grid place-items-center px-5 pt-8 pb-6 rounded-2xl"
 						style={{
-							transform: "rotateY(180deg)",
 							backfaceVisibility: "hidden",
 							WebkitBackfaceVisibility: "hidden",
+							transform: "rotateY(180deg)",
+							backgroundColor: "#FFFFFF",
+							color: "#111827",
 						}}
+						role="group"
+						aria-label={`${uiSafe.meaningLabel}`}
+						onTouchMove={swallowTouchMove}
+						onTouchEnd={clearLastTouch}
+						onTouchCancel={clearLastTouch}
 					>
+						{/* top ribbon label like the front face */}
+						{/* top ribbon label like the front face */}
 						<div
-							className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[11px] font-medium"
+							className="absolute top-0 left-0 right-0 px-3 py-1.5 text-[18px] font-semibold text-center"
 							style={{ color: accent }}
 						>
 							{uiSafe.meaningLabel}
 						</div>
-						<div className="h-full w-full grid place-items-center px-6 pt-8">
-							<div className="text-2xl font-semibold text-gray-800 text-center">
+
+						<div
+							id={scrollId}
+							ref={scrollRef}
+							className="max-h-full w-full overflow-auto outline-none rounded-lg text-[18px]"
+							data-scroll-area="true"
+							tabIndex={-1}
+							role="region"
+							aria-roledescription="Scrollable card content"
+							aria-label={uiSafe.sr?.readMore || "Scrollable description"}
+							onClick={(e) => e.stopPropagation()}
+							onMouseDown={(e) => e.stopPropagation()}
+							onTouchStart={(e) => e.stopPropagation()}
+						>
+						{/* content only; header moved to ribbon above */}
+							<div className="leading-relaxed text-center text-2xl font-semibold">
 								{curr ? curr.back : ""}
 							</div>
 						</div>
-					</div>
-				</motion.div>
-			</button>
 
-			<div className="flex gap-2 justify-center">
+						<p className="sr-only">{uiSafe.sr?.flipBack}</p>
+					</div>
+
+					{/* invisible sizer */}
+					<div className="opacity-0 h-full w-full px-5 py-6" aria-hidden="true">
+						<div className="text-2xl font-semibold">
+							{curr ? curr.front : ""}
+						</div>
+						<div className="mt-2 text-sm">{curr ? curr.back : ""}</div>
+					</div>
+				</button>
+
+				{/* Live region */}
+				<div id={liveId} aria-live="polite" className="sr-only">
+					{srStatus}
+				</div>
+			</div>
+
+			<div className="flex gap-2 justify-center mt-3">
 				<button
 					onClick={prev}
 					disabled={!count}

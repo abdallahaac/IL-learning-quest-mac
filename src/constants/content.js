@@ -1267,7 +1267,10 @@ export const ACTIVITIES_CONTENT = {
 			resourcesHeading: "Resources",
 			// links used for export & the resource cards UI (label + url)
 			links: [
-				{ label: "FirstVoices", url: "https://www.firstvoices.com/" },
+				{
+					label: "FirstVoices (Indigenous Language Revitalization Platform)",
+					url: "https://www.firstvoices.com/",
+				},
 				{
 					label: "Inuktut glossary (Inuktut Tusaalanga)",
 					url: "https://tusaalanga.ca/glossary",
@@ -1285,7 +1288,8 @@ export const ACTIVITIES_CONTENT = {
 			outlets: [
 				{
 					href: "https://www.firstvoices.com/",
-					title: "FirstVoices",
+					label: "FirstVoices (Indigenous Language Revitalization Platform)",
+
 					desc: "A hub for Indigenous languages and learning resources.",
 				},
 				{
