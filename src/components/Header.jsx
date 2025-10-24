@@ -1,8 +1,9 @@
 // src/components/Header.jsx
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHouse } from "@fortawesome/free-solid-svg-icons";
+import { faHouse, faBars } from "@fortawesome/free-solid-svg-icons";
 import ActivityDock from "./ActivityDock.jsx";
+import ActivitiesModal from "./ActivitiesModal.jsx";
 
 /* --- tiny color utils (for hover/active shades) --- */
 const normalizeHex = (h) => {
@@ -41,11 +42,13 @@ export default function Header({
 	onJumpToPage,
 	accent = "#67AAF9",
 	primaryBtnClassOverride = null,
-	homeLabel = "Home", // pass "Accueil" when FR
+	homeLabel = "Home",
 }) {
 	const accentHex = normalizeHex(accent) || "#67AAF9";
 	const hover = shadeHex(accentHex, -0.08);
 	const active = shadeHex(accentHex, -0.16);
+
+	const [menuOpen, setMenuOpen] = React.useState(false);
 
 	return (
 		<div
@@ -57,20 +60,26 @@ export default function Header({
 			<div
 				className="
           relative mx-auto w-full max-w-8xl
-          px-4 sm:px-6 md:px-8
-          h-[64px] sm:h-[72px] md:h-[88px]
-          grid grid-cols-[minmax(0,1fr)_auto_auto]
-          items-center gap-3
+          px-3 xs:px-4 sm:px-6 md:px-8
+          h-[52px] sm:h-[64px] md:h-[72px] lg:h-[88px]
+          max-[330px]:h-[48px]
+          flex items-center justify-between gap-2 sm:gap-3
           pointer-events-auto"
 			>
-				{/* Title */}
 				{/* Title */}
 				<div className="min-w-0">
 					{onHome ? (
 						<button
 							type="button"
 							onClick={onHome}
-							className="block text-left md:text-inherit text-base sm:text-lg md:text-xl font-semibold text-slate-900 leading-tight tracking-tight max-w-[39ch] ml-0 md:ml-40 truncate focus:outline-none focus-visible:ring-2"
+							className="
+                block text-left font-semibold text-slate-900 leading-tight tracking-tight truncate
+                max-w-[38ch] sm:max-w-[40ch] md:max-w-[42ch] max-[330px]:max-w-[32ch]
+                text-[clamp(0.82rem,3.8vw,1.05rem)]
+                sm:text-[clamp(0.95rem,2.2vw,1.15rem)]
+                md:text-xl lg:text-2xl
+                ml-0 md:ml-40
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
 							style={{ boxShadow: `0 0 0 0 transparent` }}
 							onFocus={(e) =>
 								(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
@@ -82,22 +91,31 @@ export default function Header({
 							{siteTitle}
 						</button>
 					) : (
-						<h1 className="text-base sm:text-lg md:text-xl font-semibold text-slate-900 leading-tight tracking-tight max-w-[36ch] ml-0 md:ml-40 truncate">
+						<h1
+							className="
+                font-semibold text-slate-900 leading-tight tracking-tight truncate
+                max-w-[36ch] sm:max-w-[40ch] md:max-w-[42ch] max-[330px]:max-w-[32ch]
+                text-[clamp(0.82rem,3.8vw,1.05rem)]
+                sm:text-[clamp(0.95rem,2.2vw,1.15rem)]
+                md:text-xl lg:text-2xl
+                ml-0 md:ml-40"
+						>
 							{siteTitle}
 						</h1>
 					)}
 				</div>
 
-				{/* Home button: icon-only on mobile, icon + label on md+ */}
-				<div className="justify-self-end">
+				{/* Right cluster: Home button + Dock (md+) + Burger (sm) */}
+				<div className="flex items-center gap-2 md:gap-3">
+					{/* Home/Contents button */}
 					{onContents && (
 						<button
 							type="button"
 							onClick={onContents}
 							className={
 								primaryBtnClassOverride
-									? "inline-flex items-center justify-center h-10 w-10 md:h-12 md:w-auto md:px-4 rounded-full text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition bg-sky-600 hover:bg-sky-700 focus:ring-sky-400"
-									: "inline-flex items-center justify-center h-10 w-10 md:h-12 md:w-auto md:px-4 rounded-full text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition"
+									? "inline-flex items-center justify-center h-9 w-9 min-[380px]:h-10 min-[380px]:w-10 md:h-12 md:w-auto md:px-4 rounded-full text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition bg-sky-600 hover:bg-sky-700 focus:ring-sky-400"
+									: "inline-flex items-center justify-center h-9 w-9 min-[380px]:h-10 min-[380px]:w-10 md:h-12 md:w-auto md:px-4 rounded-full text-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition max-[330px]:h-8 max-[330px]:w-8"
 							}
 							style={
 								primaryBtnClassOverride
@@ -134,7 +152,7 @@ export default function Header({
 							title={homeLabel}
 						>
 							<FontAwesomeIcon
-								className="w-5 h-5"
+								className="w-4 h-4 min-[380px]:w-5 min-[380px]:h-5 max-[330px]:w-4 max-[330px]:h-4"
 								icon={faHouse}
 								aria-hidden="true"
 							/>
@@ -143,19 +161,53 @@ export default function Header({
 							</span>
 						</button>
 					)}
-				</div>
 
-				{/* ActivityDock — hidden on mobile, visible md+ */}
-				<div className="hidden md:block justify-self-end">
-					<ActivityDock
-						steps={activitySteps}
-						currentPageIndex={currentPageIndex}
-						onJump={onJumpToPage}
-						contentMaxWidth={1200}
-						defaultAccent={accentHex}
-					/>
+					{/* Dock on the far right for md+ */}
+					<div className="hidden md:block">
+						<ActivityDock
+							steps={activitySteps}
+							currentPageIndex={currentPageIndex}
+							onJump={onJumpToPage}
+							contentMaxWidth={1200}
+							defaultAccent={accentHex}
+						/>
+					</div>
+
+					{/* Mobile Activities burger (opens modal) */}
+					<button
+						type="button"
+						onClick={() => setMenuOpen(true)}
+						className="md:hidden inline-flex items-center justify-center h-9 w-9 max-[330px]:h-8 max-[330px]:w-8 rounded-full text-slate-900 bg-white/90 border border-slate-200 shadow-sm hover:shadow-md focus:outline-none"
+						style={{ boxShadow: `0 0 0 0 transparent` }}
+						onFocus={(e) =>
+							(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
+						}
+						onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
+						aria-haspopup="dialog"
+						aria-expanded={menuOpen}
+						aria-controls="activities-modal"
+						aria-label="Open activities"
+						title="Activities"
+					>
+						<FontAwesomeIcon
+							className="w-4 h-4"
+							icon={faBars}
+							aria-hidden="true"
+						/>
+					</button>
 				</div>
 			</div>
+
+			{/* Mobile modal with vertical activities list */}
+			<ActivitiesModal
+				open={menuOpen}
+				onClose={() => setMenuOpen(false)}
+				steps={activitySteps}
+				currentPageIndex={currentPageIndex}
+				onJump={onJumpToPage}
+				title="Activities"
+				accent={accentHex}
+			/>
 		</div>
 	);
 }
