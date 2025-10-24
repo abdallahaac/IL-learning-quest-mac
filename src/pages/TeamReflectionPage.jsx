@@ -121,7 +121,7 @@ export default function TeamReflectionPage({
 	const INSTRUCTIONS_HTML = mergedContent.instructionsHtml || "";
 	const STEPS_HEADING = mergedContent.stepsHeading || "Steps";
 	const SAVED_LABEL = mergedContent.savedLabel || "Saved";
-	const CLICK_TO_MARK = mergedContent.clickToMark || "Click to mark";
+	const CLICK_TO_MARK = mergedContent.clickToMark || "Select";
 	const STEPS_COMPLETE_MSG =
 		mergedContent.stepsCompleteMessage || "Great—steps complete!";
 	const REFLECTION_PROMPT = mergedContent.reflectionPrompt || "Reflection";

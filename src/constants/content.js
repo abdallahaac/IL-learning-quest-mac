@@ -121,7 +121,7 @@ export const TEAM_CONTENT = {
 		"<p>To make the most of your team discussions during the learning quest, follow these steps to create a safe, respectful, and reflective learning environment.</p>",
 	stepsHeading: "Steps",
 	savedLabel: "Saved",
-	clickToMark: "Click to mark",
+	clickToMark: "Select",
 	stepsCompleteMessage: "Great—steps complete!",
 	quickPrompts: [
 		"One thing that surprised me…",

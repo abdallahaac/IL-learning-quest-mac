@@ -581,6 +581,14 @@ export default function AppShell() {
 						</main>
 					</div>
 				</div>
+				{/* mobile-only spacer so fixed footer doesn't overlap content */}
+				<div
+					className="block sm:hidden"
+					aria-hidden="true"
+					style={{
+						height: "calc(64px + env(safe-area-inset-bottom, 0px))", // match footer height
+					}}
+				/>
 
 				<div className="transition-opacity duration-500 ease-out opacity-100">
 					<Footer
