@@ -49,7 +49,7 @@ export default function DownloadsPanel({
 			: "Personal reflections from each activity.",
 		reflSubLocked: isFr
 			? "Terminez toutes les activités et marquez chacune comme terminée pour activer ce téléchargement."
-			: "Finish all activities and mark each one complete to enable this download.",
+			: "Mark each activity complete to enable this download.",
 		btnReflReady: isFr
 			? "Télécharger toutes les réflexions (.docx)"
 			: "Download All Reflections (.docx)",
@@ -62,7 +62,7 @@ export default function DownloadsPanel({
 			: "Download All Reflections (.docx)",
 		btnReflTitleLocked: isFr
 			? "Terminez d’abord toutes les activités et marquez chacune comme terminée"
-			: "Finish all activities and mark each one Complete first",
+			: "Mark each activity complete to enable this download.",
 	};
 
 	const reflectionsAccentHex = normalizeHex("#10B981") || "#10B981";
