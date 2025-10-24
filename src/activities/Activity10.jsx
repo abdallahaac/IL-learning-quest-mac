@@ -326,11 +326,6 @@ export default function Activity10({
 													</div>
 												</div>
 
-												{desc ? (
-													<p className="mt-2 text-sm text-gray-600 text-center max-w-sm mx-auto">
-														{desc}
-													</p>
-												) : null}
 												<div
 													className={linkFooterBase}
 													style={{ color: accent }}
@@ -374,7 +369,7 @@ export default function Activity10({
 					showDownloadButton={false}
 				/>
 
-				<div className="flex justify-end gap-2">
+				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4">
 					<CompleteButton
 						started={started}
 						completed={!!completed}

@@ -1,7 +1,5 @@
-// src/components/Footer.jsx
 import React from "react";
 
-/* utils */
 const normalizeHex = (h) => {
 	if (!h) return null;
 	let s = String(h).trim();
@@ -25,12 +23,6 @@ const relLum = ({ r, g, b }) => {
 	const [R, G, B] = [f(r), f(g), f(b)];
 	return 0.2126 * R + 0.7152 * G + 0.0722 * B;
 };
-const contrastRatio = (hexA, hexB) => {
-	const LA = relLum(hexToRgb(hexA));
-	const LB = relLum(hexToRgb(hexB));
-	const [L1, L2] = LA >= LB ? [LA, LB] : [LB, LA];
-	return (L1 + 0.05) / (L2 + 0.05);
-};
 const shadeHex = (hex, amt) => {
 	const { r, g, b } = hexToRgb(hex);
 	const t = amt < 0 ? 0 : 255;
@@ -51,10 +43,9 @@ export default function Footer({
 	activitySteps = [],
 	onJumpToPage,
 	containerRef,
-	accent = "#67AAF9", // default accent
-	accentOverride = null, // kept for compatibility
-	nextBtnClassOverride = null, // optional Tailwind override for Next
-	// labels
+	accent = "#67AAF9",
+	accentOverride = null,
+	nextBtnClassOverride = null,
 	backLabel = "Back",
 	finishLabel = "Finish",
 }) {
@@ -69,23 +60,20 @@ export default function Footer({
 	return (
 		<footer
 			ref={containerRef}
-			// Fixed on mobile so it shows over the scrollport; sticky from sm+
 			className="fixed sm:sticky bottom-0 inset-x-0 w-full z-50 bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border-t border-gray-200 shadow-sm pointer-events-auto"
 			role="contentinfo"
 			style={{
-				// make room for iOS home indicator
-				paddingBottom: "env(safe-area-inset-bottom, 0px)",
+				paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)",
+				minHeight: "56px",
 			}}
 		>
-			<div className="relative max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between">
-				{/* Counter: hidden on mobile, visible from sm+ */}
+			<div className="relative max-w-6xl mx-auto px-4 py-3 pt-4 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<span className="hidden sm:inline text-sm text-gray-600">
 					Page {pageIndex + 1} / {totalPages}
 				</span>
 
 				<div className="flex-1" />
 
-				{/* Space-between on mobile; right-aligned from sm+ */}
 				<div className="flex w-full justify-between gap-2 sm:w-auto sm:justify-end">
 					<button
 						type="button"

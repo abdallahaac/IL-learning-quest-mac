@@ -43,7 +43,7 @@ export default function DownloadsPanel({
 			: "Get a document with all activities.",
 		reflTitle: isFr
 			? "Télécharger les réflexions des activités"
-			: "Download activities reflections",
+			: "Download reflections",
 		reflSubReady: isFr
 			? "Réflexions personnelles de chaque activité réunies dans un seul document."
 			: "Personal reflections from each activity.",
@@ -52,7 +52,7 @@ export default function DownloadsPanel({
 			: "Mark each activity complete to enable this download.",
 		btnReflReady: isFr
 			? "Télécharger toutes les réflexions (.docx)"
-			: "Download All Reflections (.docx)",
+			: "Download  Reflections (.docx)",
 		btnReflPrep: isFr ? "Préparation…" : "Preparing…",
 		btnReflAria: isFr
 			? "Télécharger toutes les réflexions"

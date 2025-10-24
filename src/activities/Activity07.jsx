@@ -910,7 +910,7 @@ export default function Activity07({
 				</section>
 
 				<div
-					className="mt-6 pt-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-2 sm:justify-end"
+					className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4"
 					style={{ borderColor: "rgba(203,213,225,0.8)" }}
 				>
 					<CompleteButton
@@ -919,7 +919,6 @@ export default function Activity07({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-
 					<button
 						type="button"
 						onClick={downloadPageDocx}
@@ -1204,7 +1203,7 @@ function Flashcards({ cards = [], accent = "#0D9488", uiSafe = {} }) {
 							onMouseDown={(e) => e.stopPropagation()}
 							onTouchStart={(e) => e.stopPropagation()}
 						>
-						{/* content only; header moved to ribbon above */}
+							{/* content only; header moved to ribbon above */}
 							<div className="leading-relaxed text-center text-2xl font-semibold">
 								{curr ? curr.back : ""}
 							</div>

@@ -181,6 +181,7 @@ export default function IntroPage({ content }) {
 						</p>
 					</AccentBox>
 				)}
+				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4"></div>
 			</div>
 		</div>
 	);

@@ -303,7 +303,8 @@ export default function Activity06({
 					showDownloadButton={false}
 				/>
 
-				<div className="flex justify-end">
+				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4">
+
 					<CompleteButton
 						started={started}
 						completed={!!completed}

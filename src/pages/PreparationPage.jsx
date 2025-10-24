@@ -491,6 +491,7 @@ export default function PreparationPage({ content, onStartActivities }) {
 						))}
 					</ol>
 				</motion.section>
+				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4"></div>
 			</div>
 		</div>
 	);

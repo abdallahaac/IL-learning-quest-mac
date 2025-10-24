@@ -472,7 +472,7 @@ export default function Activity09({
 									href={href || "#"}
 									target="_blank"
 									rel="noreferrer"
-									className="group relative block w-full rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+									className="group relative block w-full min-h-[220px] rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
 									style={{ outlineColor: accent }}
 									title={`Open: ${ariaTitle} (new tab)`}
 									aria-label={`Open ${ariaTitle} in a new tab`}
@@ -501,11 +501,7 @@ export default function Activity09({
 												</span>
 											)}
 										</div>
-										{desc ? (
-											<p className="mt-1 text-sm text-gray-600 max-w-sm">
-												{desc}
-											</p>
-										) : null}
+
 										<div
 											className="mt-2 flex items-center justify-center gap-1 text-xs font-medium"
 											style={{ color: accent }}
@@ -548,7 +544,7 @@ export default function Activity09({
 				/>
 
 				{/* COMPLETE + DOWNLOAD */}
-				<div className="flex justify-end gap-2">
+				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4">
 					<CompleteButton
 						started={started}
 						completed={!!completed}

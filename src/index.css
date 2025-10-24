@@ -1,34 +1,61 @@
-/*
- * Global styles for the holistic quest site. This file imports
- * TailwindCSS utilities and defines custom animations used in
- * transition effects and the typewriter cursor blink.
- */
-
-@import "tailwindcss";
-
+/* Tailwind */
 @import "tailwindcss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Footer + scroll safety vars (defaults; JS updates at runtime) */
+:root {
+	--footer-h: 88px; /* default only */
+	--mobile-footer-gap: 0px; /* default only */
+	--footer-clearance: calc(var(--footer-h) + 104px);
+}
+
+/* Focus jumps stop above the footer */
+*:focus {
+	scroll-margin-bottom: var(--footer-clearance);
+}
+
+/* Core sizing */
 html,
 body,
 #root {
-	height: 100% !important;
+	height: 100%;
 }
 body {
 	overflow: hidden;
-} /* <-- ensures only your inner scrollport scrolls */
+} /* only the inner scrollport scrolls */
 * {
 	min-height: 0;
 	min-width: 0;
-} /* <-- safe default; flex children can shrink */
+}
 
-/* (rest of your styles unchanged) */
+/* MOBILE-ONLY padding for the main scroll container */
+.has-mobile-footer-gap {
+	padding-bottom: 0;
+	scroll-padding-bottom: 0;
+}
+@media (max-width: 640px) {
+	.has-mobile-footer-gap {
+		padding-bottom: calc(
+			var(--footer-h, 88px) + env(safe-area-inset-bottom, 0px) +
+				var(--mobile-footer-gap, 0px)
+		);
+		scroll-padding-bottom: calc(
+			var(--footer-h, 88px) + env(safe-area-inset-bottom, 0px) +
+				var(--mobile-footer-gap, 0px)
+		);
+	}
+	/* physical spacer at the end of the content, mobile-only */
+	.mobile-gap-spacer {
+		height: calc(
+			var(--footer-h, 88px) + env(safe-area-inset-bottom, 0px) +
+				var(--mobile-footer-gap, 0px)
+		);
+	}
+}
 
-/* ================================
-   Typewriter cursor blink
-   ================================ */
+/* Animations */
 .animate-blink {
 	animation: blink 1s steps(2, start) infinite;
 }
@@ -37,10 +64,6 @@ body {
 		opacity: 0;
 	}
 }
-
-/* ================================
-   View transitions (fallback to class usage)
-   ================================ */
 .view-enter {
 	animation: fadeIn 0.4s ease forwards, slideUp 0.4s ease forwards;
 }
@@ -80,76 +103,36 @@ body {
 	}
 }
 
-/* ================================
-   Pattern utilities (used by PatternRotator)
-   ================================ */
+/* Background pattern utils */
 @layer utilities {
-	/* Dots */
 	.bg-dots {
 		background-image: radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px);
 		background-size: 24px 24px;
 	}
-
-	/* Asterisks: conic + two linear grids */
 	.bg-asterisks {
 		background: conic-gradient(
 					from 45deg,
 					rgba(0, 0, 0, 0.05) 0 1deg,
 					transparent 1deg
 				)
-				0 0 / 30px 30px,
-			linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px) 0 0 / 30px 30px,
-			linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px) 0 0 /
-				30px 30px;
+				0 0/30px 30px,
+			linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px) 0 0/30px 30px,
+			linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px) 0 0/30px
+				30px;
 	}
-
-	/* Lines (horizontal) */
 	.bg-lines {
 		background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
 		background-size: 48px 48px;
 	}
-
-	/* Plus grid */
 	.bg-plus {
-		background: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px) 0 0 /
-				32px 32px,
-			linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px) 0 0 /
-				32px 32px;
+		background: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px) 0 0/32px
+				32px,
+			linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px) 0 0/32px
+				32px;
 	}
 }
 
-/* (add any other site-specific animations/utilities below) */
-/* ================================
-   Ensure pointer cursor on links & buttons
-   ================================ */
-button,
-[role="button"],
-a {
-	cursor: pointer;
-}
-
-/* ================================
-   Fallback when backdrop-filter is unsupported
-   (Firefox pre-114 or older Chromium builds)
-   ================================ */
-@supports not (
-	(backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))
-) {
-	.no-backdrop-glass {
-		background: rgba(255, 255, 255, 0.95) !important;
-	}
-}
-
-/* Normalize “glass” on Firefox so colors don’t shift */
-@-moz-document url-prefix() {
-	.no-backdrop-glass {
-		/* Disable backdrop blur in FF to avoid color blending/tinting */
-		backdrop-filter: none !important;
-		-webkit-backdrop-filter: none !important;
-		background-color: rgba(255, 255, 255, 0.92) !important;
-	}
-}
-/* Styles for rendered bullets from JSON (accessible + consistent) */
+/* JSON bullet link styles */
 .bullet-item {
 	margin-bottom: 1rem;
 }
@@ -158,18 +141,16 @@ a {
 	font-size: 1.02rem;
 	font-weight: 600;
 	line-height: 1.2;
-	color: #0f172a; /* dark slate for headings */
+	color: #0f172a;
 }
 .bullet-body {
 	margin: 0;
-	color: #394149; /* readable body color */
+	color: #394149;
 	font-size: 0.98rem;
 	line-height: 1.5;
 }
-
-/* Links: high contrast, underlined, and keyboard-focus-friendly */
 .bullet-body a {
-	color: #1e3a8a; /* strong accessible blue */
+	color: #1e3a8a;
 	text-decoration: underline;
 	text-underline-offset: 2px;
 	font-weight: 600;
@@ -181,23 +162,7 @@ a {
 	border-radius: 4px;
 }
 
-/* Small help: make sure the rendering container doesn't squish the content */
-.your-html-renderer-container .bullet-item {
-	max-width: 60ch;
-	margin-left: auto;
-	margin-right: auto;
-}
-
-/* Optional: spacing tweaks for small screens */
-@media (max-width: 640px) {
-	.bullet-heading {
-		font-size: 1rem;
-	}
-	.bullet-body {
-		font-size: 0.98rem;
-	}
-}
-/* --- Flip card utilities (works everywhere) --- */
+/* Flip card utilities */
 .flip3d-scene {
 	perspective: 1000px;
 }
@@ -211,22 +176,18 @@ a {
 .flip3d-flipper.is-flipped {
 	transform: rotateY(180deg);
 }
-
 .flip3d-face {
 	position: absolute;
 	inset: 0;
 	border-radius: 0.75rem;
-	-webkit-backface-visibility: hidden;
 	backface-visibility: hidden;
-}
-.flip3d-front {
-	/* front-specific defaults here if you want */
+	-webkit-backface-visibility: hidden;
 }
 .flip3d-back {
 	transform: rotateY(180deg);
 }
 
-/* Fallback (no 3D or reduced motion): fade/collapse without transforms */
+/* Reduced-motion fallback */
 .no-3d .flip3d-flipper {
 	transform: none !important;
 }
@@ -251,4 +212,25 @@ a {
 	opacity: 0;
 	visibility: hidden;
 	max-height: 0;
+}
+
+/* Pointer affordance + backdrop fallback */
+button,
+[role="button"],
+a {
+	cursor: pointer;
+}
+@supports not (
+	(backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))
+) {
+	.no-backdrop-glass {
+		background: rgba(255, 255, 255, 0.95) !important;
+	}
+}
+@-moz-document url-prefix() {
+	.no-backdrop-glass {
+		backdrop-filter: none !important;
+		-webkit-backdrop-filter: none !important;
+		background-color: rgba(255, 255, 255, 0.92) !important;
+	}
 }

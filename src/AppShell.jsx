@@ -1,4 +1,3 @@
-// src/AppShell.jsx
 import React from "react";
 import { useScorm } from "./contexts/ScormContext.jsx";
 import useHashRoute from "./hooks/useHashRoute.js";
@@ -51,9 +50,12 @@ import {
 	ACTIVITIES_CONTENT,
 } from "./constants/content.js";
 
-const SPLASH_SEEN_KEY = "__APP_SPLASH_SEEN_ONCE__";
-const DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH = false;
+import { MOBILE_FOOTER_GAP_PX } from "./constants/layout.js";
 
+const SPLASH_SEEN_KEY = "__APP_SPLASH_SEEN_ONCE__";
+const DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH = true;
+
+/* --------------- helpers --------------- */
 function isSplashDisabled() {
 	try {
 		const qs = new URLSearchParams(window.location.search);
@@ -87,7 +89,6 @@ function maybeResetSplashFlagFromQuery() {
 		}
 	} catch {}
 }
-
 function scrollContainerToTop(el, { reduced }) {
 	if (!el) return;
 	const atTop = (el.scrollTop || 0) <= 1;
@@ -103,7 +104,6 @@ function scrollContainerToTop(el, { reduced }) {
 		el.scrollTop = 0;
 	}
 }
-
 function detectLang() {
 	try {
 		const qs = new URLSearchParams(window.location.search);
@@ -115,7 +115,6 @@ function detectLang() {
 	} catch {}
 	return "en";
 }
-
 const CONTENT_BY_TYPE = {
 	cover: { en: COVER_CONTENT, fr: COVER_CONTENT_FR },
 	intro: { en: INTRO_INFO_CONTENT, fr: INTRO_INFO_CONTENT_FR },
@@ -124,7 +123,6 @@ const CONTENT_BY_TYPE = {
 	conclusion: { en: CONCLUSION_CONTENT, fr: CONCLUSION_CONTENT_FR },
 	resources: { en: RESOURCES_CONTENT, fr: RESOURCES_CONTENT_FR },
 };
-
 function getActivityContent(id, lang) {
 	const pack = ACTIVITIES_CONTENT?.[id];
 	if (!pack) return null;
@@ -133,6 +131,7 @@ function getActivityContent(id, lang) {
 
 export default function AppShell() {
 	const scrollRef = React.useRef(null);
+
 	const reducedMotion = React.useMemo(() => {
 		try {
 			return (
@@ -160,22 +159,19 @@ export default function AppShell() {
 			window.removeEventListener("keydown", onFirst, { capture: true });
 		};
 	}, [userInteracted]);
+
 	React.useEffect(() => {
 		if (!userInteracted) return;
-		const els = document.querySelectorAll("video[autoplay],audio[autoplay]");
-		els.forEach((el) => {
-			if (el.tagName === "VIDEO" && el.muted !== true) el.muted = true;
-			el.play?.().catch(() => {});
-		});
-	}, [userInteracted]);
-	window.safePlay = async (el) => {
 		try {
-			await el.play();
-			return true;
-		} catch {
-			return false;
+			const els = document.querySelectorAll("video[autoplay],audio[autoplay]");
+			els.forEach((el) => {
+				if (el.tagName === "VIDEO" && el.muted !== true) el.muted = true;
+				el.play?.().catch((e) => console.log("[autoPlay:block]", e?.message));
+			});
+		} catch (e) {
+			console.log("[autoPlay:probe:fail]", e);
 		}
-	};
+	}, [userInteracted]);
 
 	const pages = React.useMemo(() => buildPages(), []);
 	const totalPages = pages.length;
@@ -208,16 +204,14 @@ export default function AppShell() {
 			maybeResetSplashFlagFromQuery();
 			const qs = new URLSearchParams(window.location.search);
 			const force = qs.has("forceSplash");
-			if (isSplashDisabled() && !force) return false;
-
 			const reduced =
 				window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ===
 				true;
-			if (reduced && !force) return false;
 
+			if (isSplashDisabled() && !force) return false;
+			if (reduced && !force) return false;
 			if (!force && hasSeenSplashOnce() && !DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH)
 				return false;
-
 			return true;
 		} catch {
 			return true;
@@ -233,7 +227,6 @@ export default function AppShell() {
 			return { ...s, pageIndex: clamped, visited };
 		});
 	};
-
 	const next = () => {
 		setState((s) => {
 			const atLast = s.pageIndex >= totalPages - 1;
@@ -243,7 +236,9 @@ export default function AppShell() {
 						scorm?.set?.("cmi.core.lesson_status", "completed");
 					else scorm?.set?.("cmi.completion_status", "completed");
 					scorm?.save?.();
-				} catch {}
+				} catch (e) {
+					console.log("[scorm:complete:fail]", e);
+				}
 				push(0);
 				const visited = new Set(s.visited);
 				visited.add(0);
@@ -256,7 +251,6 @@ export default function AppShell() {
 			return { ...s, pageIndex: nextIndex, visited };
 		});
 	};
-
 	const prev = () => {
 		setState((s) => {
 			const prevIndex = Math.max(0, s.pageIndex - 1);
@@ -301,6 +295,27 @@ export default function AppShell() {
 	const [footerRef, footerSize] = useResizeObserver();
 	const footerHeight = footerSize.height || 0;
 
+	if (typeof window !== "undefined") window.__footerH = footerHeight;
+
+	/* Push measured and configured values into CSS variables */
+	React.useEffect(() => {
+		try {
+			const fh = `${Math.max(footerHeight || 0, 56)}px`;
+			const gap = `${MOBILE_FOOTER_GAP_PX}px`;
+			document.documentElement.style.setProperty("--footer-h", fh);
+			document.body.style.setProperty("--footer-h", fh);
+			document.documentElement.style.setProperty("--mobile-footer-gap", gap);
+			document.body.style.setProperty("--mobile-footer-gap", gap);
+			console.log("[footer-vars]", {
+				footerHeight,
+				"--footer-h": fh,
+				"--mobile-footer-gap": gap,
+			});
+		} catch (e) {
+			console.error("[footer-vars:set:fail]", e);
+		}
+	}, [footerHeight, MOBILE_FOOTER_GAP_PX]); // include the constant so HMR updates
+
 	const activitySteps = activityPages.map(({ p, idx }, i) => ({
 		key: p.content.id,
 		label: lang === "fr" ? `Activité ${i + 1}` : `Activity ${i + 1}`,
@@ -317,11 +332,9 @@ export default function AppShell() {
 		() => buildActivityMeta(activityPages),
 		[activityPages]
 	);
-
 	const allActivitiesVisited =
 		activityPageIndices.length > 0 &&
 		activityVisitedCount >= activityPageIndices.length;
-
 	const allActivitiesCompleted = React.useMemo(
 		() => activityPages.every(({ p }) => !!state.completed[p.content.id]),
 		[activityPages, state.completed]
@@ -333,6 +346,8 @@ export default function AppShell() {
 		setReflectBusy(true);
 		try {
 			downloadAllReflections({ activityMeta, notes: state.notes });
+		} catch (e) {
+			console.warn("[downloadAllReflections:fail]", e);
 		} finally {
 			setTimeout(() => setReflectBusy(false), 900);
 		}
@@ -379,7 +394,16 @@ export default function AppShell() {
 
 	if (showSplash) {
 		return (
-			<div className="app-shell relative h-screen flex flex-col bg-white">
+			<div
+				className={`app-shell relative flex flex-col bg-white ${
+					currentPage.type === "activity"
+						? activityThemes[currentPage.activityIndex]
+						: pageThemes[currentPage.type] || ""
+				}`}
+				style={{
+					minHeight: "190vh",
+				}}
+			>
 				<div className="absolute inset-0 z-0 pointer-events-none">
 					<PatternMorph pageIndex={0} sequence={["dots", "grid"]} />
 				</div>
@@ -391,7 +415,9 @@ export default function AppShell() {
 							try {
 								document.body.style.backgroundColor = "#ffffff";
 								document.documentElement.style.backgroundColor = "#ffffff";
-							} catch {}
+							} catch (e) {
+								console.log("[splash:cleanup:fail]", e);
+							}
 						}}
 					/>
 				</div>
@@ -436,8 +462,14 @@ export default function AppShell() {
 				<div className="flex-1 relative min-h-0">
 					<div
 						ref={scrollRef}
-						className="relative flex h-full flex-col overflow-y-auto min-h-0"
-						style={{ paddingBottom: "var(--footer-h)" }}
+						className="relative flex h-full flex-col min-h-0 overflow-y-auto has-mobile-footer-gap"
+						style={{
+							WebkitOverflowScrolling: "touch",
+							overscrollBehavior: "contain",
+							// publish CSS vars right on the element so they always win
+							"--footer-h": `${footerHeight}px`,
+							"--mobile-footer-gap": `${MOBILE_FOOTER_GAP_PX}px`,
+						}}
 					>
 						<main className="flex-1 relative min-h-0">
 							<div className="relative z-10">
@@ -479,7 +511,7 @@ export default function AppShell() {
 												{ x: -30, y: -160 },
 												{ x: -130, y: -15 },
 											]}
-											reflectionsReady={allActivitiesCompleted && !reflectBusy}
+											reflectionsReady={allActivitiesCompleted}
 											onDownloadAllReflections={onDownloadAllReflections}
 											labels={UI_STRINGS[lang].toc}
 										/>
@@ -546,7 +578,7 @@ export default function AppShell() {
 											content={localizedContent}
 											notes={state.notes["team"]}
 											onNotes={(v) => setNote("team", v)}
-											reflectionsReady={allActivitiesCompleted && !reflectBusy}
+											reflectionsReady={allActivitiesCompleted}
 											onDownloadAllReflections={onDownloadAllReflections}
 										/>
 									)}
@@ -556,7 +588,7 @@ export default function AppShell() {
 											content={localizedContent}
 											notes={state.notes["reflect"]}
 											onNotes={(v) => setNote("reflect", v)}
-											reflectionsReady={allActivitiesCompleted && !reflectBusy}
+											reflectionsReady={allActivitiesCompleted}
 											onDownloadAllReflections={onDownloadAllReflections}
 										/>
 									)}
@@ -579,17 +611,11 @@ export default function AppShell() {
 								</TransitionView>
 							</div>
 						</main>
+
+						{/* mobile-only physical spacer so nothing can hide under the footer */}
+						<div className="mobile-gap-spacer mt-20" aria-hidden="true" />
 					</div>
 				</div>
-
-				{/* mobile-only spacer so fixed footer doesn't overlap content */}
-				<div
-					className="block sm:hidden"
-					aria-hidden="true"
-					style={{
-						height: "calc(64px + env(safe-area-inset-bottom, 0px))",
-					}}
-				/>
 
 				<div className="transition-opacity duration-500 ease-out opacity-100">
 					<Footer
