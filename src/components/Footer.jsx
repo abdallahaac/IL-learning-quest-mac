@@ -69,10 +69,15 @@ export default function Footer({
 	return (
 		<footer
 			ref={containerRef}
-			className="sticky bottom-0 left-0 w-full z-50 bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border-t border-gray-200 shadow-sm pointer-events-none"
+			// Fixed on mobile so it shows over the scrollport; sticky from sm+
+			className="fixed sm:sticky bottom-0 inset-x-0 w-full z-50 bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border-t border-gray-200 shadow-sm pointer-events-auto"
 			role="contentinfo"
+			style={{
+				// make room for iOS home indicator
+				paddingBottom: "env(safe-area-inset-bottom, 0px)",
+			}}
 		>
-			<div className="relative max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between pointer-events-auto">
+			<div className="relative max-w-6xl mx-auto px-4 py-3 flex flex-col gap-3 sm:gap-2 sm:flex-row sm:items-center sm:justify-between">
 				{/* Counter: hidden on mobile, visible from sm+ */}
 				<span className="hidden sm:inline text-sm text-gray-600">
 					Page {pageIndex + 1} / {totalPages}
@@ -80,7 +85,7 @@ export default function Footer({
 
 				<div className="flex-1" />
 
-				{/* Space-between on mobile; right-aligned on sm+ */}
+				{/* Space-between on mobile; right-aligned from sm+ */}
 				<div className="flex w-full justify-between gap-2 sm:w-auto sm:justify-end">
 					<button
 						type="button"
