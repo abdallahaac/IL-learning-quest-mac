@@ -111,7 +111,7 @@ function ModalContent({
 						onMouseDown={(e) => e.stopPropagation()}
 					>
 						{/* Header */}
-						<div className="flex items-center justify-between px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-200">
+						<div className="flex items-center justify-between px-4 py-2 sm:px-5 sm:py-4 border-b border-slate-200">
 							<h2
 								id="activities-modal-title"
 								className="text-base sm:text-lg font-semibold text-slate-900"
@@ -145,7 +145,7 @@ function ModalContent({
 						</div>
 
 						{/* Body: vertical list */}
-						<div className="px-2 sm:px-3 py-2">
+						<div className="px-2 sm:px-3 py-3 space-y-2 mt-3">
 							<nav aria-label="Activities list" className="space-y-2">
 								{steps.map((s, i) => {
 									const isActive = s.index === currentPageIndex;
@@ -160,7 +160,7 @@ function ModalContent({
 												onJump?.(s.index);
 												onClose?.();
 											}}
-											className={`w-full text-left rounded-xl px-3.5 py-3 transition focus:outline-none hover:shadow-sm ${
+											className={`w-full text-left rounded-xl px-3.5 py-2 transition focus:outline-none hover:shadow-sm ${
 												isActive ? "font-semibold" : "font-medium"
 											}`}
 											style={{
@@ -199,20 +199,6 @@ function ModalContent({
 						</div>
 
 						{/* Footer */}
-						<div className="px-4 py-3 sm:px-5 sm:py-4 border-t border-slate-200">
-							<button
-								type="button"
-								onClick={onClose}
-								className="w-full inline-flex items-center justify-center h-10 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 focus:outline-none"
-								style={{ boxShadow: `0 0 0 0 transparent` }}
-								onFocus={(e) =>
-									(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
-								}
-								onBlur={(e) => (e.currentTarget.style.boxShadow = "none")}
-							>
-								Close
-							</button>
-						</div>
 					</div>
 				</FocusTrap>
 			</div>
