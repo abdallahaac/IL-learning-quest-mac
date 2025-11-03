@@ -1,0 +1,3486 @@
+import {s as t, i as e, x as i, r as s, g as r, l as a, o as d, p as o, a as n, b as l, c, A as h, R as p} from "./vendor-6df08818.js";
+customElements.define("d2l-practice-error", class extends t {
+    static get properties() {
+        return {
+            title: {
+                type: String
+            },
+            description: {
+                type: String
+            }
+        }
+    }
+    static get styles() {
+        return e`:host([hidden]){display:none}.d2l-error-contain{align-items:center;background-color:var(--d2l-color-celestine-plus-2);border:1px solid var(--d2l-color-mica);border-radius:6px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:18px}d2l-icon{margin-top:.83em}`
+    }
+    render() {
+        return i`<div class="d2l-error-contain"><d2l-icon icon="tier3:alert"></d2l-icon><h2>${this.description}</h2></div>`
+    }
+}
+);
+customElements.define("d2l-activity-header", class extends t {
+    static get properties() {
+        return {
+            accessibilityInstructions: {
+                type: String
+            },
+            activityInfo: {
+                type: String
+            },
+            keyboardInstructionsTitle: {
+                type: String
+            },
+            mobileInstructions: {
+                type: String
+            },
+            standardInstructions: {
+                type: String
+            },
+            title: {
+                type: String
+            }
+        }
+    }
+    static get styles() {
+        return e`:host{line-height:1.2rem}:host([hidden]){display:none}.d2l-activity-title{font-weight:400}.d2l-standard-instructions{color:var(--d2l-color-tungsten);font-size:.7rem;font-weight:400;letter-spacing:.2px;line-height:1.2rem}.d2l-instructions-wrapper{display:grid;grid-gap:.9rem;grid-template-columns:auto 45px 0;margin-bottom:1em}.acc_instruct_wrapper{margin:auto}.acc_instruct{border:1px solid var(--d2l-color-galena);border-radius:45px;height:40px;width:40px}.acc_instruct:active,.acc_instruct:focus,.acc_instruct:hover{border:1px solid transparent;box-shadow:0 0 0 2px var(--d2l-color-celestine);outline:0}.acc_instruct div{align-items:center;display:flex;height:100%}.acc_instruct div img{display:block;margin:0 auto}.d2l-offscreen{height:1px;left:-10000px;overflow:hidden;position:absolute!important;white-space:nowrap;width:1px}`
+    }
+    render() {
+        return !0 === window.matchMedia("screen and (min-width: 768px)").matches ? this.isMobile = !1 : this.isMobile = !0,
+        i`<div class="d2l-typography">${this.title ? i`<h2 class="d2l-activity-title">${this.title}</h2>` : ""} ${this.activityInfo ? i`<p>${this.activityInfo}</p>` : ""} ${this.standardInstructions && !this.accessibilityInstructions ? i`<p class="d2l-standard-instructions">${this.standardInstructions}</p>` : ""} ${this.mobileInstructions && this._isMobile() ? i`<p class="d2l-standard-instructions">${this.mobileInstructions}</p>` : ""} ${this.accessibilityInstructions && !this._isMobile() ? i`<div class="d2l-instructions-wrapper"><p class="d2l-standard-instructions">${this.standardInstructions}</p><div class="acc_instruct_wrapper"><div class="acc_instruct" id="tooltip-info" tabindex="0" aria-labelledby="tt1"><div><img src="./assets/img/keyboard.svg" alt=""></div></div></div><d2l-tooltip id="tt1" for="tooltip-info"><label class="d2l-offscreen">${this.keyboardInstructionsTitle}</label> ${this._parseACCText(this.accessibilityInstructions)}</d2l-tooltip></div>` : ""}</div>`
+    }
+    _isMobile() {
+        const t = window.matchMedia;
+        if (t) {
+            return t("(pointer:coarse)").matches
+        }
+        return !1
+    }
+    _parseACCText(t) {
+        const e = t.replace(/{newline}/g, "<br><br>");
+        return document.createRange().createContextualFragment(`${e}`)
+    }
+}
+);
+customElements.define("d2l-sortable", class extends t {
+    static get properties() {
+        return {
+            altText: {
+                type: String
+            },
+            correct: {
+                type: Boolean
+            },
+            correctFeedback: {
+                type: String
+            },
+            displayFeedback: {
+                type: Object
+            },
+            hover: {
+                type: Boolean
+            },
+            id: {
+                type: Number
+            },
+            image: {
+                type: String
+            },
+            incorrectFeedback: {
+                type: String
+            },
+            terms: {
+                type: Object
+            },
+            titleText: {
+                type: String
+            }
+        }
+    }
+    static get styles() {
+        return e`
+		:host {
+			align-items: center;
+			background-color: #ffffff;
+			border: 1px solid #dddddd;
+			border-radius: 6px;
+			box-sizing: border-box;
+			display: flex;
+			max-width: 65ch;
+			min-height: 60px;
+			min-width: 10%;
+			position: relative;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+			z-index: 0;
+		}
+
+		:host([feedback=true]) {
+			flex-direction: column;
+		}
+
+		:host([hidden]) {
+			display: none;
+		}
+
+		:host(:hover) {
+			border: 1px solid var(--d2l-color-celestine);
+			cursor: grab;
+			outline: none;
+		}
+
+		:host(:${s(r())}) {
+			border: 2px solid var(--d2l-color-celestine);
+			outline: none;
+		}
+
+		p {
+			line-height: 1.2rem;
+		}
+
+		.d2l-sortable-container {
+			align-items: center;
+			display: flex;
+			justify-content: center;
+			padding: 0.6rem;
+			padding-inline-start: 0;
+			position: relative;
+			text-align: left;
+		}
+
+		.d2l-sortable-container.feedback {
+			box-sizing: border-box;
+			justify-content: flex-start;
+			padding-inline-start: 0.6rem;
+			width: 100%;
+		}
+
+		:host([feedback=true]).d2l-sortable-container {
+			padding-inline-start: 0.9rem;
+		}
+
+		.d2l-sortable-container img {
+			border-radius: 6px;
+			height: auto;
+			margin-inline-end: 0.9rem;
+			max-width: 40px;
+			width: 100%;
+		}
+
+		.d2l-sortable-container p {
+			margin: 0;
+			margin-inline: 0 0.9rem;
+			max-width: 65ch;
+		}
+
+		.d2l-sortable-container p.feedback {
+			margin: 0;
+		}
+
+		.d2l-sortable-feedback {
+			min-height: 42px;
+			position: relative;
+			text-align: left;
+			width: 100%;
+		}
+
+		.d2l-sortable-feedback h4 {
+			align-items: center;
+			display: flex;
+			gap: 0.6rem;
+			margin: 0;
+			padding: 0 0.6rem;
+		}
+
+		.d2l-sortable-feedback h4.no-feedback {
+			border-bottom: none;
+			border-end-end-radius: 6px;
+			border-end-start-radius: 6px;
+			padding-inline-end: 0.6rem;
+		}
+
+		.d2l-sortable-feedback p {
+			margin-block-start: 6px;
+			max-width: 65ch;
+			padding-inline: 0.6rem;
+		}
+
+		.d2l-sortable-feedback .d2l-correct-status {
+			align-items: center;
+			display: flex;
+			gap: 0.6rem;
+			margin-block-end: 0.6rem;
+		}
+
+		.drag-handle {
+			align-items: center;
+			border-radius: 6px;
+			display: flex;
+			flex-shrink: 0;
+			height: 0.9rem;
+			justify-content: center;
+			width: 40px;
+			z-index: 123;
+		}
+
+		@media only screen and (max-width: 800px) {
+			.drag-handle {
+				display: none;
+			}
+
+			.d2l-sortable-container {
+				padding-inline-start: 0.6rem;
+			}
+		}
+
+		.icon-c {
+			color: var(--d2l-color-olivine);
+		}
+
+		.icon-i {
+			color: var(--d2l-color-cinnabar);
+		}`
+    }
+    constructor() {
+        super(),
+        this.displayFeedback = {
+            display: !1,
+            correct: !1
+        },
+        this.feedbackCorrect = "",
+        this.feedbackIncorrect = "",
+        this.hover = !1,
+        this.terms = {}
+    }
+    firstUpdated() {
+        this.addEventListener("mouseover", this.mouseOverHandler),
+        this.addEventListener("mouseout", this.mouseOutHandler)
+    }
+    render() {
+        const t = Math.random();
+        let e = "";
+        return this.displayFeedback.display && (e = "feedback"),
+        void 0 !== this.alttext && 0 !== this.alttext.length || (this.alttext = ""),
+        i`
+			<d2l-input-text placeholder="${this.terms["general:hoverForError"]}" id="tooltip-error" aria-invalid="true" label="${this.terms["general:textInput"]}" label-hidden style="max-width:250px;"></d2l-input-text>
+            <div class="d2l-sortable-container ${e}">
+				${!1 === this.displayFeedback.display ? i`<div style="opacity:1" class="drag-handle"><d2l-icon icon="tier1:dragger"></d2l-icon></div>` : ""}
+				${"" !== this.image ? i`<img id="tooltip-img-${t}" .onerror=${this._hideImage} alt="${this.altText}" src="${this.image}"/><d2l-tooltip for="tooltip-img-${t}"><img style="width:100%;max-width:150px;margin:0;" src="${this.image}" alt="${this.altText}"/></d2l-tooltip>` : ""}
+				${!1 === this.displayFeedback.display ? i`<p aria-hidden="true">${this.titleText}</p>` : i`<p class="feedback" aria-hidden="true">${this.titleText}</p>`}
+            </div>
+			${!0 === this.displayFeedback.display ? i`${!1 === this.displayFeedback.feedbackEnabled ? i`
+			<div class="d2l-sortable-feedback no-feedback">
+				${this.displayFeedback.correct ? i`<h4 class="no-feedback"><d2l-icon class="icon-c" icon="tier1:check" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon> ${this.terms["general:correctCaps"]}</h4>` : i`<h4 class="no-feedback"><d2l-icon class="icon-i" icon="tier1:close-default" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon> ${this.terms["general:incorrectCaps"]}</h4>`}
+			</div>` : i`
+			<div class="d2l-sortable-feedback">
+				${this.displayFeedback.correct ? i`<h4><d2l-icon class="icon-c" icon="tier1:check" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon> ${this.terms["general:correctCaps"]}</h4> ${"" !== this.correctFeedback ? i`<p>${this.correctFeedback}</p>` : i``}` : i`<h4><d2l-icon class="icon-i" icon="tier1:close-default" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon> ${this.terms["general:incorrectCaps"]}</h4> ${"" !== this.incorrectFeedback ? i`<p>${this.incorrectFeedback}</p>` : ""}`}
+			</div>`}` : ""}
+		`
+    }
+    mouseOutHandler() {
+        this.hover = !1,
+        this.style.zIndex = 1
+    }
+    mouseOverHandler() {
+        this.hover = !0,
+        this.style.zIndex = 1e3
+    }
+    _hideImage(t) {
+        t.currentTarget.style.display = "none",
+        t.currentTarget.parentElement.querySelector("d2l-tooltip").style.display = "none"
+    }
+}
+);
+const g = t => class extends t {
+    static properties = {};
+    _shuffle(t) {
+        let e, i = t.length;
+        for (; 0 !== i; )
+            e = Math.floor(Math.random() * i),
+            i--,
+            [t[i],t[e]] = [t[e], t[i]];
+        return t
+    }
+}
+;
+class b extends (g(t)) {
+    static get properties() {
+        return {
+            activityComplete: {
+                type: Boolean
+            },
+            activityContext: {
+                type: Object
+            },
+            activityData: {
+                type: Object
+            },
+            activityDataString: {
+                type: String
+            },
+            categories: {
+                type: Array
+            },
+            categoriesInit: {
+                type: Array
+            },
+            categoryTabIndex: {
+                type: Number
+            },
+            correct: {
+                type: Boolean
+            },
+            correctCount: {
+                type: Number
+            },
+            correctTotal: {
+                type: Number
+            },
+            description: {
+                type: String
+            },
+            displayFeedback: {
+                type: Boolean
+            },
+            dropTarget: {
+                type: Object
+            },
+            error: {
+                type: Boolean
+            },
+            fallbackUrl: {
+                type: String
+            },
+            feedbackEnabled: {
+                type: Boolean
+            },
+            hasScoring: {
+                type: Boolean
+            },
+            isDragging: {
+                type: Boolean
+            },
+            layout: {
+                type: String
+            },
+            layoutType: {
+                type: String
+            },
+            loaded: {
+                type: Boolean
+            },
+            moverNum: {
+                type: Number
+            },
+            showCategoryCountdown: {
+                type: Boolean
+            },
+            sortableItems: {
+                type: Array
+            },
+            sortableItemsInit: {
+                type: Array
+            },
+            sortableTabIndex: {
+                type: Number
+            },
+            sortItemDrag: {
+                type: String
+            },
+            sortSelected: {
+                type: Boolean
+            },
+            standardInstructions: {
+                type: String
+            },
+            startX: {
+                type: Number
+            },
+            startY: {
+                type: Number
+            },
+            targetId: {
+                type: String
+            },
+            terms: {
+                type: Object
+            },
+            title: {
+                type: String
+            },
+            verticalLayout: {
+                type: Boolean
+            }
+        }
+    }
+    static get styles() {
+        return e`
+		:host {
+			display: inline-block;
+			font-family: 'Lato', sans-serif;
+			font-size: 0.8rem;
+			overflow: hidden;
+			width: 100%;
+		}
+
+		:host([hidden]) {
+			display: none;
+		}
+
+		.d2l-practice-question {
+			padding: 0.25rem;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		.d2l-activity-header h2 {
+			margin-block-start: 0;
+		}
+
+		.d2l-sort-items {
+			border: 1px solid #dddddd;
+			border-radius: 6px;
+			box-sizing: border-box;
+			margin-block-end: 0.6rem;
+			padding-block-end: 0.9rem;
+			padding-inline: 0.9rem;
+			width: 100%;
+		}
+
+		.d2l-sort-items.vert {
+			float: left;
+			margin-left: 2%;
+			width: 48%;
+		}
+
+		.d2l-sort-items.drag-over {
+			border: 1px solid var(--d2l-color-celestine);
+			box-shadow: 0 2px 14px 1px rgba(0, 0, 0, 0.06);
+		}
+
+		.d2l-sort-items:${s(r())} {
+			border: 2px solid var(--d2l-color-celestine);
+			box-shadow: 0 2px 14px 1px rgb(0 0 0 / 6%);
+			outline: none;
+		}
+
+		.d2l-sort-items-container {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.6rem;
+		}
+
+		d2l-sortable.vert {
+			width: 100%;
+		}
+
+		d2l-sortable.active {
+			pointer-events: none;
+		}
+
+		.d2l-categories {
+			background-color: var(--d2l-color-regolith);
+			border-radius: 6px;
+			box-sizing: border-box;
+			margin-block-end: 0.6rem;
+			padding: 0.6rem;
+			padding-block-end: 0.9rem;
+			padding-inline: 0.9rem;
+			width: 100%;
+		}
+
+		.d2l-categories h3 {
+			margin-block-start: 5px;
+		}
+
+		.d2l-categories.vert {
+			float: left;
+			width: 50%;
+		}
+
+		.d2l-categories-container {
+			display: flex;
+			gap: 0.6rem;
+		}
+
+		.d2l-categories-container.vert {
+			flex-direction: column;
+		}
+
+		.d2l-category-container {
+			align-items: flex-start; /* required so that footer will not stretch to 100% width */
+			display: flex;
+			flex-direction: column;
+			gap: 0.6rem;
+			padding: 0.6rem;
+			position: relative;
+			text-align: center;
+		}
+
+		.d2l-category-container:empty {
+			padding-block-start: 0;
+		}
+
+		.d2l-category-container d2l-sortable {
+			width: 100%;
+		}
+
+		.d2l-category-container d2l-sortable:last-child {
+			margin-block-end: 0;
+		}
+
+		.d2l-category-flex {
+			flex: 1;
+			min-width: 230px;
+			padding-block-end: 0.9rem;
+		}
+
+		d2l-sortable.drag-over {
+			border: 1px solid transparent;
+			box-shadow: 0 0 0 2px var(--d2l-color-celestine);
+		}
+
+		.d2l-category {
+			background-color: #ffffff;
+			border: 1px solid #dddddd;
+			border-radius: 6px;
+			box-sizing: border-box;
+			display: inline-block;
+			margin-inline-end: 0.6rem;
+			min-height: 50px;
+			overflow: hidden;
+			position: relative;
+			width: 100%;
+			z-index: 0;
+		}
+
+		.d2l-category-feedback {
+			background-color: #ffffff;
+			border-bottom: 1px solid #dddddd;
+			box-sizing: border-box;
+			display: inline-block;
+			margin: 0;
+			min-height: 50px;
+			position: relative;
+			width: 100%;
+			z-index: 0;
+		}
+
+		.d2l-category-feedback h4 {
+			align-items: center;
+			background-color: var(--d2l-color-regolith);
+			display: flex;
+			gap: 0.6rem;
+			margin: 0;
+			padding: 0.6rem;
+		}
+
+		.d2l-activity-feedback h4 {
+			align-items: center;
+			display: flex;
+			font-weight: 500;
+			gap: 0.5rem;
+			margin: 0;
+			padding-block: 0.6rem 0.3rem;
+			padding-inline: 0.6rem;
+			text-transform: uppercase;
+		}
+
+		.d2l-activity-feedback h4.no-feedback {
+			border-bottom: none;
+			border-end-end-radius: 6px;
+			border-end-start-radius: 6px;
+		}
+
+		.d2l-activity-feedback p, .d2l-category-feedback p {
+			margin-block: 0;
+			padding-block-end: 0.6rem;
+			padding-inline: 0.6rem;
+		}
+
+		.d2l-category-feedback p {
+			background-color: var(--d2l-color-regolith);
+		}
+
+		.d2l-category.drag-over {
+			border: 1px solid var(--d2l-color-celestine);
+			box-shadow: 0 2px 14px 1px rgba(0, 0, 0, 0.06);
+		}
+
+		.d2l-category:hover {
+			box-shadow: 0 2px 14px 1px rgb(0 0 0 / 6%);
+		}
+
+		.d2l-category:${s(r())} {
+			border: 2px solid var(--d2l-color-celestine);
+			box-shadow: 0 2px 14px 1px rgb(0 0 0 / 6%);
+			outline: none;
+		}
+
+		.d2l-category:last-child {
+			margin-inline-end: 0;
+		}
+
+		.d2l-category-header {
+			align-items: center;
+			background-color: #ffffff;
+			border-start-end-radius: 6px;
+			border-start-start-radius: 6px;
+			display: flex;
+			gap: 0.6rem;
+			margin: 0;
+			max-height: 100px;
+			min-height: 70px;
+			overflow: hidden;
+			text-align: center;
+		}
+
+		.d2l-category-header h3 {
+			flex: 1 1 0%;
+			margin-block: 0.6rem;
+			margin-inline-end: 0.6rem;
+			text-align: left;
+		}
+
+		.d2l-category-header .img {
+			background-position: center center;
+			background-size: cover;
+			border-radius: 6px;
+			height: 64px;
+			margin-block: 0.6rem;
+			margin-inline-start: 0.6rem;
+			max-width: 30%;
+		}
+
+		.d2l-category .d2l-category-info {
+			background-color: var(--d2l-color-sylvite);
+			bottom: 0;
+			box-sizing: border-box;
+			color: var(--d2l-color-tungsten);
+			font-size: 14px;
+			font-weight: 400; /* normal */
+			letter-spacing: 0.2px;
+			line-height: 0.9rem;
+			margin: 0;
+			min-height: 0.6rem;
+			padding-block: 6px;
+			padding-inline: 0.6rem;
+			text-align: right;
+			width: 100%;
+		}
+
+		.d2l-activity-feedback {
+			border: 1px solid #dddddd;
+			border-radius: 6px;
+			box-sizing: border-box;
+			clear: both;
+			margin-block-end: 0.6rem;
+			width: 100%;
+		}
+
+		.d2l-activity-feedback span {
+			margin-inline-start: 0.6rem;
+		}
+
+		d2l-button {
+			font-size: 1rem;
+		}
+
+		.d2l-category-dropzone {
+			align-items: flex-start;
+			border-radius: 6px;
+			display: flex;
+			flex-direction: column;
+			padding: 0.6rem;
+			padding-block-start: 0;
+			position: relative;
+			text-align: center;
+			width: 100%;
+		}
+
+		.d2l-sort-items .d2l-category-dropzone {
+			padding: 0;
+			padding-block-start: 0.6rem;
+		}
+
+		.d2l-category-dropzone p {
+			border: 2px dashed var(--d2l-color-mica);
+			border-radius: 6px;
+			margin: 0;
+			padding: 0.9rem;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			user-select: none;
+			width: 100%;
+		}
+
+		.highlight {
+			border: 2px dashed var(--d2l-color-celestine) !important;
+		}
+
+		.dragging {
+			border: 1px solid var(--d2l-color-celestine) !important;
+		}
+
+		.d2l-activity-footer {
+			display: flex;
+			flex-direction: row;
+		}
+
+		.d2l-activity-footer d2l-button {
+			order: 1;
+		}
+
+		.d2l-score-results {
+			display: flex;
+			font-weight: bold;
+			margin-block: 0.6rem;
+			margin-inline-start: auto;
+			order: 2;
+			text-transform: uppercase;
+			white-space: nowrap;
+		}
+
+		.d2l-score-fraction {
+			direction: ltr;
+		}
+
+		.tracking-counter-label, #score-results {
+			height: 1px;
+			left: -10000px;
+			overflow: hidden;
+			position: absolute !important;
+			white-space: nowrap;
+			width: 1px;
+		}
+
+		@media only screen and (max-width: 800px) {
+			d2l-activity-header,
+			.d2l-activity-footer {
+				grid-column: 1/-1;
+			}
+
+			.d2l-category.drag-over {
+				box-shadow: 0 2px 14px 1px rgba(0, 0, 0, 0.06);
+			}
+
+			.d2l-sort-items {
+				border: 1px solid transparent;
+				border-radius: 0;
+				padding: 0;
+			}
+
+			.d2l-sort-items h3 {
+				margin-block-start: 5px;
+			}
+
+			.d2l-sort-items-container {
+				gap: 0.6rem;
+				grid-template-columns: repeat(3, 1fr);
+			}
+
+			d2l-sortable {
+				width: 100%;
+			}
+
+			.d2l-categories {
+				background-color: transparent;
+				border-radius: 0;
+				padding: 0;
+				padding-inline-end: 0.6rem;
+			}
+		}
+
+		.p-10 {
+			padding-inline-start: 0.6rem;
+		}
+
+		.t-center {
+			text-align: center !important;
+		}
+
+		.icon-c {
+			color: var(--d2l-color-olivine);
+		}
+
+		.icon-i {
+			color: var(--d2l-color-cinnabar);
+		}
+
+		.center-flex {
+			align-items: center;
+			display: flex;
+			justify-content: center;
+		}
+
+		#notif {
+			height: 1px;
+			left: -10000px;
+			overflow: hidden;
+			position: absolute !important;
+			white-space: nowrap;
+			width: 1px;
+		}
+		`
+    }
+    constructor() {
+        super(),
+        this.activityData = {},
+        this.categories = [],
+        this.categoryTabIndex = -1,
+        this.error = !1,
+        this.fallbackUrl = "",
+        this.loaded = !1,
+        this.sortableItems = [],
+        this.sortableTabIndex = 0,
+        this.sortItemDrag = "",
+        this.terms = {},
+        this.verticalLayout = !1,
+        this.addEventListener("keydown", this._keydown)
+    }
+    firstUpdated() {
+        this.hasMouse = matchMedia("(pointer:fine)").matches,
+        this._getActivityData()
+    }
+    render() {
+        let t = i``;
+        return t = !1 === this.loaded ? i`<div class="center-flex"><d2l-loading-spinner></d2l-loading-spinner></div>` : this._renderActivity(),
+        t
+    }
+    updated() {
+        this.reset && (this.renderRoot.querySelector("#d0").querySelector("d2l-sortable").focus(),
+        this.reset = !1)
+    }
+    _buildActivity(t) {
+        this.activityComplete = !1,
+        this.categories = [],
+        this.correct = !1,
+        this.correctCount = 0,
+        this.correctTotal = 0,
+        this.displayFeedback = !1,
+        this.feedbackEnabled = t.displayFeedback,
+        this.isDragging = !1,
+        this.sortableItems = [],
+        this.sortSelected = !1;
+        let e = {}
+          , i = {};
+        for (let i = 0; i < t.categories.length; i++) {
+            let s = "";
+            "" !== t.categories[i].image && (s = "" === this.fallbackUrl ? `${this.activityContext.orgUnitPath}${t.categories[i].image}` : `${this.fallbackUrl}/practice/img/${t.categories[i].image}`),
+            e = {
+                correct: !1,
+                correctCount: 0,
+                correctFeedback: t.categories[i].correctFeedback,
+                correctTotal: 0,
+                displayFeedback: !1,
+                feedbackEnabled: this.feedbackEnabled,
+                id: t.categories[i].id.toString(),
+                image: s,
+                incorrectFeedback: t.categories[i].incorrectFeedback,
+                sortCount: 0,
+                title: t.categories[i].title
+            },
+            this.categories.push(e)
+        }
+        for (let e = 0; e < t.sortableItems.length; e++) {
+            let s = "";
+            "" !== t.sortableItems[e].image && (s = "" === this.fallbackUrl ? this.activityContext.orgUnitPath + t.sortableItems[e].image : `${this.fallbackUrl}/practice/img/${t.sortableItems[e].image}`),
+            i = {
+                alt: t.sortableItems[e].alt,
+                category: "0",
+                correct: !1,
+                correctFeedback: t.sortableItems[e].correctFeedback,
+                correctId: t.sortableItems[e].correctId.toString(),
+                displayFeedback: !1,
+                draggable: !0,
+                feedbackEnabled: this.feedbackEnabled,
+                id: t.sortableItems[e].id.toString(),
+                image: s,
+                incorrectFeedback: t.sortableItems[e].incorrectFeedback,
+                title: t.sortableItems[e].title
+            },
+            this.sortableItems.push(i);
+            for (let t = 0; t < this.categories.length; t++)
+                i.correctId === this.categories[t].id && this.categories[t].correctTotal++
+        }
+        this.correctFeedback = t.correctFeedback,
+        this.customInstructions = t.customInstructions,
+        this.hasScoring = t.hasScoring,
+        this.incorrectFeedback = t.incorrectFeedback,
+        this.showCategoryCountdown = t.showCategoryCountdown,
+        this.standardInstructions = this.terms["sorting:standardInstructions"],
+        this.title = t.title,
+        this._shuffle(this.sortableItems),
+        this.loaded = !0,
+        this.requestUpdate()
+    }
+    _checkActivityDataJSON(t) {
+        try {
+            return JSON.parse(t),
+            !0
+        } catch (t) {
+            return !1
+        }
+    }
+    _checkAnswers() {
+        this.activityComplete = !0,
+        this.categoryTabIndex = 0;
+        for (let t = 0; t < this.sortableItems.length; t++) {
+            if (this.sortableItems[t].draggable = !1,
+            this.sortableItems[t].category === this.sortableItems[t].correctId) {
+                if (this.sortableItems[t].correct = !0,
+                "0" !== this.sortableItems[t].category) {
+                    const e = this.categories.find((e => e.id === this.sortableItems[t].category));
+                    e.correctCount++,
+                    e.correctCount === e.correctTotal && (e.correct = !0)
+                }
+            } else
+                this.sortableItems[t].correct = !1;
+            this.sortableItems[t].displayFeedback = !0
+        }
+        for (let t = 0; t < this.categories.length; t++)
+            this.categories[t].displayFeedback = !0,
+            this.correctCount += this.categories[t].correctCount,
+            this.correctTotal += this.categories[t].correctTotal;
+        this.correctCount >= this.correctTotal && (this.correct = !0),
+        this.displayFeedback = !0,
+        this.requestUpdate()
+    }
+    _checkRemaining() {
+        for (let t = 0; t < this.categories.length; t++)
+            this.categories[t].sortCount = 0;
+        for (let t = 0; t < this.sortableItems.length; t++)
+            for (let e = 0; e < this.categories.length; e++)
+                this.sortableItems[t].category === this.categories[e].id && this.categories[e].sortCount++
+    }
+    _drag_handler(t) {
+        if (!1 === this.activityComplete) {
+            const e = t.target.getAttribute("data-id");
+            this.sortItemDrag = e
+        }
+    }
+    _drag_out_handler(t) {
+        const e = t.target.closest('[data-type="category"]').getAttribute("data-id");
+        this.renderRoot.querySelector(`#dz${e}`).classList.remove("highlight")
+    }
+    _drag_over_handler(t) {
+        const e = t.target.closest('[data-type="category"]').getAttribute("data-id")
+          , i = this.renderRoot.querySelector(`#dz${e}`);
+        t.preventDefault(),
+        i.classList.add("highlight")
+    }
+    _drop_handler(t) {
+        const e = t.target.closest('[data-type="category"]').getAttribute("data-id");
+        if (t.preventDefault(),
+        !1 === this.activityComplete) {
+            const t = this.sortableItems.find((t => t.id === this.sortItemDrag));
+            t.category = e;
+            this.renderRoot.querySelector(`#dz${e}`).classList.remove("highlight"),
+            this._checkRemaining(),
+            this.requestUpdate()
+        }
+    }
+    _getActivityData() {
+        this.terms = JSON.parse(this.dataset.langTerms),
+        this.activityDataString = this.dataset.activity,
+        this.activityContext = JSON.parse(this.dataset.context),
+        this.warnings = "false" !== this.dataset.warnings,
+        this.dataset.fallbackUrl && (this.fallbackUrl = this.dataset.fallbackUrl);
+        const t = document.referrer;
+        this.activityContext.orgUnitPath = `${t + this.activityContext.orgUnitPath}practice/img/`,
+        this._checkActivityDataJSON(this.activityDataString) ? (this.activityData = JSON.parse(this.activityDataString),
+        this._buildActivity(this.activityData)) : console.log(this.terms["general:errorParsingJSON"])
+    }
+    _hideImage(t) {
+        t.currentTarget.style.display = "none",
+        t.currentTarget.parentElement.querySelector("h3").classList.add("p-10"),
+        t.currentTarget.parentElement.querySelector("h3").classList.add("t-center")
+    }
+    _keydown(t) {
+        if ("Enter" === t.code) {
+            if (this.renderRoot.activeElement && this.renderRoot.activeElement.dataset.type && !1 === this.activityComplete)
+                if (this.renderRoot.querySelector("#notif").innerText = "",
+                "sortable" === this.renderRoot.activeElement.dataset.type)
+                    this.renderRoot.activeElement.classList.add("dragging"),
+                    this.sortItemDrag = this.renderRoot.activeElement.dataset.id,
+                    this.renderRoot.querySelector("#d1").focus(),
+                    this.categoryTabIndex = 0,
+                    this.sortableTabIndex = -1,
+                    this.isDragging = !0,
+                    this.renderRoot.querySelector("#notif").innerText = this.terms["general:dragging"];
+                else if ("category" === this.renderRoot.activeElement.dataset.type) {
+                    const t = this.renderRoot.activeElement.dataset.id
+                      , e = this.sortableItems.find((t => t.id === this.sortItemDrag))
+                      , i = this.renderRoot.querySelector(`#s${this.sortItemDrag}`);
+                    e.category === t && void 0 !== e.category || (e.category = t,
+                    i.remove("dragging"),
+                    this.sortItemDrag = "",
+                    this.isDragging = !1,
+                    this.categoryTabIndex = -1,
+                    this.sortableTabIndex = 0,
+                    this.renderRoot.querySelector("#d0 .d2l-sort-items-container").querySelectorAll("d2l-sortable").length > 1 && this.renderRoot.querySelector("#d0 .d2l-sort-items-container").focus(),
+                    this._checkRemaining(),
+                    this.renderRoot.querySelector("#notif").innerText = this.terms["sorting:sortableItemDropped"].replace("{sortableItem}", e.title).replace("{category}", e.category))
+                }
+        } else if ("Tab" === t.code) {
+            const e = this.renderRoot.querySelectorAll(".d2l-category")
+              , i = this.renderRoot.querySelector(".d2l-sort-items")
+              , s = e[0]
+              , r = e[e.length - 1];
+            !0 === this.isDragging ? ("D2L-SORTABLE" === this.renderRoot.activeElement.tagName && (t.preventDefault(),
+            this.renderRoot.querySelector("#d1").focus()),
+            this.renderRoot.activeElement === r ? (t.preventDefault(),
+            i.focus()) : this.renderRoot.activeElement === i && (t.preventDefault(),
+            s.focus())) : !0 === this.renderRoot.activeElement.classList.contains("d2l-category") && null !== this.renderRoot.querySelector("#d0") && this.renderRoot.querySelector("#d0").focus()
+        } else if ("Escape" === t.code) {
+            if (this.isDragging = !1,
+            this.sortItemDrag.length > 0) {
+                const t = this.renderRoot.querySelector(`#s${this.sortItemDrag}`);
+                t.focus(),
+                t.classList.remove("dragging"),
+                this.requestUpdate()
+            }
+            this.isDragging = !1,
+            this.categoryTabIndex = -1,
+            this.sortableTabIndex = 0,
+            this.renderRoot.querySelector("#notif").innerText = this.terms["general:draggingCancelled"]
+        }
+    }
+    _renderActivity() {
+        return i`
+		<div class="activity-frame d2l-typography">
+		<d2l-dialog-confirm ?opened="${!this.hasMouse && this.warnings}" text="${this.terms["general:mobileNotification"]}">
+		<d2l-button slot="footer" primary data-dialog-action>${this.terms["general:close"]}</d2l-button>
+		</d2l-dialog-confirm>
+		<d2l-activity-header title="${this.title}" role="main" activityInfo="${this.customInstructions}" keyboardInstructionsTitle="${this.terms["general:accKeyboardInstructionsTitle"]}" accessibilityInstructions="${this.terms["sorting:accInstructions"]}" standardInstructions="${this.standardInstructions}" mobileInstructions="${this.terms["sorting:mobileInstructions"]}"></d2l-activity-header>
+		<div class="d2l-categories">
+		<h3>${this.terms["general:categories"]}</h3>
+		<d2l-scroll-wrapper>
+		<div class="d2l-categories-container" aria-label="${this.terms["general:categories"]}" role="list" id="catlist">
+		${this.categories.map((t => i`
+			<div class="d2l-category-flex">
+			<div class="d2l-category" data-type="category" role="listitem" role-description="category" tabindex="${this.categoryTabIndex}"  aria-describedby=${a(this.isDragging ? `nfo${t.id}` : void 0)} aria-label="${this.terms["general:categoryLabel"].replace("{category}", t.title)}" @touchmove="${this._touch_move_category}" @mouseup="${this._touch_end_category}" id="d ${t.id}" data-id="${t.id}" @dragleave="${this._drag_out_handler}" @dragover="${this._drag_over_handler}" @drop="${this._drop_handler}">
+			<div class="d2l-category-header">
+			${"" !== t.image ? i`<img draggable="false" class="img" alt="${t.alt && "" !== t.alt ? t.alt : ""}" .onerror=${this._hideImage} src="${t.image}"><h3>${t.title}</h3>` : i`<h3 class="p-10 pl-12 t-center">${t.title}</h3>`}
+			</div>
+			${!0 === t.displayFeedback ? i`
+				<div class="d2l-category-info" id="nfo${t.id}">
+				<div aria-hidden="true" tabindex="-1">${this.terms["general:correctCount"].replace("{correctCount}", t.correctCount).replace("{correctTotal}", t.correctTotal)}</div>
+				<label class="tracking-counter-label"  aria-describedby="d${t.id}" role="status">${this.terms["general:correctCountLabel"].replace("{correctCount}", t.correctCount).replace("{correctTotal}", t.correctTotal)}</label>
+				</div>` : i`${!0 === this.showCategoryCountdown ? i`
+					<div class="d2l-category-info" id="nfo${t.id}"><div aria-hidden="true" tabindex="-1">${this.terms["sorting:sortableItemsCount"].replace("{sortCount}", t.sortCount).replace("{correctTotal}", t.correctTotal)}</div>
+					<label hidden class="tracking-counter-label" aria-hidden=${a(this.isDragging ? "false" : "true")}  aria-describedby="d${t.id}">${this.terms["sorting:sortableItemsCountLabel"].replace("{sortCount}", t.sortCount).replace("{correctTotal}", t.correctTotal)}</label>
+					</div>` : ""}`}
+					${!0 === t.displayFeedback && !0 === this.feedbackEnabled ? i`
+						<div class="d2l-category-feedback">
+						${!0 === t.correct ? i`<h4><d2l-icon class="icon-c" icon="tier1:check" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon> ${this.terms["general:correctCaps"]}</h4>${t.correctFeedback ? i`<p>${t.correctFeedback}</p>` : ""}` : i`<h4><d2l-icon class="icon-i" icon="tier1:close-default" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon> ${this.terms["general:incorrectCaps"]}</h4>${t.incorrectFeedback ? i`<p>${t.incorrectFeedback}</p>` : ""}`}
+						</div>` : i`${!0 === t.displayFeedback ? i`
+							<div class="d2l-category-feedback">
+							${!0 === t.correct ? i`<h4><d2l-icon class="icon-c" icon="tier1:check" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon> ${this.terms["general:correctCaps"]}</h4>` : i`<h4><d2l-icon class="icon-i" icon="tier1:close-default" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon> ${this.terms["general:incorrectCaps"]}</h4>`}
+							</div>` : ""}`}
+							<div class="d2l-category-container" role="list" aria-labelledby="d ${t.id}">
+							${this.sortableItems.map((e => i`${e.category === t.id ? i`${this._renderSort(e)}` : i``}`))}
+							</div>
+							${!1 === t.displayFeedback ? i`
+								<div class="d2l-category-dropzone">
+								<p class="d2l-category-dropzone-p" aria-hidden="${!0 === this.isDragging ? "false" : "true"}" id="dz${t.id}" >${this.terms["general:drophere"]}</p>
+								</div>` : ""}
+								</div>
+								</div>`))}
+		</div>
+		</d2l-scroll-wrapper>
+		</div>
+		${!1 === this.activityComplete || !0 === this.activityComplete && this.sortableItems.filter((t => "0" === t.category)).length > 0 ? i`
+		<div class="d2l-sort-items" id="d0" data-type="category" data-id="0" tabindex="${this.categoryTabIndex}" aria-label="${this.terms["general:sortableItems"]}" @touchmove="${this._touch_move_category}" @mouseup="${this._touch_end_category}" @dragleave="${this._drag_out_handler}" @dragover="${this._drag_over_handler}" @drop="${this._drop_handler}">
+		<h3>${this.terms["general:sortableItems"]}</h3>
+		<div class="d2l-sort-items-container" role="list">
+		${this.sortableItems.map((t => i`${"0" === t.category ? i`${this._renderSort(t)}` : ""}`))}
+		</div>
+		${!1 === this.activityComplete && !1 === this.displayFeedback ? i`
+			<div class="d2l-category-dropzone" role-description="dropzone">
+			<p class="d2l-category-dropzone-p" aria-hidden="true" id="dz0" >${this.terms["general:drophere"]}</p>
+			</div>` : ""}
+			</div>` : ""}
+			<div role="status" class="feedback-wrapper" .aria-labelledby="${this.categories.map(( (t, e) => `d${e + 1} `))}">
+			${!0 === this.displayFeedback && !0 === this.feedbackEnabled ? i`
+				<div class="d2l-activity-feedback" role="status" aria-labelledby="score-results feedbacktitle textfeedback" tabindex="0">
+				<label id="score-results">${this.terms["general:scoreLabel"].replace("{correct}", this.correctCount).replace("{total}", this.correctTotal)}</label>
+				<h4 id="feedbacktitle">${this.terms["general:overallFeedback"]}</h4>
+				${!0 === this.correct ? i`<p id="textfeedback">${this.correctFeedback}</p>` : i`<p id="textfeedback">${this.incorrectFeedback}</p>`}
+				</div>` : ""}
+				</div>
+				<div class="d2l-activity-footer">
+				${!0 === this.displayFeedback ? i`<div class="d2l-score-results" aria-hidden="true">${this.terms["general:scorePrefix"]}&nbsp;<span class="d2l-score-fraction">${this.correctCount} / ${this.correctTotal}</span></div>` : ""}
+				${!0 === this.activityComplete ? i`<d2l-button @click="${this._resetActivity}" primary>${this.terms["general:tryAgain"]}</d2l-button>` : i`<d2l-button @click="${this._checkAnswers}" primary>${this.terms["general:checkAnswers"]}</d2l-button>`}
+				</div>
+				</div>
+				<div id="notif" role="region" aria-live="assertive"></div>
+		`
+    }
+    _renderSort(t) {
+        return i`<d2l-sortable data-type="sortable" data-id="${t.id}" aria-describedby="${t.category > 0 ? `d${t.category}` : "undefined"}" role="listitem" aria-roledescription="${this.terms["general:sortableItem"]}" tabindex="${this.sortableTabIndex}" aria-label="${t.title}" id="s ${t.id}" @touchmove="${this._touch_move_sort}" @mousedown="${this._touch_start_sort}" @mouseup="${this._touch_end_sort}" @dragstart="${this._drag_handler}" draggable="${t.draggable}" titleText="${t.title}" image="${t.image}" altText="${t.alt}" feedback="${t.displayFeedback}" displayFeedback='{"display": ${t.displayFeedback}, "feedbackEnabled": ${t.feedbackEnabled}, "correct": ${t.correct}}' incorrectFeedback="${t.incorrectFeedback}" correctFeedback="${t.correctFeedback}" .terms="${this.terms}"></d2l-sortable>`
+    }
+    _resetActivity() {
+        this.reset = !0,
+        this.renderRoot.activeElement && this.renderRoot.activeElement.blur(),
+        this._buildActivity(this.activityData)
+    }
+    _touch_end_category(t) {
+        if (t.cancelable) {
+            const e = t.target.closest('[data-type="category"]').getAttribute("data-id");
+            if (t.preventDefault(),
+            this.moverNum < 1 && !1 === this.activityComplete) {
+                const t = this.renderRoot.querySelectorAll(".active");
+                [].forEach.call(t, (function(t) {
+                    t.classList.remove("active")
+                }
+                ));
+                const i = this.sortableItems.find((t => t.id === this.sortItemDrag));
+                i.category !== e && (i.category = e,
+                this.isDragging = !1,
+                this.sortItemDrag = "")
+            }
+            this._checkRemaining()
+        }
+        this.isDragging = !1,
+        this.moverNum = 0
+    }
+    _touch_end_sort(t) {
+        if (t.cancelable) {
+            const e = t.target.getAttribute("data-id");
+            if (t.preventDefault(),
+            this.moverNum < 1 && !1 === this.activityComplete) {
+                const t = this.renderRoot.querySelectorAll(".drag-over");
+                [].forEach.call(t, (function(t) {
+                    t.classList.remove("drag-over")
+                }
+                )),
+                this.isDragging = !1,
+                this.sortItemDrag = e,
+                this.moverNum = 0;
+                this.renderRoot.querySelector(`#s${e}`).classList.add("drag-over")
+            }
+        }
+    }
+    _touch_move_category() {
+        this.moverNum++
+    }
+    _touch_move_sort() {
+        this.moverNum++
+    }
+    _touch_start_sort(t) {
+        if ("" === this.sortItemDrag && !1 === this.activityComplete) {
+            const e = t.target.getAttribute("data-id");
+            this.sortItemDrag = e;
+            const i = this.renderRoot.querySelectorAll(".drag-over");
+            [].forEach.call(i, (function(t) {
+                t.classList.remove("drag-over")
+            }
+            ));
+            const s = this.renderRoot.querySelector(`#s${e}`);
+            s.classList.add("drag-over"),
+            this.startX = s.getBoundingClientRect().left + s.offsetWidth / 2,
+            this.startY = s.getBoundingClientRect().top + s.offsetHeight / 2,
+            this.isDragging = !0,
+            this.moverNum = 0
+        }
+    }
+}
+customElements.define("d2l-practice-matching", b);
+const u = {
+    FORBID_ATTR: ["style"],
+    FORBID_TAGS: ["style"],
+    USE_PROFILES: {
+        html: !0
+    }
+};
+customElements.define("d2l-practice-question-fill", class extends t {
+    static get properties() {
+        return {
+            answers: {
+                type: Array
+            },
+            correctFeedback: {
+                type: String
+            },
+            displayFeedback: {
+                type: Boolean
+            },
+            hasHint: {
+                type: Boolean
+            },
+            hasScoring: {
+                type: Boolean
+            },
+            hintText: {
+                type: String
+            },
+            id: {
+                type: Number
+            },
+            incorrectFeedback: {
+                type: String
+            },
+            inputType: {
+                type: String
+            },
+            isCorrectAnswers: {
+                type: Boolean
+            },
+            isSubmitted: {
+                type: Boolean
+            },
+            scoreCalculation: {
+                type: Number
+            },
+            terms: {
+                type: Object
+            },
+            text: {
+                type: String
+            },
+            type: {
+                type: Number
+            }
+        }
+    }
+    static get styles() {
+        return [n, l, e`:host{display:inline-block;font-family:Lato,sans-serif;font-size:.8rem;overflow:hidden;width:100%}:host([hidden]){display:none}:host([dir=rtl]) .hint-header a{float:right}.d2l-practice-question{padding:.25rem}fieldset{border:none;margin:0;padding:0}fieldset legend p:first-child{margin-block-start:0}.d2l-answers-header{font-size:.75rem;margin-block-end:1.35rem}.d2l-hidden{display:none!important}.hint-header a{align-items:center;background-repeat:no-repeat;border:1px solid transparent;border-radius:.3rem;display:inline-flex;float:left;height:1.5rem;justify-content:center;margin-block-start:-3px;vertical-align:middle;width:1.5rem}.hint-header{cursor:pointer}.toggleText p{color:var(--d2l-color-celestine);font-weight:700;margin-inline-start:40px}.hint-header:focus a,.hint-header:hover a{border-color:var(--d2l-color-corundum);outline:0}.d2l-expandcollapse a:focus{border-color:var(--d2l-color-corundum);outline:0}#score-results,.hidden-label{height:1px;inset-inline-start:-10000px;overflow:hidden;position:absolute!important;white-space:nowrap;width:1px}.score-results{display:flex;font-weight:700;text-transform:uppercase}.score-fraction{direction:ltr}#question-id pre{color:var(--d2l-color-ferrite);display:block;font-family:Lato,'Lucida Sans Unicode','Lucida Grande',sans-serif;font-size:.8rem;font-weight:400;letter-spacing:.01rem;line-height:49px;margin:0;outline:0;white-space:pre-wrap}.input-wrapper{display:inline-grid;grid-template-columns:139px 0;white-space:nowrap;width:fit-content}.input-wrapper.answered{grid-template-columns:auto 139px}.input-wrapper-select{display:inline-grid;max-width:100%;white-space:nowrap;width:fit-content}.input-wrapper-select.answered{grid-template-columns:auto auto}.input-wrapper-select>select{width:100%}input[type=text]{height:44px;max-width:139px}.d2l-question-footer{display:flex;flex-direction:row;margin-block-start:.6rem}.d2l-question-footer d2l-button{order:1}.user-score-results{font-weight:700;margin-inline-start:auto;order:2;text-transform:uppercase}.d2l-feedback-block{border:1px solid var(--d2l-color-gypsum);border-radius:6px;opacity:1;padding:.6rem 1.25rem}.d2l-feedback-block p{margin:0}p.d2l-feedback-text{padding-block:1rem;padding-inline:1.6rem}.d2l-icon-style{height:20px;padding:.6rem;width:20px}`]
+    }
+    constructor() {
+        super(),
+        this.answerCount = [],
+        this.answers = [],
+        this.correctFeedback = "",
+        this.hasScoring = !1,
+        this.hasHint = !1,
+        this.hintText = "",
+        this.incorrectFeedback = "",
+        this.inputType = "",
+        this.isSubmitted = !1,
+        this.isCorrectAnswers = !1,
+        this.scoreCalculation = 0,
+        this.terms = {},
+        this.text = "",
+        this.addEventListener("keydown", this._keydown)
+    }
+    render() {
+        return i`<div class="d2l-practice-question d2l-typography"><fieldset><legend><p class="d2l-answers-header"><em>${this.terms["blanks:answersHeader"]}</em></p></legend><div id="question-id" tabindex="-1">${this._convertQuestion()}</div>${!0 === this.hasHint && !1 === this.isSubmitted ? i`<div class="hint-wrapper" aria-live="polite" role="region"><div class="hint-header"><span class="d2l-expandcollapse"><a id="expand" href="javascript:void(0);" aria-roledescription="expandable hint" aria-expanded="false" @click="${this._toggleHint}" aria-label="${this.terms["general:clickToExpand"]}" role="button"><d2l-icon icon="tier1:arrow-expand"></d2l-icon></a></span><div class="toggleText" @click="${this._toggleHint}" aria-hidden="true"><p>${this.terms["general:viewHintText"]}</p></div></div><div class="collapse show"><div class="hint-body d2l-hidden" id="hint-text"><p>${this.hintText}</p></div></div></div>` : ""}<hr><div style="display:flex;flex-direction:column" aria-live="polite">${this.isSubmitted && this.displayFeedback ? this._generateFeedback() : ""}<div class="d2l-question-footer">${this.isSubmitted && !0 === this.hasScoring ? this._generateScore() : ""}<d2l-button primary @click="${this._checkAnswer}">${this.isSubmitted ? this.terms["general:tryAgain"] : this.terms["general:checkAnswers"]}</d2l-button></div></div></fieldset></div>`
+    }
+    _checkAnswer() {
+        if (this._getCheckedAnswers().length && this._getCheckedAnswers().length === this.answers.length) {
+            if (this.answerCount = [],
+            this.isSubmitted = !this.isSubmitted,
+            this.isSubmitted) {
+                this.isCorrectAnswers = this._getCheckedAnswers().every((t => !0 === t));
+                const t = 0 === this.inputType ? this.renderRoot.querySelectorAll("select") : 1 === this.inputType ? this.renderRoot.querySelectorAll("input") : [];
+                Array.from(t)?.map((t => {
+                    t.disabled = !0;
+                    for (const e of this.answers)
+                        if (String(e.id) === t.id) {
+                            const i = document.createElement("span");
+                            !0 === e.isCorrectAnswer && this.answerCount.push(e),
+                            i.innerHTML = e.isCorrectAnswer ? `<d2l-icon class="d2l-icon-style" icon="tier1:check" style="color: var(--d2l-color-olivine);" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon>` : `<d2l-icon class="d2l-icon-style" icon="tier1:close-default" style="color: var(--d2l-color-cinnabar);" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon>`,
+                            t.parentNode.insertBefore(i, t)
+                        }
+                }
+                ));
+                let e = this.renderRoot.querySelectorAll(".input-wrapper");
+                Array.from(e)?.map((t => {
+                    t.classList.add("answered")
+                }
+                )),
+                e = this.renderRoot.querySelectorAll(".input-wrapper-select"),
+                Array.from(e)?.map((t => {
+                    t.classList.add("answered")
+                }
+                ))
+            }
+            this.isSubmitted || this._resetSelectedAnswers(),
+            this.requestUpdate()
+        }
+    }
+    _converter(t) {
+        let e;
+        for (const i of this.answers)
+            String(i.id) === t && (this.inputType = i.inputType,
+            e = 0 === this.inputType ? this._createDropdownElement(i, t) : 1 === this.inputType ? this._createInputElement(t) : "");
+        return e
+    }
+    _convertQuestion() {
+        const t = this.text.match(/[^[[]+(?=]])/g)
+          , e = this.text
+          , s = new Set(t)
+          , r = e.split(/(\[\[.*?\]\])/g).map((t => {
+            const e = t.match(/[^[[]+(?=]])/g);
+            if (e && s.has(e[0])) {
+                const t = this._converter(e[0]);
+                return s.delete(e[0]),
+                i`${t}`
+            }
+            return i`${function(t, e=u) {
+                return t ? d(o.sanitize(t, e)) : ""
+            }(t)}`
+        }
+        ));
+        return i`<pre><label id="q0">${r}</label></pre>`
+    }
+    _createDropdownElement(t, e) {
+        for (let e = 0; e < t.answers.length; e++)
+            void 0 !== t.answers[e].index && null !== t.answers[e].index || (t.answers[e].index = e);
+        const s = (this.isSubmitted ? t.answers : this._shuffle(t.answers)).map((t => i`<option value="${t.index}">${t.text}</option>`));
+        return i`<div class="input-wrapper-select"><select class="d2l-input-select" id="${e}" @change="${this._handleChange}" aria-label="${e}"><option value="-1" disabled="disabled" selected="true">${this.terms["blanks:selectAnswer"]}</option>${s}</select></div>`
+    }
+    _createInputElement(t) {
+        return i`<div class="input-wrapper"><input @blur="${this._handleInputBlur}" type="text" id="${t}" class="d2l-input" aria-label="${t}"></div>`
+    }
+    _generateFeedback() {
+        let t = "";
+        return this.isCorrectAnswers ? "" !== this.correctFeedback && (t = i`<div class="d2l-feedback-block"><p>${this.terms["general:overallFeedback"]}</p><p class="d2l-feedback-text">${this.correctFeedback}</p></div>`) : "" !== this.incorrectFeedback && (t = i`<div class="d2l-feedback-block"><p>${this.terms["general:overallFeedback"]}</p><p class="d2l-feedback-text">${this.incorrectFeedback}</p></div>`),
+        t
+    }
+    _generateScore() {
+        switch (this.scoreCalculation) {
+        case 0:
+            return i`<div class="user-score-results"><label id="score-results">${this.terms["general:scoreLabel"].replace("{correct}", this.isCorrectAnswers ? 1 : 0).replace("{total}", 1)}</label><div class="score-results" aria-hidden="true">${this.terms["general:scorePrefix"]} <span class="score-fraction">${this.isCorrectAnswers ? 1 : 0} / 1</span></div></div>`;
+        case 1:
+            return i`<div class="user-score-results"><label id="score-results">${this.terms["general:scoreLabel"].replace("{correct}", this.answerCount.length).replace("{total}", this.answers.length)}</label><div class="score-results" aria-hidden="true">${this.terms["general:scorePrefix"]} <span class="score-fraction">${this.answerCount.length} / ${this.answers.length}</span></div></div>`
+        }
+    }
+    _getCheckedAnswers() {
+        const t = [];
+        for (const e of this.answers)
+            void 0 !== e.isCorrectAnswer && t.push(e.isCorrectAnswer);
+        return t
+    }
+    _handleChange(t) {
+        for (const e of this.answers)
+            String(e.id) === t.target.id && (e.isCorrectAnswer = !!e.correctAnswers.includes(Number(t.target.value)))
+    }
+    _handleInputBlur(t) {
+        for (const e of this.answers)
+            if (String(e.id) === t.target.id) {
+                if (!t.target.value && void 0 !== e.isCorrectAnswer)
+                    return void delete e.isCorrectAnswer;
+                for (const i of e.answers)
+                    if (i.regularExpression ? e.isCorrectAnswer = null !== t.target.value.match(new RegExp(i.text,"g" + (i.caseSensitive ? "" : "i"))) : i.caseSensitive ? e.isCorrectAnswer = i.text === t.target.value : e.isCorrectAnswer = i.text.toLowerCase() === t.target.value.toLowerCase(),
+                    e.isCorrectAnswer)
+                        return
+            }
+    }
+    _resetSelectedAnswers() {
+        for (const t of this.answers)
+            delete t.isCorrectAnswer;
+        0 === this.inputType ? Array.from(this.renderRoot.querySelectorAll("select")).map((t => {
+            t.selectedIndex = 0,
+            t.disabled = !1,
+            t.previousSibling.remove()
+        }
+        )) : 1 === this.inputType && Array.from(this.renderRoot.querySelectorAll("input")).map((t => {
+            t.disabled = !1,
+            t.value = "",
+            t.previousSibling.remove()
+        }
+        ));
+        let t = this.renderRoot.querySelectorAll(".input-wrapper");
+        Array.from(t)?.map((t => {
+            t.classList.remove("answered")
+        }
+        )),
+        t = this.renderRoot.querySelectorAll(".input-wrapper-select"),
+        Array.from(t)?.map((t => {
+            t.classList.remove("answered")
+        }
+        )),
+        this.renderRoot.querySelector("#question-id").focus()
+    }
+    _shuffle(t) {
+        let e = t.length;
+        for (; e > 0; ) {
+            const i = Math.floor(Math.random() * e);
+            e--;
+            const s = t[e];
+            t[e] = t[i],
+            t[i] = s
+        }
+        return t
+    }
+    _toggleHint() {
+        this.shadowRoot.querySelector("#expand").classList.toggle("expanded"),
+        this.shadowRoot.querySelector(".hint-body").classList.toggle("d2l-hidden"),
+        null !== this.shadowRoot.querySelector("#expand.expanded") ? (this.shadowRoot.querySelector("#expand").setAttribute("aria-expanded", !0),
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-label", `${this.terms["general:clickToCollapse"]}`),
+        this.shadowRoot.querySelector("#expand").querySelector("d2l-icon").setAttribute("icon", "tier1:arrow-collapse"),
+        this.shadowRoot.querySelector(".toggleText p").innerText = this.terms["general:hideHintText"]) : (this.shadowRoot.querySelector(".toggleText p").innerText = this.terms["general:viewHintText"],
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-expanded", !1),
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-label", `${this.terms["general:clickToExpand"]}`),
+        this.shadowRoot.querySelector("#expand").querySelector("d2l-icon").setAttribute("icon", "tier1:arrow-expand")),
+        this.requestUpdate()
+    }
+}
+);
+customElements.define("d2l-practice-question-multiple-choice", class extends t {
+    static get properties() {
+        return {
+            alt: {
+                type: String
+            },
+            answers: {
+                type: Array
+            },
+            checkedAnswers: {
+                type: Array
+            },
+            correctAnswers: {
+                type: Array
+            },
+            correctFeedback: {
+                type: String
+            },
+            displayFeedback: {
+                type: Boolean
+            },
+            hasHint: {
+                type: Boolean
+            },
+            hasScoring: {
+                type: Boolean
+            },
+            hinttext: {
+                type: String
+            },
+            id: {
+                type: Number
+            },
+            image: {
+                type: String
+            },
+            imagePath: {
+                type: String
+            },
+            incorrectFeedback: {
+                type: String
+            },
+            isCorrectAnswers: {
+                type: Boolean
+            },
+            isSubmitted: {
+                type: Boolean
+            },
+            randomize: {
+                type: Boolean
+            },
+            terms: {
+                type: Object
+            },
+            text: {
+                type: String
+            },
+            type: {
+                type: Number
+            }
+        }
+    }
+    static get styles() {
+        return [c, e`:host{display:inline-block;font-family:Lato,sans-serif;font-size:.8rem;overflow:hidden;width:100%}:host([hidden]){display:none}:host([dir=rtl]) .hint-header a{float:right}.d2l-practice-question{padding:.25rem}hr{border-block-start:1px solid var(--d2l-color-mica);margin-block-start:1.5rem;width:100%}fieldset{border:none;margin:0;padding:0}fieldset legend p:first-child{margin-block-start:0}#score-results-label,.hidden-label{height:1px;inset-inline-start:-10000px;overflow:hidden;position:absolute!important;white-space:nowrap;width:1px}.score-results{display:flex;font-weight:700;text-transform:uppercase}.score-fraction{direction:ltr}.d2l-hidden{display:none!important}.hint-header a{align-items:center;background-repeat:no-repeat;border:1px solid transparent;border-radius:.3rem;display:inline-flex;float:left;height:1.5rem;justify-content:center;margin-block-start:-3px;vertical-align:middle;width:1.5rem}.hint-header{cursor:pointer}.toggleText p{color:var(--d2l-color-celestine);font-weight:700;margin-inline-start:40px}.hint-header:focus a,.hint-header:hover a{border-color:var(--d2l-color-corundum);outline:0}.d2l-expandcollapse a:focus{border-color:var(--d2l-color-corundum);outline:0}.d2l-question-footer{display:flex;flex-direction:row;margin-block-start:.6rem}.d2l-question-footer d2l-button{order:1}.user-score-results{font-weight:700;margin-inline-start:auto;order:2;text-transform:uppercase}.d2l-answer-block{display:flex;flex-direction:column;width:100%}.d2l-answers{display:flex;flex-direction:column;margin:0;margin-block-end:.25rem;padding:.6rem}.d2l-answers img{border-radius:6px;height:134px;margin-block-start:.6rem;object-fit:cover;object-position:center center;width:134px}img.img-adjust{margin-block-start:unset}img.img-question{max-width:100%}.d2l-correct-answer{background-color:var(--d2l-color-sylvite)}.d2l-answer-feedback-block{padding-block-end:.75rem!important;padding-block-start:.6rem!important;padding-inline:.65rem}.d2l-feedback-block{border:1px solid var(--d2l-color-gypsum);border-radius:6px;opacity:1;padding:.6rem 1.25rem}.d2l-answer-feedback-block p,.d2l-feedback-block p{margin:0}p.d2l-feedback-text{padding-block:1rem;padding-inline:1.6rem}.d2l-input-radio-label{align-items:flex-start!important;display:grid!important;grid-template-columns:0 1fr}.d2l-icon-container{flex:1 0 44px}.d2l-icon-style{height:20px;padding:.6rem;width:20px}.d2l-answers-header{font-size:.75rem;margin-block-end:1.35rem}.no-feedback-adjust{padding-block-end:.75rem!important}`]
+    }
+    constructor() {
+        super(),
+        this.alt = "",
+        this.answerCount = [],
+        this.answers = [],
+        this.checkedAnswers = [],
+        this.correctAnswers = [],
+        this.correctFeedback = "",
+        this.displayFeedback = !1,
+        this.enumerationType = 0,
+        this.text = "",
+        this.hasHint = !1,
+        this.hasScoring = !1,
+        this.hintText = "",
+        this.image = "",
+        this.imagePath = "",
+        this.incorrectFeedback = "",
+        this.isCorrectAnswers = !1,
+        this.isSubmitted = !1,
+        this.randomize = !1,
+        this.terms = {},
+        this.useEnumeration = !1,
+        this.addEventListener("keydown", this._keydown)
+    }
+    firstUpdated() {
+        this.randomize && (this._shuffle(this.answers),
+        this.requestUpdate())
+    }
+    render() {
+        return i`<div class="d2l-practice-question d2l-typography"><fieldset><legend><p>${this.text}</p>${this.image && "" !== this.image ? i`<img class="img-question" id="img-question" src="${this.imagePath}${this.image}" alt="${this.alt}">` : ""}<p class="d2l-answers-header"><em>${this.terms["multipleChoice:answersHeader"]}</em></p></legend><div>${this.answers && this.answers.map(( (t, e) => i`<div style="display:flex">${this.isSubmitted ? i`<span class="d2l-icon-container">${this.checkedAnswers.includes(t.id) ? this.correctAnswers.includes(t.id) ? i`<d2l-icon class="d2l-icon-style" icon="tier1:check" style="color:var(--d2l-color-olivine)" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon>` : i`<d2l-icon class="d2l-icon-style" icon="tier1:close-default" style="color:var(--d2l-color-cinnabar)" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon>` : ""}</span>` : ""}<div class="d2l-answer-block ${!1 === this.checkedAnswers.includes(t.id) && Number(e) === Number(this.answers.length) - 1 ? " no-feedback-adjust" : ""}"><div class="d2l-answers ${this.isSubmitted && this.correctAnswers.some((e => e === t.id)) ? "d2l-correct-answer" : ""}"><label class="d2l-input-radio-label"><input type="radio" name="myGroup" id="${t.id}" aria-label="${!0 === this.useEnumeration ? `${this._addEnumerationType(e)} ` : ""}${t.text}" aria-describedby="img-${t.id} ${this.displayFeedback && this.isSubmitted ? `result-label${e} feedback${e}` : ""}" @change="${this._handleChange}" ?disabled="${this.isSubmitted}"> ${!0 === this.useEnumeration ? i`${this._addEnumerationType(e)}` : ""} ${t.text} ${t.image ? i`<img class="${0 === t.text.length ? "img-adjust" : ""}" id="img-${t.id}" src="${this.imagePath}${t.image}" alt="${t.alt}">` : ""} ${this.isSubmitted ? i`${this.correctAnswers.some((e => e === t.id)) && this.checkedAnswers.includes(t.id) ? i`<div id="result-label${e}" class="d2l-hidden">${this.terms["general:correct"]}</div>` : i`<div id="result-label${e}" class="d2l-hidden">${this.terms["general:incorrect"]}</div>`}` : ""}</label></div>${this.displayFeedback && this.isSubmitted && this.checkedAnswers.includes(t.id) && t.feedback ? i`<div class="d2l-answer-feedback-block" id="feedback${e}"><p>${t.feedback}</p></div>` : ""}</div></div>`))} ${!0 === this.hasHint && "" !== this.hintText && !1 === this.isSubmitted ? i`<div class="hint-wrapper" aria-live="polite" role="region"><div class="hint-header"><span class="d2l-expandcollapse"><a id="expand" href="javascript:void(0);" aria-roledescription="expandable hint" aria-expanded="false" @click="${this._toggleHint}" aria-label="${this.terms["general:clickToExpand"]}" role="button"><d2l-icon icon="tier1:arrow-expand"></d2l-icon></a></span><div class="toggleText" @click="${this._toggleHint}" aria-hidden="true"><p>${this.terms["general:viewHintText"]}</p></div></div><div class="collapse show"><div class="hint-body d2l-hidden" id="hint-text"><p>${this.hintText}</p></div></div></div>` : ""}</div><div style="display:flex;flex-direction:column" aria-live="polite">${this._generateOverallFeedbackBlock()}<hr><div class="d2l-question-footer"><div class="user-score-results">${this.isSubmitted && !0 === this.hasScoring ? i`<label id="score-results-label">${this.terms["general:scoreLabel"].replace("{correct}", this.answerCount.length).replace("{total}", this.correctAnswers.length)}</label><div class="score-results" aria-hidden="true">${this.terms["general:scorePrefix"]} <span class="score-fraction">${this.answerCount.length} / ${this.correctAnswers.length}</span></div>` : ""}</div><d2l-button primary @click="${this._checkAnswer}">${this.isSubmitted ? this.terms["general:tryAgain"] : this.terms["general:checkAnswers"]}</d2l-button></div></div></fieldset></div>`
+    }
+    _addEnumerationType(t) {
+        switch (this.enumerationType) {
+        case 0:
+            return `${t + 1}.`;
+        case 1:
+            return `${this._convertToRomanNumeral(t + 1).toLowerCase()}.`;
+        case 2:
+            return `${this._convertToRomanNumeral(t + 1).toUpperCase()}.`;
+        case 3:
+            return `${(t + 1 + 9).toString(36).toLowerCase()}.`;
+        case 4:
+            return `${(t + 1 + 9).toString(36).toUpperCase()}.`
+        }
+    }
+    _checkAnswer() {
+        this.checkedAnswers.length && (this.isSubmitted = !this.isSubmitted,
+        this.isSubmitted && (this.isCorrectAnswers = this.checkedAnswers.every((t => this.correctAnswers.includes(t))),
+        this.answerCount = this.checkedAnswers.filter((t => this.correctAnswers.includes(t)))),
+        this.isSubmitted || this._resetCheckedAnswers(!1),
+        this.requestUpdate())
+    }
+    _close() {
+        this.dispatchEvent(new CustomEvent("closeQuestion",{
+            bubbles: !0,
+            composed: !0,
+            detail: {
+                correct: this.correct
+            }
+        }))
+    }
+    _convertToRomanNumeral(t) {
+        const e = {
+            M: 1e3,
+            CM: 900,
+            D: 500,
+            CD: 400,
+            C: 100,
+            XC: 90,
+            L: 50,
+            XL: 40,
+            X: 10,
+            IX: 9,
+            V: 5,
+            IV: 4,
+            I: 1
+        };
+        let i = "";
+        for (const s in e)
+            for (; t >= e[s]; )
+                i += s,
+                t -= e[s];
+        return i
+    }
+    _generateOverallFeedbackBlock() {
+        if (!this.displayFeedback || !this.isSubmitted)
+            return h;
+        const t = this.isCorrectAnswers ? this.correctFeedback : this.incorrectFeedback;
+        return "" !== t ? i`<div class="d2l-feedback-block"><p>${this.terms["general:overallFeedback"]}</p><p class="d2l-feedback-text">${t}</p></div>` : h
+    }
+    _handleChange(t) {
+        const e = parseInt(t.target.id);
+        this.checkedAnswers.length = 0,
+        this.checkedAnswers.push(e)
+    }
+    _keydown() {}
+    _resetCheckedAnswers() {
+        this.checkedAnswers.length = 0,
+        this.answerCount.length = 0,
+        Array.from(this.renderRoot.querySelectorAll("input")).map((t => {
+            t.checked = !1
+        }
+        ))
+    }
+    _shuffle(t) {
+        let e, i, s = t.length;
+        for (; s; )
+            i = Math.floor(Math.random() * s--),
+            e = t[s],
+            t[s] = t[i],
+            t[i] = e;
+        return t
+    }
+    _toggleHint() {
+        this.shadowRoot.querySelector("#expand").classList.toggle("expanded"),
+        this.shadowRoot.querySelector(".hint-body").classList.toggle("d2l-hidden"),
+        null !== this.shadowRoot.querySelector("#expand.expanded") ? (this.shadowRoot.querySelector("#expand").setAttribute("aria-expanded", !0),
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-label", `${this.terms["general:clickToCollapse"]}`),
+        this.shadowRoot.querySelector("#expand").querySelector("d2l-icon").setAttribute("icon", "tier1:arrow-collapse"),
+        this.shadowRoot.querySelector(".toggleText p").innerText = this.terms["general:hideHintText"]) : (this.shadowRoot.querySelector(".toggleText p").innerText = this.terms["general:viewHintText"],
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-expanded", !1),
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-label", `${this.terms["general:clickToExpand"]}`),
+        this.shadowRoot.querySelector("#expand").querySelector("d2l-icon").setAttribute("icon", "tier1:arrow-expand")),
+        this.requestUpdate()
+    }
+}
+);
+customElements.define("d2l-practice-question-multiple-select", class extends t {
+    static get properties() {
+        return {
+            alt: {
+                type: String
+            },
+            answers: {
+                type: Array
+            },
+            correctAnswers: {
+                type: Array
+            },
+            correctFeedback: {
+                type: String
+            },
+            displayFeedback: {
+                type: Boolean
+            },
+            hasHint: {
+                type: Boolean
+            },
+            hasScoring: {
+                type: Boolean
+            },
+            hintText: {
+                type: String
+            },
+            id: {
+                type: Number
+            },
+            image: {
+                type: String
+            },
+            imagePath: {
+                type: String
+            },
+            incorrectFeedback: {
+                type: String
+            },
+            isCorrectAnswers: {
+                type: Boolean
+            },
+            isSubmitted: {
+                type: Boolean
+            },
+            randomize: {
+                type: Boolean
+            },
+            scoreCalculation: {
+                type: Number
+            },
+            terms: {
+                type: Object
+            },
+            text: {
+                type: String
+            },
+            type: {
+                type: Number
+            }
+        }
+    }
+    static get styles() {
+        return [e`:host{display:inline-block;font-family:Lato,sans-serif;font-size:.8rem;overflow:hidden;width:100%}:host([hidden]){display:none}:host([dir=rtl]) .hint-header a{float:right}.d2l-practice-question{padding:.25rem}hr{border-top:1px solid var(--d2l-color-mica);margin-block-start:1.5rem;width:100%}fieldset{border:none;margin:0;padding:0}fieldset legend p:first-child{margin-block-start:0}#score-results,.hidden-label{height:1px;inset-inline-start:-10000px;overflow:hidden;position:absolute!important;white-space:nowrap;width:1px}.d2l-hidden{display:none!important}.hint-header a{align-items:center;background-repeat:no-repeat;border:1px solid transparent;border-radius:.3rem;display:inline-flex;float:left;height:1.5rem;justify-content:center;margin-block-start:-3px;vertical-align:middle;width:1.5rem}.hint-header{cursor:pointer}.toggleText p{color:var(--d2l-color-celestine);font-weight:700;margin-inline-start:2rem}.hint-header:focus a,.hint-header:hover a{border-color:var(--d2l-color-corundum);outline:0}.d2l-expandcollapse a:focus{border-color:var(--d2l-color-corundum);outline:0}.d2l-question-footer{display:flex;flex-direction:row;margin-block-start:.6rem}d2l-input-checkbox-spacer{margin-bottom:0;padding-inline-start:unset}.d2l-question-footer d2l-button{order:1}.user-score-results{font-weight:700;margin-inline-start:auto;order:2;text-transform:uppercase}.score-results{display:flex;font-weight:700;text-transform:uppercase}.score-fraction{direction:ltr}.d2l-answer-block{display:flex;flex-direction:column;width:100%}.d2l-answers{display:flex;flex-direction:column;margin:0;margin-block-end:.25rem;padding:.6rem}.d2l-answers img{border-radius:6px;height:134px;margin-top:.6rem;object-fit:cover;object-position:center center;width:134px}img.img-adjust{margin-block-start:unset}img.img-question{max-width:100%}d2l-input-checkbox{margin-block-end:0}d2l-input-checkbox div{position:relative}.d2l-correct-answer{background-color:var(--d2l-color-sylvite)}.d2l-answer-feedback-block{padding-block-end:.75rem!important;padding-block-start:.6rem!important;padding-inline:.65rem}.d2l-feedback-block{border:1px solid var(--d2l-color-gypsum);border-radius:6px;margin-block-start:18px;opacity:1;padding-block:.6rem;padding-inline:1.25rem}.d2l-feedback-block p{margin:0}p.d2l-feedback-text{padding-block:1rem;padding-inline:1.6rem}.d2l-icon-style{height:20px;padding:.6rem;width:20px}.d2l-answers-header{font-size:.75rem;margin-block-end:1.35rem}d2l-input-checkbox input[type=checkbox].d2l-input-checkbox:checked{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='-10 -10 50 50'%3E%3Crect id='Rectangle_2062' data-name='Rectangle 2062' width='55%' height='55%' rx='4' fill='%23494c4e'/%3E%3C/svg%3E%0A")!important}.no-feedback-adjust{padding-block-end:.75rem!important}`]
+    }
+    constructor() {
+        super(),
+        this.alt = "",
+        this.answerCount = [],
+        this.answers = [],
+        this.correctAnswers = [],
+        this.correctFeedback = "",
+        this.displayFeedback = !1,
+        this.enumerationType = 0,
+        this.hasHint = !1,
+        this.hasScoring = !1,
+        this.hintText = "",
+        this.image = "",
+        this.imagePath = "",
+        this.incorrectFeedback = "",
+        this.isCorrectAnswers = !1,
+        this.isSubmitted = !1,
+        this.randomize = !1,
+        this.scoreCalculation = 0,
+        this.terms = {},
+        this.text = "",
+        this.useEnumeration = !1,
+        this.addEventListener("keydown", this._keydown)
+    }
+    firstUpdated() {
+        this.randomize && (this._shuffle(this.answers),
+        this.requestUpdate()),
+        this._setCheckedAnswers(!1)
+    }
+    render() {
+        return i`<div class="d2l-practice-question d2l-typography"><fieldset><legend><p>${this.text}</p>${this.image && "" !== this.image ? i`<img class="img-question" id="img-question" src="${this.imagePath}${this.image}" alt="${this.alt}">` : ""}<p class="d2l-answers-header"><em>${this.terms["multiSelect:answersHeader"]}</em></p></legend><div>${this.answers && this.answers.map(( (t, e) => i`<div style="display:flex">${this.isSubmitted ? i`<span>${this._generateSelectionIcon(t)}</span>` : ""}<div class="d2l-answer-block"><div class="d2l-answers ${this.isSubmitted && this.correctAnswers.some((e => e === t.id)) ? "d2l-correct-answer" : ""}"><d2l-input-checkbox id="${t.id}" @change="${this._handleChange}" ?checked="${t.isChecked}" ?disabled="${this.isSubmitted}">${!0 === this.useEnumeration ? i`${this._addEnumerationType(e)}` : ""} ${t.text} ${t.image ? i`<div><img class="${0 === t.text.length ? "img-adjust" : ""}" id="img-${t.id}" src="${this.imagePath}${t.image}" alt="${t.alt}"></div>` : ""}</d2l-input-checkbox></div>${this._generateSelectionFeedbackBlock(t)}</div></div>`))} ${!0 === this.hasHint && "" !== this.hintText && !1 === this.isSubmitted ? i`<div class="hint-wrapper" aria-live="polite" role="region"><div class="hint-header"><span class="d2l-expandcollapse"><a id="expand" href="javascript:void(0);" aria-roledescription="${this.terms["general:expandableHint"]}" aria-expanded="false" @click="${this._toggleHint}" aria-label="${this.terms["general:clickToExpand"]}" role="button"><d2l-icon icon="tier1:arrow-expand"></d2l-icon></a></span><div class="toggleText" @click="${this._toggleHint}" aria-hidden="true"><p>${this.terms["general:viewHintText"]}</p></div></div><div class="collapse show"><div class="hint-body d2l-hidden" id="hint-text"><p>${this.hintText}</p></div></div></div>` : ""}</div><div style="display:flex;flex-direction:column" aria-live="polite">${this.isSubmitted && this.displayFeedback ? this._generateFeedback() : ""}<hr><div class="d2l-question-footer">${this.isSubmitted && !0 === this.hasScoring ? this._generateScore() : ""}<d2l-button primary @click="${this._checkAnswer}">${this.isSubmitted ? this.terms["general:tryAgain"] : this.terms["general:checkAnswers"]}</d2l-button></div></div></fieldset></div>`
+    }
+    _addEnumerationType(t) {
+        switch (this.enumerationType) {
+        case 0:
+            return `${t + 1}.`;
+        case 1:
+            return `${this._convertToRomanNumeral(t + 1).toLowerCase()}.`;
+        case 2:
+            return `${this._convertToRomanNumeral(t + 1).toUpperCase()}.`;
+        case 3:
+            return `${(t + 1 + 9).toString(36).toLowerCase()}.`;
+        case 4:
+            return `${(t + 1 + 9).toString(36).toUpperCase()}.`
+        }
+    }
+    _checkAnswer() {
+        this._getCheckedAnswers().length && (this.isSubmitted = !this.isSubmitted,
+        this.isSubmitted && (this.isCorrectAnswers = this._getCheckedAnswers().length === this.correctAnswers.length && this._getCheckedAnswers().every((t => this.correctAnswers.includes(t))),
+        this.answerCount = this._getCheckedAnswers().filter((t => this.correctAnswers.includes(t)))),
+        this.isSubmitted || this._setCheckedAnswers(!1),
+        this.requestUpdate())
+    }
+    _convertToRomanNumeral(t) {
+        const e = {
+            M: 1e3,
+            CM: 900,
+            D: 500,
+            CD: 400,
+            C: 100,
+            XC: 90,
+            L: 50,
+            XL: 40,
+            X: 10,
+            IX: 9,
+            V: 5,
+            IV: 4,
+            I: 1
+        };
+        let i = "";
+        for (const s in e)
+            for (; t >= e[s]; )
+                i += s,
+                t -= e[s];
+        return i
+    }
+    _generateFeedback() {
+        let t = "";
+        return this.isCorrectAnswers ? "" !== this.correctFeedback && (t = i`<div class="d2l-feedback-block"><p>${this.terms["general:overallFeedback"]}</p><p class="d2l-feedback-text">${this.correctFeedback}</p></div>`) : "" !== this.incorrectFeedback && (t = i`<div class="d2l-feedback-block"><p>${this.terms["general:overallFeedback"]}</p><p class="d2l-feedback-text">${this.incorrectFeedback}</p></div>`),
+        t
+    }
+    _generateScore() {
+        let t = 0;
+        const e = this._getCheckedAnswers();
+        switch (this.scoreCalculation) {
+        case 0:
+            return i`<div class="user-score-results"><label id="score-results">${this.terms["general:scoreLabel"].replace("{correct}", this.isCorrectAnswers ? 1 : 0).replace("{total}", 1)}</label><div class="score-results" aria-hidden="true">${this.terms["general:scorePrefix"]} <span class="score-fraction">${this.isCorrectAnswers ? 1 : 0} / 1</span></div></div>`;
+        case 1:
+            for (const i of this.answers)
+                e.includes(i.id) ? this.correctAnswers.includes(i.id) && t++ : this.correctAnswers.includes(i.id) || t++;
+            return i`<div class="user-score-results"><label id="score-results">${this.terms["general:scoreLabel"].replace("{correct}", t).replace("{total}", this.answers.length)}</label><div class="score-results" aria-hidden="true">${this.terms["general:scorePrefix"]} <span class="score-fraction">${t} / ${this.answers.length}</span></div></div>`
+        }
+    }
+    _generateSelectionFeedbackBlock(t) {
+        if (!this.displayFeedback || !this.isSubmitted)
+            return h;
+        let e = !1;
+        this._getCheckedAnswers().includes(t.id) ? this.correctAnswers.includes(t.id) && (e = !0) : this.correctAnswers.includes(t.id) || (e = !0);
+        const s = e ? t.correctFeedback : t.incorrectFeedback;
+        return s ? i`<div class="d2l-answer-feedback-block"><d2l-input-checkbox-spacer>${s}</d2l-input-checkbox-spacer></div>` : h
+    }
+    _generateSelectionIcon(t) {
+        let e = !1;
+        return this._getCheckedAnswers().includes(t.id) ? this.correctAnswers.includes(t.id) && (e = !0) : this.correctAnswers.includes(t.id) || (e = !0),
+        e ? i`<d2l-icon class="d2l-icon-style" icon="tier1:check" style="color:var(--d2l-color-olivine)" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon>` : i`<d2l-icon class="d2l-icon-style" icon="tier1:close-default" style="color:var(--d2l-color-cinnabar)" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon>`
+    }
+    _getCheckedAnswers() {
+        const t = [];
+        for (const e of this.answers)
+            e.isChecked && t.push(e.id);
+        return t
+    }
+    _handleChange(t) {
+        const e = parseInt(t.target.id);
+        this.answers.find((t => {
+            t.id === e && (t.isChecked = !t.isChecked)
+        }
+        )),
+        this.requestUpdate()
+    }
+    _keydown() {}
+    _setCheckedAnswers(t) {
+        this.answerCount.length = 0;
+        for (const e of this.answers)
+            e.isChecked = t
+    }
+    _shuffle(t) {
+        let e, i, s = t.length;
+        for (; s; )
+            i = Math.floor(Math.random() * s--),
+            e = t[s],
+            t[s] = t[i],
+            t[i] = e;
+        return t
+    }
+    _toggleHint() {
+        this.shadowRoot.querySelector("#expand").classList.toggle("expanded"),
+        this.shadowRoot.querySelector(".hint-body").classList.toggle("d2l-hidden"),
+        null !== this.shadowRoot.querySelector("#expand.expanded") ? (this.shadowRoot.querySelector("#expand").setAttribute("aria-expanded", !0),
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-label", `${this.terms["general:clickToCollapse"]}`),
+        this.shadowRoot.querySelector("#expand").querySelector("d2l-icon").setAttribute("icon", "tier1:arrow-collapse"),
+        this.shadowRoot.querySelector(".toggleText p").innerText = this.terms["general:hideHintText"]) : (this.shadowRoot.querySelector(".toggleText p").innerText = this.terms["general:viewHintText"],
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-expanded", !1),
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-label", `${this.terms["general:clickToExpand"]}`),
+        this.shadowRoot.querySelector("#expand").querySelector("d2l-icon").setAttribute("icon", "tier1:arrow-expand")),
+        this.requestUpdate()
+    }
+}
+);
+class m extends (p(t)) {
+    static get properties() {
+        return {
+            answers: {
+                type: Array
+            },
+            checkedAnswers: {
+                type: Array
+            },
+            correctAnswers: {
+                type: Array
+            },
+            correctFeedback: {
+                type: String
+            },
+            displayFeedback: {
+                type: Boolean
+            },
+            hasHint: {
+                type: Boolean
+            },
+            hasScoring: {
+                type: Boolean
+            },
+            hintText: {
+                type: String
+            },
+            id: {
+                type: Number
+            },
+            incorrectFeedback: {
+                type: String
+            },
+            isCorrectAnswers: {
+                type: Boolean
+            },
+            isSubmitted: {
+                type: Boolean
+            },
+            randomize: {
+                type: Boolean
+            },
+            terms: {
+                type: Object
+            },
+            text: {
+                type: String
+            },
+            type: {
+                type: Number
+            }
+        }
+    }
+    static get styles() {
+        return [c, e`:host{display:inline-block;font-family:Lato,sans-serif;font-size:.8rem;overflow:hidden;width:100%}:host([hidden]){display:none}.d2l-practice-question{padding:.25rem}hr{border-block-start:1px solid var(--d2l-color-mica);margin-block-start:1.5rem;width:100%}fieldset{border:none;margin:0;padding:0}fieldset legend p:first-child{margin-block-start:0}.d2l-hidden{display:none!important}.hint-header a{align-items:center;background-repeat:no-repeat;border:1px solid transparent;border-radius:.3rem;display:inline-flex;float:left;height:1.5rem;justify-content:center;margin-block-start:-3px;vertical-align:middle;width:1.5rem}.hint-header{cursor:pointer}.toggleText p{color:var(--d2l-color-celestine);font-weight:700;margin-inline-start:2rem}.hint-header:focus a,.hint-header:hover a{border-color:var(--d2l-color-corundum);outline:0}.d2l-expandcollapse a:focus{border-color:var(--d2l-color-corundum);outline:0}#score-results,.hidden-label{height:1px;left:-10000px;overflow:hidden;position:absolute!important;white-space:nowrap;width:1px}.d2l-question-footer{display:flex;flex-direction:row;margin-block-start:.6rem}.d2l-question-footer d2l-button{order:1}.user-score-results{font-weight:700;margin-inline-start:auto;order:2;text-transform:uppercase}.score-results{font-weight:700;text-transform:uppercase}.d2l-answer-block{display:flex;flex-direction:column;width:100%}.d2l-answers{margin-block:0 .25rem;margin-inline:0;padding:.6rem}.d2l-correct-answer{background-color:var(--d2l-color-sylvite)}.d2l-answer-feedback-block{padding-block:.6rem .75rem!important;padding-inline:.65rem}.d2l-feedback-block{border:1px solid var(--d2l-color-gypsum);border-radius:6px;opacity:1;padding:.6rem 1.25rem}.d2l-answer-feedback-block p,.d2l-feedback-block p{margin:0}p.d2l-feedback-text{padding:1rem 1.6rem}.d2l-icon-container{flex:1 0 44px}.d2l-icon-style{height:20px;padding:.6rem;width:20px}.d2l-answers-header{font-size:.75rem;margin-block-end:1.35rem}.no-feedback-adjust{padding-block-end:.75rem!important}`]
+    }
+    constructor() {
+        super(),
+        this.answerCount = [],
+        this.answers = [],
+        this.checkedAnswers = [],
+        this.correctAnswers = [],
+        this.correctFeedback = "",
+        this.displayFeedback = !1,
+        this.enumerationType = 0,
+        this.hasHint = !1,
+        this.hasScoring = !1,
+        this.hintText = "",
+        this.incorrectFeedback = "",
+        this.isCorrectAnswers = !1,
+        this.isSubmitted = !1,
+        this.randomize = !1,
+        this.terms = {},
+        this.text = "",
+        this.useEnumeration = !1,
+        this.addEventListener("keydown", this._keydown)
+    }
+    firstUpdated() {
+        this.randomize && (this._shuffle(this.answers),
+        this.requestUpdate())
+    }
+    render() {
+        return i`<div class="d2l-practice-question d2l-typography"><fieldset><legend><p>${this.text}</p><p class="d2l-answers-header"><em>${this.terms["trueFalse:answersHeader"]}</em></p></legend><div>${this.answers && this.answers.map(( (t, e) => i`<div style="display:flex">${this.isSubmitted ? i`<span class="d2l-icon-container">${this.checkedAnswers.includes(t.id) ? this.correctAnswers.includes(t.id) ? i`<d2l-icon class="d2l-icon-style" icon="tier1:check" style="color:var(--d2l-color-olivine)" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon>` : i`<d2l-icon class="d2l-icon-style" icon="tier1:close-default" style="color:var(--d2l-color-cinnabar)" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon>` : ""}</span>` : ""}<div class="d2l-answer-block ${!1 === this.checkedAnswers.includes(t.id) && Number(e) === Number(this.answers.length) - 1 ? " no-feedback-adjust" : ""}"><div class="d2l-answers ${this.isSubmitted && this.correctAnswers.some((e => e === t.id)) && !1 === this.checkedAnswers.includes(t.id) ? "d2l-correct-answer" : ""}"><label class="d2l-input-radio-label"><input type="radio" name="myGroup" id="${t.id}" aria-label="${this._getTFLangTerm(t)}" aria-describedby="${this.displayFeedback && this.isSubmitted ? `result-label${e} feedback${e}` : ""}" @change="${this._handleChange}" ?disabled="${this.isSubmitted}"> ${!0 === this.useEnumeration ? i`${this._addEnumerationType(e)}` : ""} ${this._getTFLangTerm(t)} ${this.isSubmitted ? i`${this.correctAnswers.some((e => e === t.id)) && this.checkedAnswers.includes(t.id) ? i`<div id="result-label${e}" class="d2l-hidden">${this.terms["general:correct"]}.</div>` : i`<div id="result-label${e}" class="d2l-hidden">${this.terms["general:incorrect"]}.</div>`}` : ""}</label></div>${this.displayFeedback && this.isSubmitted && this.checkedAnswers.includes(t.id) ? i`<div class="d2l-answer-feedback-block" id="feedback${e}"><p>${t.feedback}</p></div>` : ""}</div></div>`))} ${!0 === this.hasHint && "" !== this.hintText && !1 === this.isSubmitted ? i`<div class="hint-wrapper" aria-live="polite" role="region"><div class="hint-header"><span class="d2l-expandcollapse"><a id="expand" href="javascript:void(0);" aria-roledescription="${this.terms["general:expandableHint"]}" aria-expanded="false" @click="${this._toggleHint}" aria-label="${this.terms["general:clickToExpand"]}" role="button"><d2l-icon icon="tier1:arrow-expand"></d2l-icon></a></span><div class="toggleText" @click="${this._toggleHint}" aria-hidden="true"><p>${this.terms["general:viewHintText"]}</p></div></div><div class="collapse show"><div class="hint-body d2l-hidden" id="hint-text"><p>${this.hintText}</p></div></div></div>` : ""}</div><div style="display:flex;flex-direction:column" aria-live="polite">${this.isSubmitted && this.displayFeedback ? this._generateFeedback() : ""}<hr><div class="d2l-question-footer"><div class="user-score-results">${this.isSubmitted && !0 === this.hasScoring ? i`<label id="score-results">${this.terms["general:scoreLabel"].replace("{correct}", this.answerCount.length).replace("{total}", this.correctAnswers.length)}</label><div class="score-results" aria-hidden="true">${this.terms["general:scorePrefix"]} <span class="score-fraction">${this.answerCount.length} / ${this.correctAnswers.length}</span></div>` : ""}</div><d2l-button primary @click="${this._checkAnswer}">${this.isSubmitted ? this.terms["general:tryAgain"] : this.terms["general:checkAnswers"]}</d2l-button></div></div></fieldset></div>`
+    }
+    _addEnumerationType(t) {
+        switch (this.enumerationType) {
+        case 0:
+            return `${t + 1}.`;
+        case 1:
+            return `${this._convertToRomanNumeral(t + 1).toLowerCase()}.`;
+        case 2:
+            return `${this._convertToRomanNumeral(t + 1).toUpperCase()}.`;
+        case 3:
+            return `${(t + 1 + 9).toString(36).toLowerCase()}.`;
+        case 4:
+            return `${(t + 1 + 9).toString(36).toUpperCase()}.`
+        }
+    }
+    _checkAnswer() {
+        this.checkedAnswers.length && (this.isSubmitted = !this.isSubmitted,
+        this.isSubmitted && (this.isCorrectAnswers = this.checkedAnswers.every((t => this.correctAnswers.includes(t))),
+        this.answerCount = this.checkedAnswers.filter((t => this.correctAnswers.includes(t)))),
+        this.isSubmitted || this._resetCheckedAnswers(!1),
+        this.requestUpdate())
+    }
+    _convertToRomanNumeral(t) {
+        const e = {
+            M: 1e3,
+            CM: 900,
+            D: 500,
+            CD: 400,
+            C: 100,
+            XC: 90,
+            L: 50,
+            XL: 40,
+            X: 10,
+            IX: 9,
+            V: 5,
+            IV: 4,
+            I: 1
+        };
+        let i = "";
+        for (const s in e)
+            for (; t >= e[s]; )
+                i += s,
+                t -= e[s];
+        return i
+    }
+    _generateFeedback() {
+        let t = "";
+        return this.isCorrectAnswers ? "" !== this.correctFeedback && (t = i`<div class="d2l-feedback-block"><p>${this.terms["general:overallFeedback"]}</p><p class="d2l-feedback-text">${this.correctFeedback}</p></div>`) : "" !== this.incorrectFeedback && (t = i`<div class="d2l-feedback-block"><p>${this.terms["general:overallFeedback"]}</p><p class="d2l-feedback-text">${this.incorrectFeedback}</p></div>`),
+        t
+    }
+    _getTFLangTerm(t) {
+        switch (t.id) {
+        case 0:
+            return this.terms["trueFalse:true"];
+        case 1:
+            return this.terms["trueFalse:false"];
+        default:
+            return ""
+        }
+    }
+    _handleChange(t) {
+        const e = parseInt(t.target.id);
+        this.checkedAnswers.length = 0,
+        this.checkedAnswers.push(e)
+    }
+    _keydown() {}
+    _resetCheckedAnswers() {
+        this.checkedAnswers.length = 0,
+        this.answerCount.length = 0,
+        Array.from(this.renderRoot.querySelectorAll("input")).map((t => {
+            t.checked = !1
+        }
+        ))
+    }
+    _shuffle(t) {
+        let e, i, s = t.length;
+        for (; s; )
+            i = Math.floor(Math.random() * s--),
+            e = t[s],
+            t[s] = t[i],
+            t[i] = e;
+        return t
+    }
+    _toggleHint() {
+        this.shadowRoot.querySelector("#expand").classList.toggle("expanded"),
+        this.shadowRoot.querySelector(".hint-body").classList.toggle("d2l-hidden"),
+        null !== this.shadowRoot.querySelector("#expand.expanded") ? (this.shadowRoot.querySelector("#expand").setAttribute("aria-expanded", !0),
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-label", `${this.terms["general:clickToCollapse"]}`),
+        this.shadowRoot.querySelector("#expand").querySelector("d2l-icon").setAttribute("icon", "tier1:arrow-collapse"),
+        this.shadowRoot.querySelector(".toggleText p").innerText = this.terms["general:hideHintText"]) : (this.shadowRoot.querySelector(".toggleText p").innerText = this.terms["general:viewHintText"],
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-expanded", !1),
+        this.shadowRoot.querySelector("#expand").setAttribute("aria-label", `${this.terms["general:clickToExpand"]}`),
+        this.shadowRoot.querySelector("#expand").querySelector("d2l-icon").setAttribute("icon", "tier1:arrow-expand")),
+        this.requestUpdate()
+    }
+}
+customElements.define("d2l-practice-question-true-or-false", m);
+class f extends (g(t)) {
+    static get properties() {
+        return {
+            activityContext: {
+                type: Object
+            },
+            customInstructions: {
+                type: String
+            },
+            description: {
+                type: String
+            },
+            fallbackUrl: {
+                type: String
+            },
+            imagePath: {
+                type: String
+            },
+            loaded: {
+                type: Boolean
+            },
+            questions: {
+                type: Array
+            },
+            terms: {
+                type: Object
+            },
+            title: {
+                type: String
+            }
+        }
+    }
+    static get styles() {
+        return e`:host{display:inline-block;font-family:Lato,sans-serif;overflow:hidden;width:100%}:host([hidden]){display:none}.center-flex{align-items:center;display:flex;justify-content:center}`
+    }
+    constructor() {
+        super(),
+        this.fallbackUrl = "",
+        this.loaded = !1,
+        this.imagePath = "",
+        this.addEventListener("keydown", this._keydown)
+    }
+    firstUpdated() {
+        this._getActivityData()
+    }
+    render() {
+        let t = i``;
+        return t = !1 === this.loaded ? i`<div class="center-flex"><d2l-loading-spinner></d2l-loading-spinner></div>` : this._renderActivity(),
+        t
+    }
+    _buildActivity() {
+        this.correctFeedback = this.activityData.correctFeedback,
+        this.customInstructions = this.activityData.customInstructions,
+        this.description = this.activityData.description,
+        this.displayFeedback = this.activityData.displayFeedback,
+        this.incorrectFeedback = this.activityData.incorrectFeedback,
+        this.loaded = !0,
+        this.questions = this.activityData.questions,
+        this.title = this.activityData.title,
+        this.requestUpdate()
+    }
+    _buildQuestionType(t) {
+        switch (t.type) {
+        case 0:
+            return i`<d2l-practice-question-multiple-choice type="${t.type}" text="${t.text}" image="${t.image}" alt="${t.alt}" .imagePath="${this.imagePath}" .answers="${t.answers}" .correctAnswers="${t.correctAnswers}" .useEnumeration="${this.activityData.useEnumeration}" .enumerationType="${this.activityData.enumerationType}" .hasScoring="${this.activityData.hasScoring}" .randomize="${t.randomize}" .displayFeedback="${this.displayFeedback}" correctFeedback="${t.correctFeedback}" .hasHint="${t.hasHint}" .hintText="${t.hintText}" incorrectFeedback="${t.incorrectFeedback}" .terms="${this.terms}" .dir="${this.dir}"></d2l-practice-question-multiple-choice>`;
+        case 1:
+            return i`<d2l-practice-question-multiple-select type="${t.type}" text="${t.text}" image="${t.image}" alt="${t.alt}" .imagePath="${this.imagePath}" .answers="${t.answers}" .correctAnswers="${t.correctAnswers}" .useEnumeration="${this.activityData.useEnumeration}" .enumerationType="${this.activityData.enumerationType}" .hasScoring="${this.activityData.hasScoring}" scoreCalculation="${this.activityData.scoreCalculation}" .randomize="${t.randomize}" .displayFeedback="${this.displayFeedback}" .hasHint="${t.hasHint}" .hintText="${t.hintText}" correctFeedback="${t.correctFeedback}" incorrectFeedback="${t.incorrectFeedback}" .terms="${this.terms}" .dir="${this.dir}"></d2l-practice-question-multiple-select>`;
+        case 2:
+            return i`<d2l-practice-question-true-or-false type="${t.type}" text="${t.text}" .answers="${t.answers}" .correctAnswers="${t.correctAnswers}" .displayFeedback="${this.displayFeedback}" .useEnumeration="${this.activityData.useEnumeration}" .enumerationType="${this.activityData.enumerationType}" .hasScoring="${this.activityData.hasScoring}" .randomize="${t.randomize}" .hasHint="${t.hasHint}" .hintText="${t.hintText}" correctFeedback="${t.correctFeedback}" incorrectFeedback="${t.incorrectFeedback}" .terms="${this.terms}" .dir="${this.dir}"></d2l-practice-question-true-or-false>`;
+        case 3:
+            return i`<d2l-practice-question-fill type="${t.type}" text="${t.text}" .answers="${t.answers}" .displayFeedback="${this.displayFeedback}" .hasScoring="${this.activityData.hasScoring}" scoreCalculation="${this.activityData.scoreCalculation}" correctFeedback="${t.correctFeedback}" incorrectFeedback="${t.incorrectFeedback}" .hasHint="${t.hasHint}" .hintText="${t.hintText}" .terms="${this.terms}" .dir="${this.dir}"></d2l-practice-question-fill>`
+        }
+    }
+    _checkActivityDataJSON(t) {
+        try {
+            return JSON.parse(t),
+            !0
+        } catch (t) {
+            return !1
+        }
+    }
+    _getActivityData() {
+        this.terms = JSON.parse(this.dataset.langTerms),
+        this.activityDataString = this.dataset.activity,
+        this.activityContext = JSON.parse(this.dataset.context),
+        this.dataset.fallbackUrl && (this.fallbackUrl = this.dataset.fallbackUrl),
+        "" === this.fallbackUrl ? this.imagePath = `${document.referrer + this.activityContext.orgUnitPath}practice/img/` : this.imagePath = `${this.fallbackUrl}/practice/img/`,
+        this._checkActivityDataJSON(this.activityDataString) && (this.activityData = JSON.parse(this.activityDataString),
+        this._buildActivity())
+    }
+    _keydown() {}
+    _renderActivity() {
+        return i`<div class="activity-frame d2l-typography"><d2l-activity-header title="${this.title}" activityInfo="${this.customInstructions}"></d2l-activity-header>${this.questions && this.questions.map((t => this._buildQuestionType(t)))}</div>`
+    }
+    _resetActivity() {
+        this._buildActivity()
+    }
+}
+customElements.define("d2l-practice-quick-quiz", f);
+customElements.define("d2l-sortable-sequence", class extends t {
+    static get properties() {
+        return {
+            alttext: {
+                type: String
+            },
+            correct: {
+                type: Boolean
+            },
+            correctFeedback: {
+                type: String
+            },
+            displayFeedback: {
+                type: Object
+            },
+            hover: {
+                type: Boolean
+            },
+            id: {
+                type: Number
+            },
+            image: {
+                type: String
+            },
+            incorrectFeedback: {
+                type: String
+            },
+            terms: {
+                type: Object
+            },
+            titleText: {
+                type: String
+            }
+        }
+    }
+    static get styles() {
+        return e`:host{align-items:center;background-color:#fff;border:1px solid #ddd;border-radius:6px;box-sizing:border-box;display:flex;min-height:60px;min-width:10%;position:relative;transition:.3s all;-webkit-user-select:none;-ms-user-select:none;-moz-user-select:none;user-select:none;z-index:0}:host([feedback=true]){flex-direction:column}:host([hidden]){display:none}:host(:hover){border:1px solid var(--d2l-color-celestine);cursor:grab}.d2l-sortable-container{align-items:center;display:flex;padding:.6rem;padding-inline-start:0;position:relative;text-align:left}.d2l-sortable-container.feedback{align-self:baseline;padding-inline-start:.6rem}:host([feedback=true]).d2l-sortable-container{padding-inline-start:.9rem}.d2l-sortable-container img{border-radius:6px;height:auto;margin-inline-end:.9rem;max-width:40px;width:100%}.d2l-sortable-container p{margin:0}.d2l-sortable-container p:not(.feedback){width:calc(100% - 40px)}.d2l-sortable-container p.feedback{margin:0}.d2l-sortable-container p.imgAdjust{margin:0 .9rem}.d2l-sortable-text{word-break:break-word}.d2l-sortable-feedback{box-sizing:border-box;padding-block:0 .6rem;padding-inline:0 .6rem;position:relative;text-align:left;width:100%}.d2l-sortable-feedback h4{align-items:center;display:flex;gap:.6rem;margin:0;padding:0;padding-inline:.6rem}.d2l-sortable-feedback h4.no-feedback{border-bottom:none;border-end-end-radius:6px;border-end-start-radius:6px;margin-bottom:.6rem}.d2l-sortable-feedback p{margin-block:0;padding-block-start:6px;padding-inline:.6rem}.d2l-sortable-feedback .d2l-correct-status{align-items:center;display:flex;gap:.6rem;margin-block-end:.6rem}.drag-handle{align-items:center;border-radius:6px;display:flex;flex-shrink:0;height:.9rem;justify-content:center;margin-block-start:3px;width:40px;z-index:123}.drag-handle d2l-icon{position:absolute;top:.8rem}.d2l-sortable-container.feedback .drag-handle{display:none}@media only screen and (max-width:800px){.drag-handle{display:none}.d2l-sortable-container{padding-inline-start:.9rem}.d2l-sortable-container p:not(.feedback){width:100%}}.icon-c{color:var(--d2l-color-olivine)}.icon-i{color:var(--d2l-color-cinnabar)}@media only screen and (min-width:768px){:host{align-items:center}.d2l-sortable-container{flex-wrap:wrap}.d2l-sortable-container img{max-width:unset}}`
+    }
+    constructor() {
+        super(),
+        this.displayFeedback = {
+            display: !1,
+            correct: !1
+        },
+        this.feedbackCorrect = "",
+        this.feedbackIncorrect = "",
+        this.hover = !1,
+        this.isMobile = !1,
+        this.terms = {}
+    }
+    firstUpdated() {
+        this.addEventListener("mouseover", this.mouseOverHandler),
+        this.addEventListener("mouseout", this.mouseOutHandler)
+    }
+    render() {
+        const t = Math.random();
+        let e = ""
+          , s = "";
+        this.displayFeedback.display && (e = "feedback"),
+        this.image && (s = "imgAdjust"),
+        void 0 !== this.alttext && 0 !== this.alttext.length || (this.alttext = "");
+        return !0 === window.matchMedia("screen and (min-width: 768px)").matches ? this.isMobile = !1 : this.isMobile = !0,
+        i`<d2l-input-text placeholder="${this.terms["general:hoverForError"]}" id="tooltip-error" aria-invalid="true" label="${this.terms["general:textInput"]}" label-hidden style="max-width:250px"></d2l-input-text><div class="d2l-sortable-container ${e}">${!1 === this.displayFeedback.display || "" !== this.image ? i`<div style="opacity:1" class="drag-handle"><d2l-icon icon="tier1:dragger"></d2l-icon></div>` : ""} ${"" !== this.image ? i`${this.isMobile ? i`<img id="tooltip-img-${t}" src="${this.image}"><d2l-tooltip for="tooltip-img-${t}"><img alt="${this.alttext}" style="width:100%;max-width:150px;margin:0" src="${this.image}"></d2l-tooltip>` : i`<img alt="${this.alttext}" style="width:100%;margin:0" onerror='this.style.display="none"' src="${this.image}">`}` : ""} ${!1 === this.displayFeedback.display ? i`<p aria-hidden="true" class="${s} d2l-sortable-text">${this.titleText}</p>` : i`<p aria-hidden="true" class="d2l-sortable-text feedback">${this.titleText}</p>`}</div>${!0 === this.displayFeedback.display ? i`${!1 === this.displayFeedback.feedbackEnabled ? i`<div class="d2l-sortable-feedback no-feedback">${this.displayFeedback.correct ? i`<h4 aria-hidden="true" class="no-feedback"><d2l-icon class="icon-c" icon="tier1:check" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon>${this.terms["general:correctCaps"]}</h4>` : i`<h4 aria-hidden="true" class="no-feedback"><d2l-icon class="icon-i" icon="tier1:close-default" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon>${this.terms["general:incorrectCaps"]}</h4>`}</div>` : i`<div class="d2l-sortable-feedback">${this.displayFeedback.correct ? i`<h4 aria-hidden="true"><d2l-icon class="icon-c" icon="tier1:check" aria-label="${this.terms["general:correctAnswerIcon"]}"></d2l-icon>${this.terms["general:correctCaps"]}</h4>${"" !== this.correctFeedback ? i`<p>${this.correctFeedback}</p>` : i``}` : i`<h4 aria-hidden="true"><d2l-icon class="icon-i" icon="tier1:close-default" aria-label="${this.terms["general:incorrectAnswerIcon"]}"></d2l-icon>${this.terms["general:incorrectCaps"]}</h4>${"" !== this.incorrectFeedback ? i`<p>${this.incorrectFeedback}</p>` : ""}`}</div>`}` : ""}`
+    }
+    mouseOutHandler() {
+        this.hover = !1,
+        this.style.zIndex = 1
+    }
+    mouseOverHandler() {
+        this.hover = !0,
+        this.style.zIndex = 1e3
+    }
+}
+);
+class y extends (g(t)) {
+    static get properties() {
+        return {
+            activityComplete: {
+                type: Boolean
+            },
+            activityData: {
+                type: Object
+            },
+            activityDataString: {
+                type: String
+            },
+            categories: {
+                type: Array
+            },
+            categoriesInit: {
+                type: Array
+            },
+            categoryTabIndex: {
+                type: Number
+            },
+            correct: {
+                type: Boolean
+            },
+            correctCount: {
+                type: Number
+            },
+            correctTotal: {
+                type: Number
+            },
+            description: {
+                type: String
+            },
+            displayFeedback: {
+                type: Boolean
+            },
+            dropTarget: {
+                type: Object
+            },
+            fallbackUrl: {
+                type: String
+            },
+            hasScoring: {
+                type: Boolean
+            },
+            isDragging: {
+                type: Boolean
+            },
+            layout: {
+                type: String
+            },
+            layoutType: {
+                type: String
+            },
+            loaded: {
+                type: Boolean
+            },
+            showCategoryCountdown: {
+                type: Boolean
+            },
+            sortItemDrag: {
+                type: String
+            },
+            sortSelected: {
+                type: Boolean
+            },
+            sortableItems: {
+                type: Array
+            },
+            sortableItemsInit: {
+                type: Array
+            },
+            sortableItemsClone: {
+                type: Array
+            },
+            sortableTabIndex: {
+                type: Number
+            },
+            standardInstructions: {
+                type: String
+            },
+            startX: {
+                type: Number
+            },
+            startY: {
+                type: Number
+            },
+            targetId: {
+                type: String
+            },
+            terms: {
+                type: Object
+            },
+            title: {
+                type: String
+            },
+            verticalLayout: {
+                type: Boolean
+            }
+        }
+    }
+    static get styles() {
+        return e`
+		:host {
+			display: inline-block;
+			font-family: 'Lato', sans-serif;
+			font-size: 0.8rem;
+			overflow: hidden;
+			width: 100%;
+		}
+
+		:host([hidden]) {
+			display: none;
+		}
+
+		.d2l-practice-question {
+			padding: 0.25rem;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		.feedback-wrapper[hidden] {
+			display: none !important;
+		}
+
+		.d2l-activity-header h2 {
+			margin-top: 0;
+		}
+
+		.d2l-sort-items {
+			border: 1px solid #dddddd;
+			border-radius: 6px;
+			box-sizing: border-box;
+			margin-block-end: 0.6rem;
+			padding-block-end: 0.9rem;
+			padding-inline: 0.9rem;
+			width: 100%;
+		}
+
+		.d2l-sort-items.vert {
+			float: left;
+			margin-inline-start: 2%;
+			width: 48%;
+		}
+
+		.d2l-sort-items.drag-over {
+			border: 1px solid var(--d2l-color-celestine);
+			box-shadow: 0 2px 14px 1px rgba(0, 0, 0, 0.06);
+		}
+
+		.d2l-sort-items-container {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.6rem;
+		}
+
+		d2l-sortable-sequence {
+			width: 100%;
+		}
+
+		d2l-sortable-sequence.vert {
+			width: 100%;
+		}
+
+		d2l-sortable-sequence.active {
+			pointer-events: none;
+		}
+
+		.d2l-categories {
+			border-radius: 6px;
+			box-sizing: border-box;
+			margin-block-end: 0.6rem;
+			padding-block: 0.6rem 0.9rem;
+			padding-inline: 0.9rem;
+			width: 100%;
+		}
+
+		.d2l-categories h3 {
+			margin-block-start: 0.25rem;
+		}
+
+		.d2l-categories.vert {
+			float: left;
+			width: 50%;
+		}
+
+		.d2l-categories-container {
+			display: flex;
+			gap: 0.6rem;
+			outline: none;
+		}
+
+		.d2l-categories-container.vert {
+			flex-direction: column;
+		}
+
+		.d2l-category-container {
+			align-items: flex-start;
+			border-block-end: 1px solid var(--d2l-color-gypsum);
+			border-end-end-radius: 6px;
+			border-end-start-radius: 6px;
+			border-inline-end: 1px solid var(--d2l-color-gypsum);
+			border-inline-start: 1px solid var(--d2l-color-gypsum);
+			display: flex;
+			flex-direction: column;
+			padding: 0.6rem;
+			position: relative;
+			text-align: center;
+			width: 100%;
+		}
+
+		.d2l-category-container:empty {
+			padding-block-start: 0;
+		}
+
+		.d2l-category-container d2l-sortable-sequence {
+			width: 100%;
+		}
+
+		.d2l-category-container d2l-sortable-sequence:last-child {
+			margin-block-end: 0;
+		}
+
+		.d2l-category-flex {
+			flex: 1;
+			min-width: 230px;
+			padding-block-end: 0.9rem;
+		}
+
+		d2l-sortable-sequence.drag-over {
+			border: 1px solid transparent;
+			box-shadow: 0 0 0 2px var(--d2l-color-celestine);
+		}
+
+		.d2l-category::after {
+			border: 1px solid red;
+			content: '';
+			display: block;
+			left: 0;
+			position: absolute;
+			top: -5px;
+		}
+
+		.d2l-category {
+			background-color: var(--d2l-color-regolith);
+			border-radius: 6px;
+			box-sizing: border-box;
+			margin-inline-end: 0.6rem;
+			min-height: 50px;
+			overflow: hidden;
+			position: relative;
+			width: 100%;
+			z-index: 0;
+		}
+
+		.d2l-category:focus {
+			outline: 2px solid var(--d2l-color-celestine) !important;
+			outline-offset: -2px;
+			z-index: 999999;
+		}
+
+		.d2l-category.highlight:focus {
+			background-color: #ffffff;
+			outline: 2px dashed var(--d2l-color-celestine) !important;
+			outline-offset: -2px;
+			z-index: 999999;
+		}
+
+		.d2l-category:${s(r())} {
+			background-color: #ffffff;
+			outline: 2px dashed var(--d2l-color-celestine) !important;
+			outline-offset: -2px;
+			z-index: 999999;
+		}
+
+		d2l-sortable-sequence:focus {
+			border: 1px solid transparent;
+			box-shadow: 0 0 0 2px var(--d2l-color-celestine);
+			outline: none;
+		}
+
+		.d2l-category:focus .d2l-category-dropzone {
+			border-color: transparent;
+		}
+
+		.d2l-category:focus .d2l-category-container {
+			border-color: transparent;
+		}
+
+		.d2l-category-flex:nth-child(n+2) {
+			margin-inline-start: -2px;
+		}
+
+		.d2l-category-flex:first-child .d2l-category {
+			border-start-start-radius: 6px;
+		}
+
+		.d2l-category-flex:last-child .d2l-category {
+			border-start-end-radius: 6px;
+		}
+
+		.d2l-category-feedback {
+			background-color: #ffffff;
+			border-block-end: 1px solid #dddddd;
+			box-sizing: border-box;
+			display: inline-block;
+			margin: 0;
+			min-height: 50px;
+			position: relative;
+			width: 100%;
+			z-index: 0;
+		}
+
+		.feedback-wrapper {
+			width: 100%;
+		}
+
+		.d2l-activity-feedback h4, .d2l-category-feedback h4 {
+			align-items: center;
+			display: flex;
+			font-weight: 500;
+			gap: 0.6rem;
+			margin: 0;
+			padding: 0.6rem;
+			padding-block-end: 0;
+			text-transform: uppercase;
+		}
+
+		.d2l-activity-feedback p {
+			margin-block-start: 0;
+		}
+
+		.d2l-activity-feedback h4 {
+			border-start-end-radius: 6px;
+			border-start-start-radius: 6px;
+		}
+
+		.d2l-activity-feedback p, .d2l-category-feedback p {
+			padding-inline: 0.6rem;
+		}
+
+		.d2l-category.drag-over {
+			border: 1px solid var(--d2l-color-celestine);
+			box-shadow: 0 2px 14px 1px rgba(0, 0, 0, 0.06);
+		}
+
+		.d2l-category:hover {
+			box-shadow: 0 2px 14px 1px rgb(0 0 0 / 6%);
+		}
+
+		.d2l-category:last-child {
+			margin-inline-end: 0;
+		}
+
+		.d2l-category-header {
+			align-items: center;
+			background-color: var(--d2l-color-sylvite);
+			border: 1px solid var(--d2l-color-gypsum);
+			color: var(--d2l-color-tungsten);
+			display: flex;
+			gap: 0.9rem;
+			margin: 0;
+			max-height: 100px;
+			overflow: hidden;
+			pointer-events: none;
+			text-align: center;
+		}
+
+		.d2l-category-header h3 {
+			flex: 1 1 0%;
+			font-size: 0.8rem;
+			line-height: 0.9rem;
+			margin-block: 0.9rem;
+			text-align: left;
+		}
+
+		.d2l-category-header .img {
+			background-position: center center;
+			background-size: cover;
+			border-radius: 6px;
+			height: 64px;
+			margin-block: 0.6rem;
+			margin-inline-start: 0.6rem;
+			width: 30%;
+		}
+
+		.d2l-category-header img {
+			border-radius: 6px;
+			margin-block: 0.6rem;
+			margin-inline-start: 0.6rem;
+		}
+
+		.d2l-activity-feedback {
+			border: 1px solid #dddddd;
+			border-radius: 6px;
+			box-sizing: border-box;
+			clear: both;
+			margin-block-end: 0.6rem;
+			width: 100%;
+		}
+
+		.d2l-activity-feedback span {
+			margin-inline-start: 0.6rem;
+		}
+
+		d2l-button {
+			font-size: 1rem;
+		}
+
+		.d2l-category-dropzone {
+			align-items: flex-start;
+			border-block-end: 1px solid var(--d2l-color-gypsum);
+			border-end-end-radius: 6px;
+			border-end-start-radius: 6px;
+			border-inline-end: 1px solid var(--d2l-color-gypsum);
+			border-inline-start: 1px solid var(--d2l-color-gypsum);
+			display: flex;
+			flex-direction: column;
+			padding: 0.6rem;
+			position: relative;
+			text-align: center;
+			width: 100%;
+		}
+
+		.d2l-sort-items .d2l-category-dropzone {
+			padding: 0;
+			padding-block-start: 0.6rem;
+		}
+
+		.highlight {
+			outline: 2px dashed var(--d2l-color-celestine) !important;
+			outline-offset: -2px;
+			z-index: 3000;
+		}
+
+		.highlight .d2l-category-dropzone {
+			border-color: transparent;
+		}
+
+		.d2l-score-results {
+			display: flex;
+			font-weight: bold;
+			margin-block: 0.6rem;
+			margin-inline-start: auto;
+			order: 2;
+			text-transform: uppercase;
+		}
+
+		.d2l-score-fraction {
+			direction: ltr;
+		}
+
+		.d2l-activity-footer d2l-button {
+			order: 1;
+		}
+
+		.d2l-activity-footer {
+			display: flex;
+			flex-direction: row;
+		}
+
+		@media only screen and (max-width: 800px) {
+			d2l-activity-header, .d2l-activity-footer {
+				grid-column: 1/-1;
+			}
+
+			.d2l-category.drag-over {
+				box-shadow: 0 2px 14px 1px rgba(0, 0, 0, 0.06);
+			}
+
+			.d2l-sort-items {
+				border: 1px solid transparent;
+				border-radius: 0;
+				padding: 0;
+			}
+
+			.d2l-sort-items h3 {
+				margin-block-start: 0.25rem;
+			}
+
+			.d2l-sort-items-container {
+				gap: 0.6rem;
+				grid-template-columns: repeat(3, 1fr);
+
+			}
+
+			d2l-sortable-sequence {
+				width: 100%;
+			}
+
+			.d2l-categories {
+				background-color: transparent;
+				border-radius: 0;
+				padding: 0;
+				padding-inline-end: 0.6rem;
+			}
+		}
+
+		.p-10 {
+			padding-inline: 0.6rem;
+		}
+
+		.t-center {
+			text-align: center !important;
+		}
+
+		.numeric-list {
+			align-items: center;
+			display: inline-grid;
+			font-size: 0.95rem;
+			font-weight: bold;
+			min-height: 60px;
+			min-width: 100%;
+			pointer-events: none;
+			position: relative;
+			text-align: center;
+			user-select: none;
+			z-index: 0;
+		}
+
+		#popupmenu {
+			list-style-type: none;
+			padding: 0;
+			padding-inline: 0.6rem;
+		}
+
+		#popupmenu li {
+			padding-inline: 0.6rem;
+		}
+
+		#popupmenu li:focus {
+			border-radius: 6px;
+			outline: 2px solid var(--d2l-color-celestine) !important;
+			outline-offset: -2px;
+		}
+
+		#notif, #score-results, .hidden-label {
+			height: 1px;
+			left: -10000px;
+			overflow: hidden;
+			position: absolute !important;
+			white-space: nowrap;
+			width: 1px;
+		}
+
+		.no-header {
+			border-block-start: 1px solid var(--d2l-color-gypsum);
+		}
+
+		@media only screen and (min-width: 768px) {
+			.d2l-category-header {
+				flex-direction: column;
+				gap: unset;
+				max-height: unset;
+			}
+		}`
+    }
+    constructor() {
+        super(),
+        this.activityData = {},
+        this.categories = [],
+        this.categoryTabIndex = -1,
+        this.fallbackUrl = "",
+        this.isDeskDragging = !1,
+        this.isDragging = !1,
+        this.keyboardDragging = -1,
+        this.loaded = !1,
+        this.placeholderOrder = [],
+        this.sortableItems = [],
+        this.sortableTabIndex = 0,
+        this.sortItemDrag = "",
+        this.terms = {},
+        this.verticalLayout = !1,
+        this.addEventListener("keydown", this._keydown);
+        new ResizeObserver((t => {
+            for (const e of t)
+                if (e.target.hasAttribute("data-activity")) {
+                    !0 === window.matchMedia("screen and (min-width: 768px)").matches ? this.isMobile = !1 : this.isMobile = !0,
+                    this.requestUpdate()
+                }
+        }
+        )).observe(this)
+    }
+    firstUpdated() {
+        this.hasMouse = matchMedia("(pointer:fine)").matches,
+        this._getActivityData()
+    }
+    render() {
+        let t = "";
+        return t = !1 === this.loaded ? i`<d2l-loading-spinner></d2l-loading-spinner>` : this._renderActivity(),
+        t
+    }
+    updated() {
+        null !== this.renderRoot.querySelector("#popupmenu") && this.renderRoot.querySelector("#popupmenu li").focus(),
+        this.reset && (this.categoryTabIndex = -1,
+        this.sortableTabIndex = 0,
+        this.renderRoot.querySelector("#d1").querySelector("d2l-sortable-sequence").focus(),
+        this.reset = !1),
+        !0 === this.activityComplete && null !== this.renderRoot.activeElement && null !== this.renderRoot.querySelector(".d2l-activity-feedback") && this.renderRoot.querySelector(".d2l-activity-feedback").focus()
+    }
+    _swap = function(t, e, i) {
+        const s = t[e];
+        return t.splice(e, 1),
+        t.splice(i, 0, s),
+        t.forEach(( (t, e) => {
+            t.category = e + 1
+        }
+        )),
+        t
+    }
+    ;
+    _buildActivity(t) {
+        this.activityComplete = !1,
+        this.categories = [],
+        this.correct = !1,
+        this.correctCount = 0,
+        this.correctTotal = 0,
+        this.displayFeedback = !1,
+        this.displayScoring = !1,
+        this.sortableItems = [],
+        this.sortSelected = !1;
+        const e = document.referrer;
+        let i = {}
+          , s = {};
+        for (let s = 0; s < t.categories.length; s++) {
+            let r = "";
+            "" !== t.categories[s].image && (console.log(this.fallbackUrl),
+            r = "" === this.fallbackUrl ? `${e + this.activityContext.orgUnitPath}practice/img/${t.categories[s].image}` : `${this.fallbackUrl}/practice/img/${t.categories[s].image}`),
+            void 0 === t.categories[s].alt && (t.categories[s].alt = ""),
+            i = {
+                alt: t.categories[s].alt,
+                answerId: t.categories[s].id.toString(),
+                correct: !1,
+                correctCount: 0,
+                correctFeedback: t.categories[s].correctFeedback,
+                correctTotal: 0,
+                displayFeedback: !1,
+                id: s + 1,
+                image: r,
+                incorrectFeedback: t.categories[s].incorrectFeedback,
+                sortCount: 0,
+                title: t.categories[s].title
+            },
+            this.categories.push(i)
+        }
+        for (let i = 0; i < t.sortableItems.length; i++) {
+            let r = "";
+            "" !== t.sortableItems[i].image && (r = "" === this.fallbackUrl ? `${e + this.activityContext.orgUnitPath}practice/img/${t.sortableItems[i].image}` : `${this.fallbackUrl}/practice/img/${t.sortableItems[i].image}`),
+            s = {
+                alt: t.sortableItems[i].alt,
+                category: "0",
+                correct: !1,
+                correctFeedback: t.sortableItems[i].correctFeedback,
+                correctId: t.sortableItems[i].correctId.toString(),
+                displayFeedback: !1,
+                feedbackEnabled: this.activityData.displayFeedback,
+                hasFeedback: !1,
+                id: t.sortableItems[i].id.toString(),
+                image: r,
+                incorrectFeedback: t.sortableItems[i].incorrectFeedback,
+                title: t.sortableItems[i].title
+            },
+            this.sortableItems.push(s);
+            for (let t = 0; t < this.categories.length; t++)
+                s.correctId === this.categories[t].answerId && this.categories[t].correctTotal++
+        }
+        this.correctFeedback = t.correctFeedback,
+        this.customInstructions = t.customInstructions,
+        this.hasScoring = t.hasScoring,
+        this.incorrectFeedback = t.incorrectFeedback,
+        this.showDisplayList = t.displayNumericSequence,
+        this.showCategoryCountdown = t.showCategoryCountdown,
+        this.standardInstructions = this.terms["sequencing:standardInstructions"],
+        this.title = t.title,
+        this._shuffle(this.sortableItems),
+        this.sortableItems.forEach(( (t, e) => {
+            t.category = e + 1
+        }
+        )),
+        this.loaded = !0,
+        this.requestUpdate()
+    }
+    _checkAnswers() {
+        this.requestUpdate(),
+        this.activityComplete = !0;
+        for (let t = 0; t < this.sortableItems.length; t++) {
+            const e = this.categories.find((e => Number(e.id) === Number(this.sortableItems[t].category)));
+            if (Number(e.answerId) === Number(this.sortableItems[t].correctId)) {
+                if (this.sortableItems[t].correct = !0,
+                "0" !== this.sortableItems[t].category) {
+                    const e = this.categories.find((e => Number(e.id) === Number(this.sortableItems[t].category)));
+                    e.correctFeedback = this.sortableItems[t].correctFeedback,
+                    e.incorrectFeedback = this.sortableItems[t].incorrectFeedback,
+                    void 0 !== e && (e.correctCount++,
+                    e.correctCount === e.correctTotal && (e.correct = !0))
+                }
+            } else {
+                this.sortableItems[t].correct = !1;
+                const e = this.categories.find((e => Number(e.id) === Number(this.sortableItems[t].category)));
+                e.correctFeedback = this.sortableItems[t].correctFeedback,
+                e.incorrectFeedback = this.sortableItems[t].incorrectFeedback
+            }
+            this.sortableItems[t].displayFeedback = !0;
+            const i = this.renderRoot.querySelectorAll("d2l-sortable-sequence");
+            i.length > 0 && [].forEach.call(i, (function(t) {
+                t.setAttribute("draggable", !1)
+            }
+            ))
+        }
+        for (let t = 0; t < this.categories.length; t++)
+            this.categories[t].displayFeedback = !0,
+            this.correctCount += this.categories[t].correctCount,
+            this.correctTotal += this.categories[t].correctTotal;
+        this.correctCount >= this.correctTotal && (this.correct = !0),
+        this.isDragging = !1,
+        !0 === this.activityData.displayFeedback && (this.displayFeedback = !0),
+        !0 === this.hasScoring && (this.displayScoring = !0),
+        this.categoryTabIndex = 0,
+        this.sortableTabIndex = -1,
+        this.requestUpdate()
+    }
+    _checkRemaining() {
+        for (let t = 0; t < this.categories.length; t++)
+            this.categories[t].sortCount = 0;
+        for (let t = 0; t < this.sortableItems.length; t++)
+            for (let e = 0; e < this.categories.length; e++)
+                this.sortableItems[t].category === this.categories[e].id && this.categories[e].sortCount++
+    }
+    _drag_handler(t) {
+        this.placeholderOrder = this.sortableItems.slice(),
+        this.isDeskDragging = !0,
+        t.dataTransfer.effectAllowed = "move",
+        this.renderRoot.querySelector("#notif").innerText = this.terms["general:dragging"],
+        this.renderRoot.activeElement.setAttribute("aria-grabbed", !0);
+        const e = t.target.getAttribute("data-id")
+          , i = this.renderRoot.querySelectorAll(".drag-over");
+        this.renderRoot.querySelectorAll("d2l-sortable-sequence").forEach((t => {
+            Number(t.getAttribute("data-id")) !== Number(e) && (t.style.pointerEvents = "none")
+        }
+        )),
+        i.length > 0 && [].forEach.call(i, (function(t) {
+            t.classList.remove("drag-over")
+        }
+        )),
+        !1 === this.activityComplete && (this.sortItemDrag = e)
+    }
+    _drag_out_handler(t) {
+        if (!1 === this.activityComplete) {
+            const e = t.target.closest('[data-type="category"]').getAttribute("data-id");
+            this.renderRoot.querySelector(`#d${e}`).classList.remove("highlight")
+        }
+    }
+    _drag_over_handler(t) {
+        const e = t.target.closest('[data-type="category"]').getAttribute("data-id");
+        if (t.preventDefault(),
+        t.dataTransfer.dropEffect = "move",
+        !1 === this.activityComplete) {
+            const i = this.renderRoot.querySelector(`#dz${e}`);
+            t.dataTransfer.dropEffect = "move",
+            null !== i && (this.renderRoot.querySelector(`#d${e}`).classList.add("highlight"),
+            this.renderRoot.querySelector(`#d${e}`).focus()),
+            this._swap(this.sortableItems, Number(this.renderRoot.querySelector(`#s${this.sortItemDrag}`).parentElement.parentElement.parentElement.id.split("dz")[1]) - 1, Number(i.id.split("dz")[1]) - 1),
+            this.requestUpdate()
+        }
+    }
+    _dragEnd_handler(t) {
+        this.renderRoot.querySelectorAll("d2l-sortable-sequence").forEach((t => {
+            t.style.pointerEvents = "auto"
+        }
+        )),
+        this.renderRoot.querySelector("#notif").innerText = this.terms["general:dropped"],
+        "auto" === t.dataTransfer.dropEffect && (this.sortableItems = this.placeholderOrder,
+        this.sortableItems.forEach(( (t, e) => {
+            t.category = e + 1
+        }
+        )))
+    }
+    _drop_handler(t) {
+        const e = t.target.closest('[data-type="category"]').getAttribute("data-id");
+        if (t.preventDefault(),
+        !1 === this.activityComplete) {
+            const t = this.sortableItems.find((t => t.id === this.sortItemDrag));
+            this.renderRoot.querySelector("#notif").innerText = this.terms["general:dropped"],
+            t.category = e,
+            this.renderRoot.querySelector(`#s${t.id}`).focus();
+            this.renderRoot.querySelector(`#d${e}`).classList.remove("highlight"),
+            this.requestUpdate()
+        }
+        this.sortItemDrag = ""
+    }
+    async _getActivityData() {
+        this.terms = JSON.parse(this.dataset.langTerms),
+        this.activityDataString = this.dataset.activity,
+        this.activityContextString = this.dataset.context,
+        this.warnings = "false" !== this.dataset.warnings,
+        this.dataset.fallbackUrl && (this.fallbackUrl = this.dataset.fallbackUrl);
+        try {
+            this.activityData = JSON.parse(this.activityDataString),
+            this.activityContext = JSON.parse(this.activityContextString),
+            this._buildActivity(this.activityData)
+        } catch (t) {
+            console.log(this.terms["general:errorParsingJSON"])
+        }
+    }
+    _hideImage(t) {
+        t.currentTarget.style.display = "none",
+        t.currentTarget.parentElement.querySelector("h3").classList.add("p-10"),
+        t.currentTarget.parentElement.querySelector("h3").classList.add("t-center")
+    }
+    _key_down_category_list(t) {
+        const e = this.renderRoot.querySelectorAll("#popupmenu li")[0]
+          , i = this.renderRoot.querySelectorAll("#popupmenu li")[this.renderRoot.querySelectorAll("#popupmenu li").length - 1];
+        "ArrowDown" === t.code ? (t.preventDefault(),
+        this.renderRoot.activeElement === i ? e.focus() : this.renderRoot.activeElement.nextElementSibling.focus()) : "ArrowUp" === t.code && (t.preventDefault(),
+        this.renderRoot.activeElement === e ? i.focus() : this.renderRoot.activeElement.previousElementSibling.focus())
+    }
+    _keydown(t) {
+        if ("Enter" === t.code) {
+            if (this.renderRoot.activeElement && this.renderRoot.activeElement.dataset.type && !1 === this.activityComplete)
+                if ("sortable" === this.renderRoot.activeElement.dataset.type) {
+                    this.sortItemDrag = this.renderRoot.activeElement.dataset.id;
+                    const t = this.sortableItems.find((t => t.id === this.sortItemDrag));
+                    this.renderRoot.activeElement.setAttribute("aria-grabbed", !0),
+                    this.renderRoot.activeElement.setAttribute("aria-owns", "popupmenu"),
+                    this.renderRoot.activeElement.setAttribute("aria-expanded", !0),
+                    this.renderRoot.querySelector("#notif").innerText = this.terms["sequencing:draggingItem"].replace("{item}", t.title),
+                    this.requestUpdate(),
+                    this.keyboardDragging = t.category
+                } else if ("category" === this.renderRoot.activeElement.dataset.type) {
+                    const t = this.renderRoot.activeElement.dataset.id
+                      , e = this.sortableItems.find((t => t.id === this.sortItemDrag))
+                      , i = this.renderRoot.querySelectorAll("d2l-sortable-sequence");
+                    if ([].forEach.call(i, (function(t) {
+                        t.setAttribute("aria-grabbed", !1),
+                        t.setAttribute("aria-expanded", !1)
+                    }
+                    )),
+                    void 0 !== e && !1 === this.activityComplete) {
+                        this._swap(this.sortableItems, Number(e.category) - 1, Number(t) - 1);
+                        const i = this.renderRoot.querySelectorAll("d2l-sortable-sequence");
+                        [].forEach.call(i, (function(t) {
+                            t.setAttribute("aria-grabbed", !1),
+                            t.setAttribute("aria-hidden", !1),
+                            t.setAttribute("aria-expanded", !1)
+                        }
+                        )),
+                        this.renderRoot.querySelector(`#d${t}`).querySelector("d2l-sortable-sequence").focus(),
+                        e.category = t,
+                        this.sortItemDrag = "",
+                        this.isDragging = !1,
+                        this.categoryTabIndex = -1,
+                        this.sortableTabIndex = 0,
+                        this.keyboardDragging = -1,
+                        this.requestUpdate();
+                        const s = this.categories.find((e => Number(e.id) === Number(t)));
+                        this.renderRoot.querySelector("#notif").innerText = this.terms["sequencing:droppedSequenceItem"].replace("{item}", e.title).replace("{category}", s.title)
+                    }
+                }
+        } else
+            "Tab" === t.code ? !0 === this.isDragging && "D2L-SORTABLE-SEQUENCE" === this.renderRoot.activeElement.tagName && (t.preventDefault(),
+            this.renderRoot.querySelector("#d1").focus()) : "Escape" === t.code && (this.renderRoot.querySelector(`#s${this.sortItemDrag}`).focus(),
+            this.sortItemDrag = "",
+            this.isDragging = !1,
+            this.categoryTabIndex = -1,
+            this.sortableTabIndex = 0,
+            this.keyboardDragging = -1,
+            this.renderRoot.querySelector("#notif").innerText = this.terms["general:draggingCancelled"],
+            this.requestUpdate())
+    }
+    _mouse_down_sort(t) {
+        const e = t.target.getAttribute("data-id");
+        this.keyboardDragging = -1,
+        this.mouseHolding = e
+    }
+    _mouse_up_sort(t) {
+        if (this.renderRoot.activeElement.dataset.type && !1 === this.activityComplete)
+            if ("sortable" === this.renderRoot.activeElement.dataset.type)
+                if (!1 === this.isDragging) {
+                    this.sortItemDrag = this.renderRoot.activeElement.dataset.id;
+                    const t = this.sortableItems.find((t => t.id === this.sortItemDrag));
+                    this.renderRoot.activeElement.setAttribute("aria-grabbed", !0),
+                    this.renderRoot.querySelector("#notif").innerText = this.terms["sequencing:draggingSequenceItem"].replace("{item}", t.title),
+                    this.categoryTabIndex = 0,
+                    this.sortableTabIndex = -1,
+                    this.isDragging = !0;
+                    const e = this.renderRoot.querySelectorAll("d2l-sortable-sequence");
+                    [].forEach.call(e, (function(t) {
+                        t.setAttribute("aria-hidden", !0)
+                    }
+                    ))
+                } else {
+                    if (void 0 !== this.mouseHolding)
+                        return void (this.mouseHolding = void 0);
+                    const e = this.renderRoot.querySelectorAll("d2l-sortable-sequence");
+                    [].forEach.call(e, (function(t) {
+                        t.setAttribute("aria-grabbed", !1),
+                        t.setAttribute("aria-hidden", !1)
+                    }
+                    )),
+                    this._swap(this.sortableItems, Number(this.renderRoot.querySelector(`#s${this.sortItemDrag}`).parentElement.parentElement.parentElement.id.split("dz")[1]) - 1, Number(t.target.parentElement.parentElement.parentElement.id.split("dz")[1]) - 1),
+                    this.isDragging = !1,
+                    this.categoryTabIndex = 0,
+                    this.sortableTabIndex = -1;
+                    const i = this.sortableItems.find((t => t.id === this.sortItemDrag))
+                      , s = this.categories.find((t => Number(t.id) === Number(i.category)));
+                    this.renderRoot.querySelector("#notif").innerText = this.terms["sequencing:droppedSequenceItem"].replace("{item}", i.title).replace("{category}", s.title),
+                    this.requestUpdate(),
+                    this.renderRoot.querySelector(`#s${this.sortItemDrag}`).focus(),
+                    this.sortItemDrag = ""
+                }
+            else if ("category" === this.renderRoot.activeElement.dataset.type && !0 === this.isDragging) {
+                const t = this.renderRoot.activeElement.dataset.id
+                  , e = this.sortableItems.find((t => t.id === this.sortItemDrag))
+                  , i = this.renderRoot.querySelectorAll("d2l-sortable-sequence");
+                if ([].forEach.call(i, (function(t) {
+                    t.setAttribute("aria-grabbed", !1)
+                }
+                )),
+                void 0 !== e && !1 === this.activityComplete) {
+                    this._swap(this.sortableItems, Number(e.category) - 1, Number(t) - 1);
+                    const i = this.renderRoot.querySelectorAll("d2l-sortable-sequence");
+                    [].forEach.call(i, (function(t) {
+                        t.setAttribute("aria-grabbed", !1),
+                        t.setAttribute("aria-hidden", !1)
+                    }
+                    ));
+                    const s = this.categories.find((t => Number(t.id) === Number(e.category)));
+                    this.renderRoot.querySelector("#notif").innerText = this.terms["sequencing:droppedSequenceItem"].replace("{item}", e.title).replace("{category}", s.title),
+                    e.category = t,
+                    this.sortItemDrag = "",
+                    this.isDragging = !1,
+                    this.categoryTabIndex = -1,
+                    this.sortableTabIndex = 0;
+                    const r = this.renderRoot.querySelectorAll(".drag-over");
+                    [].forEach.call(r, (function(t) {
+                        t.classList.remove("drag-over")
+                    }
+                    )),
+                    this.requestUpdate()
+                }
+            }
+    }
+    _renderActivity() {
+        !0 === window.matchMedia("screen and (min-width: 768px)").matches ? this.isMobile = !1 : this.isMobile = !0;
+        let t = !1;
+        return (!0 === this.correct && 0 === this.correctFeedback.length || !1 === this.correct && 0 === this.incorrectFeedback.length) && (t = !0),
+        i`
+			<div class="activity-frame d2l-typography">
+				<d2l-dialog-confirm ?opened="${!this.hasMouse && this.warnings}" text="${this.terms["general:mobileNotification"]}">
+					<d2l-button slot="footer" primary data-dialog-action>${this.terms["general:close"]}</d2l-button>
+				</d2l-dialog-confirm>
+				<d2l-activity-header id="header" role="main" title="${this.title}" activityInfo="${this.customInstructions}" keyboardInstructionsTitle="${this.terms["general:accKeyboardInstructionsTitle"]}"  accessibilityInstructions="${this.terms["sequencing:accInstructions"]}" standardInstructions="${this.standardInstructions}" mobileInstructions="${this.terms["sequencing:mobileInstructions"]}"></d2l-activity-header>
+				<div class="d2l-categories">
+					<d2l-scroll-wrapper>
+						<div class="d2l-categories-container" role="list" aria-label="${this.terms["sequencing:sequenceSteps"]}" id="cat">
+							${this.categories.map(( (t, e) => i`
+							<div class="d2l-category-flex">
+								${!0 === this.showDisplayList ? i`<div class="numeric-list" aria-hidden="true">${e + 1}</div>` : ""}
+								<div class="DropZone" id="dz ${t.id}" >
+									<div class="d2l-category ${!0 === this.activityComplete ? "completed" : ""}" id="d ${t.id}" data-type="category" aria-haspopup="${a(-1 !== Number(this.keyboardDragging) ? "menu" : void 0)}" tabindex="${this.categoryTabIndex}" role="listitem" data-id="${t.id}" @dragleave="${this._drag_out_handler}" @dragover="${this._drag_over_handler}" @drop="${this._drop_handler}"  @mouseup="${this._mouse_up_sort}">
+										${"" !== t.image || "" !== t.title ? i`
+										<label class="hidden-label" id="h${t.id}">${this.terms["sequencing:sequencePosition"]} ${e + 1}: ${"" !== t.title ? `${t.title}.` : ""} ${this.activityComplete ? `${this.terms["sequencing:matchedSequenceItem"]} ${this.sortableItems.filter((e => Number(e.category) === Number(t.id)))[0].title}` : ""} ${this.activityComplete && t.correctCount > 0 ? this.terms["general:correct"] : ""} ${this.activityComplete && 0 === t.correctCount ? this.terms["general:incorrect"] : ""} ${this.activityData.displayFeedback && t.displayFeedback && this.activityComplete && t.correctCount > 0 ? t.correctFeedback : ""} ${this.activityData.displayFeedback && t.displayFeedback && this.activityComplete && 0 === t.correctCount ? t.incorrectFeedback : ""}</label>
+										<div class="d2l-category-header" aria-hidden="true">
+											${"" !== t.image ? i`${!0 === this.isMobile ? i`<img class="img" .onerror=${this._hideImage} src="${t.image}" alt="${t.alt}"/><h3 class="p-10">${t.title}</h3>` : i`<h3 class="p-10">${t.title}</h3><img style="width:90%;margin:0;margin-bottom:6%" .onerror=${this._hideImage} src="${t.image}" alt="${t.alt}"/>`}` : i`<h3 class="p-10 t-center">${t.title}</h3>`}
+										</div>
+										${Number(this.keyboardDragging) === Number(t.id) ? i`
+										<ul role="menu" id="popupmenu" aria-label="${this.terms["sequencing:selectNewSortablePosition"]}">
+											${this.categories.map((t => i`<li role="menuitem" @keydown="${this._key_down_category_list}" data-type="category" data-id="${t.id}" aria-roledescription="${this.terms["sequencing:sequencePosition"]}" tabindex="0">${t.title}</li>`))}
+										</ul>` : ""}` : ""}
+										${!0 === t.displayFeedback ? i`${this.sortableItems.map((e => i`${Number(e.category) === Number(t.id) ? i`<div class="d2l-category-container ${"" === t.image && "" === t.title ? "no-header" : ""}">${this._renderSort(e)}</div>` : ""}`))}` : ""}
+										${!1 === t.displayFeedback ? i`
+										<div class="d2l-category-dropzone ${"" === t.image && "" === t.title ? "no-header" : ""}" role="group">
+											${this._renderSort(this.sortableItems[e])}
+										</div>` : ""}
+									</div>
+								</div>
+							</div>`))}
+						</div>
+					</d2l-scroll-wrapper>
+				</div>
+			</div>
+			<div class="feedback-wrapper" ?hidden=${!this.displayFeedback}>
+				${!0 === this.displayFeedback && !1 === t ? i`
+				<div class="d2l-activity-feedback" id="feedbackText" tabindex="0" role="status" aria-labelledby="score-results feedbacktitle textfeedback ${this.categories.map(( (t, e) => `f${e + 1} `))}">
+					${!0 === this.hasScoring && !0 === this.displayScoring ? i`
+					<label id="score-results">${this.terms["general:scoreLabel"].replace("{correct}", this.correctCount).replace("{total}", this.correctTotal)}</label>` : ""}
+					<h4 id="feedbacktitle">${this.terms["general:overallFeedback"]}</h4>
+					${!0 === this.correct ? i`<p id="textfeedback">${this.correctFeedback}</p>` : i`<p id="textfeedback">${this.incorrectFeedback}</p>`}
+				</div>` : i`${!0 === this.hasScoring && !0 === this.displayScoring && !1 === t ? i`
+				<label id="score-results">${this.terms["general:scoreLabel"].replace("{correct}", this.correctCount).replace("{total}", this.correctTotal)}</label>
+				<div class="d2l-score-results" aria-hidden="true">
+					${this.terms["general:scorePrefix"]}&nbsp;<span class="d2l-score-fraction">${this.correctCount} / ${this.correctTotal}</span>
+				</div>` : ""}`}
+				${this.categories.map(( (t, e) => i`<label class="hidden-label" for="feedbackText" id="f${e + 1}">${this.terms["sequencing:sequencePosition"]} ${e + 1}: ${"" !== t.title ? `${t.title}.` : ""} ${this.activityComplete ? `${this.terms["sequencing:matchedSequenceItem"]} ${this.sortableItems.filter((e => Number(e.category) === Number(t.id)))[0].title}` : ""} ${this.activityComplete && t.correctCount > 0 ? this.terms["general:correct"] : ""} ${this.activityComplete && 0 === t.correctCount ? this.terms["general:incorrect"] : ""} ${this.activityData.displayFeedback && t.displayFeedback && this.activityComplete && t.correctCount > 0 ? t.correctFeedback : ""} ${this.activityData.displayFeedback && t.displayFeedback && this.activityComplete && 0 === t.correctCount ? t.incorrectFeedback : ""}</label>`))}
+			</div>
+			<div class="d2l-activity-footer">
+				${!0 === this.activityComplete ? i`
+				<div class="d2l-score-results" aria-hidden="true">
+					${this.terms["general:scorePrefix"]}&nbsp;<span class="d2l-score-fraction">${this.correctCount} / ${this.correctTotal}</span>
+				</div>` : ""}
+				${!0 === this.activityComplete ? i`<d2l-button @click="${this._resetActivity}" primary>${this.terms["general:tryAgain"]}</d2l-button>` : i`<d2l-button @click="${this._checkAnswers}" primary>${this.terms["general:checkAnswers"]}</d2l-button>`}
+			</div>
+			<div id="notif" role="region" aria-live="assertive"></div>
+		`
+    }
+    _renderSort(t) {
+        let e = this.terms["sequencing:sequenceItem"]
+          , s = !1
+          , r = !0;
+        return void 0 === t.alt && (t.alt = ""),
+        !0 === this.activityComplete ? (e = this.terms["sequencing:sequenceItem"],
+        s = !0,
+        r = !1,
+        i`<d2l-sortable-sequence data-type="sortable" altText="${t.alt}" aria-roledescription="${e}" aria-hidden="true"  data-id="${t.id}" role="definition" tabindex="-1" id="s${t.id}"  titleText="${t.title}" image="${t.image}" feedback="${t.displayFeedback}" displayFeedback='{"display": ${t.displayFeedback}, "hasFeedback": ${t.hasFeedback}, "feedbackEnabled": ${t.feedbackEnabled}, "correct": ${t.correct}}' incorrectFeedback="${t.incorrectFeedback}" correctFeedback="${t.correctFeedback}" .terms="${this.terms}"></d2l-sortable-sequence>`) : i`<d2l-sortable-sequence data-type="sortable" altText="${t.alt}" aria-grabbed="false" aria-label="${t.title}" aria-roledescription="${e}" aria-describedby="d${t.category}" aria-disabled="${s}" data-id="${t.id}" role="button" tabindex="${this.sortableTabIndex}"  id="s${t.id}" @mousedown="${this._mouse_down_sort}" @mouseup="${this._mouse_up_sort}" @dragstart="${this._drag_handler}" @dragend="${this._dragEnd_handler}" draggable="${r}" titleText="${t.title}" image="${t.image}" feedback="${t.displayFeedback}" displayFeedback='{"display": ${t.displayFeedback}, "hasFeedback": ${t.hasFeedback}, "feedbackEnabled": ${t.feedbackEnabled}, "correct": ${t.correct}}' incorrectFeedback="${t.incorrectFeedback}" correctFeedback="${t.correctFeedback}" .terms="${this.terms}"></d2l-sortable-sequence>`
+    }
+    _resetActivity() {
+        this.reset = !0,
+        this.renderRoot.activeElement && this.renderRoot.activeElement.blur(),
+        this._buildActivity(this.activityData)
+    }
+}
+let x;
+customElements.define("d2l-practice-sequencing", y);
+try {
+    x = localStorage.debug && localStorage.debug.includes("d2l:practices") ? function(t, e) {
+        e ? console.log(`%c${t}`, "color: lime;", e) : console.log(`%c${t}`, "color: lime;")
+    }
+    : console.log
+} catch (t) {
+    x = console.log
+}
+const $ = ["ar"];
+x("Loading practices module.");
+let v = !1;
+function k(t) {
+    x("Starting getParam");
+    return new URLSearchParams(window.location.search).get(t)
+}
+let w = {}
+  , j = {}
+  , _ = {}
+  , S = "";
+function z() {
+    try {
+        if (x("Starting getLang."),
+        v)
+            return x("getLang detected that getLang has already run. Exiting.");
+        const t = k("id");
+        if (!t)
+            return x("getLang is missing id.");
+        window.parent.window.postMessage(JSON.stringify({
+            id: t,
+            subject: "getLang",
+            message: ""
+        }), "*")
+    } catch (t) {
+        x("There was a problem with getLang.", t)
+    }
+}
+async function N(t) {
+    try {
+        x("Starting getLangTerms.");
+        const e = ["ar", "cy", "da", "de", "en", "es-es", "es", "fr-fr", "fr-on", "fr", "hi-in", "ja", "ko", "nl", "pt", "sv", "tr", "zh-cn", "zh-tw"];
+        return e.indexOf(t) > -1 ? (await function(t) {
+            switch (t) {
+            case "../lang/ar.js":
+                return import("./ar-8a2105df.js");
+            case "../lang/cy.js":
+                return import("./cy-4b25dbdd.js");
+            case "../lang/da.js":
+                return import("./da-d4b74590.js");
+            case "../lang/de.js":
+                return import("./de-66227cca.js");
+            case "../lang/en-gb.js":
+                return import("./en-gb-f44985be.js");
+            case "../lang/en.js":
+                return import("./en-7c9e57ef.js");
+            case "../lang/es-es.js":
+                return import("./es-es-65b7cc20.js");
+            case "../lang/es.js":
+                return import("./es-21958a71.js");
+            case "../lang/fr-fr.js":
+                return import("./fr-fr-ac40d4ea.js");
+            case "../lang/fr-on.js":
+                return import("./fr-on-3413c9c4.js");
+            case "../lang/fr.js":
+                return import("./fr-a83ff78a.js");
+            case "../lang/hi-in.js":
+                return import("./hi-in-f8205c10.js");
+            case "../lang/hi.js":
+                return import("./hi-0e17c7c5.js");
+            case "../lang/ja.js":
+                return import("./ja-dc469a90.js");
+            case "../lang/ko.js":
+                return import("./ko-3e1e1be5.js");
+            case "../lang/nl.js":
+                return import("./nl-fba15780.js");
+            case "../lang/pt.js":
+                return import("./pt-db1fe338.js");
+            case "../lang/sv.js":
+                return import("./sv-b38199fd.js");
+            case "../lang/tr.js":
+                return import("./tr-b77a365b.js");
+            case "../lang/zh-cn.js":
+                return import("./zh-cn-94ecbba8.js");
+            case "../lang/zh-tw.js":
+                return import("./zh-tw-481b582a.js");
+            default:
+                return new Promise((function(e, i) {
+                    ("function" == typeof queueMicrotask ? queueMicrotask : setTimeout)(i.bind(null, new Error("Unknown variable dynamic import: " + t)))
+                }
+                ))
+            }
+        }(`../lang/${t}.js`)).default : e.indexOf(t.split("-")[0]) > -1 ? (await function(t) {
+            switch (t) {
+            case "../lang/ar.js":
+                return import("./ar-8a2105df.js");
+            case "../lang/cy.js":
+                return import("./cy-4b25dbdd.js");
+            case "../lang/da.js":
+                return import("./da-d4b74590.js");
+            case "../lang/de.js":
+                return import("./de-66227cca.js");
+            case "../lang/en-gb.js":
+                return import("./en-gb-f44985be.js");
+            case "../lang/en.js":
+                return import("./en-7c9e57ef.js");
+            case "../lang/es-es.js":
+                return import("./es-es-65b7cc20.js");
+            case "../lang/es.js":
+                return import("./es-21958a71.js");
+            case "../lang/fr-fr.js":
+                return import("./fr-fr-ac40d4ea.js");
+            case "../lang/fr-on.js":
+                return import("./fr-on-3413c9c4.js");
+            case "../lang/fr.js":
+                return import("./fr-a83ff78a.js");
+            case "../lang/hi-in.js":
+                return import("./hi-in-f8205c10.js");
+            case "../lang/hi.js":
+                return import("./hi-0e17c7c5.js");
+            case "../lang/ja.js":
+                return import("./ja-dc469a90.js");
+            case "../lang/ko.js":
+                return import("./ko-3e1e1be5.js");
+            case "../lang/nl.js":
+                return import("./nl-fba15780.js");
+            case "../lang/pt.js":
+                return import("./pt-db1fe338.js");
+            case "../lang/sv.js":
+                return import("./sv-b38199fd.js");
+            case "../lang/tr.js":
+                return import("./tr-b77a365b.js");
+            case "../lang/zh-cn.js":
+                return import("./zh-cn-94ecbba8.js");
+            case "../lang/zh-tw.js":
+                return import("./zh-tw-481b582a.js");
+            default:
+                return new Promise((function(e, i) {
+                    ("function" == typeof queueMicrotask ? queueMicrotask : setTimeout)(i.bind(null, new Error("Unknown variable dynamic import: " + t)))
+                }
+                ))
+            }
+        }(`../lang/${t.split("-")[0]}.js`)).default : (await import("./en-7c9e57ef.js")).default
+    } catch (t) {
+        return void x("There was a problem with getLangTerms.", t)
+    }
+}
+function T(t) {
+    try {
+        x("Starting showError.");
+        const e = document.createElement("d2l-practice-error");
+        e.setAttribute("description", t),
+        document.body.appendChild(e)
+    } catch (t) {
+        x("There was a problem with showError.", t)
+    }
+}
+function A(t) {
+    try {
+        return "object" == typeof t ? t : JSON.parse(t)
+    } catch (t) {
+        return
+    }
+}
+const q = new ResizeObserver(( () => {
+    !function() {
+        try {
+            x("Starting resizeFrame.");
+            const t = k("id");
+            if (!t)
+                return x("resizeIframe is missing id.");
+            window.parent.window.postMessage(JSON.stringify({
+                id: t,
+                subject: "frameResize",
+                message: `${document.querySelector("#d2l-practice").scrollHeight}px`
+            }), "*")
+        } catch (t) {
+            x("There was a problem with resizeFrame.", t)
+        }
+    }()
+}
+))
+  , F = document.querySelector("#d2l-practice");
+q.observe(F),
+window.addEventListener("message", (async function(t) {
+    try {
+        if (x("Starting events."),
+        !t)
+            return x("events received no event.") && T(_["general:errorLoadingPractice"]);
+        if (!t.data)
+            return x("evt.data is missing") && T(_["general:errorLoadingPractice"]);
+        const e = A(t.data);
+        if (!e)
+            return x("evt.data was not valid JSON") && T(_["general:errorLoadingPractice"]);
+        const i = e.subject;
+        if (!i)
+            return x("evt.data is missing a subject. Possibly a foreign event.") && T(_["general:errorLoadingPractice"]);
+        switch (i) {
+        case "hostState":
+            x("Handling hostState message."),
+            "ready" === e.message && z();
+            break;
+        case "doneGetActivityData":
+            x("Handling doneGetActivityData message."),
+            e.success ? (j = e.message,
+            e.fallbackUrl && (S = e.fallbackUrl),
+            function() {
+                try {
+                    x("Starting buildActivity.");
+                    const t = parseInt(k("t"));
+                    let e;
+                    document.querySelector("body").innerHTML = "",
+                    0 === t ? (e = document.createElement("d2l-practice-matching"),
+                    e.dataset.activity = j,
+                    e.dataset.context = w,
+                    e.dataset.langTerms = JSON.stringify(_),
+                    e.dataset.warnings = k("warnings"),
+                    e.dir = document.querySelector("html").getAttribute("dir"),
+                    "" !== S && (e.dataset.fallbackUrl = S),
+                    document.body.appendChild(e)) : 1 === t ? (e = document.createElement("d2l-practice-sequencing"),
+                    e.dataset.activity = j,
+                    e.dataset.context = w,
+                    e.dataset.langTerms = JSON.stringify(_),
+                    e.dataset.warnings = k("warnings"),
+                    e.dir = document.querySelector("html").getAttribute("dir"),
+                    "" !== S && (e.dataset.fallbackUrl = S),
+                    document.body.appendChild(e)) : 2 === t ? (e = document.createElement("d2l-practice-hotspot"),
+                    e.dataset.activity = j,
+                    e.dataset.context = w,
+                    e.dataset.langTerms = JSON.stringify(_),
+                    "" !== S && (e.dataset.fallbackUrl = S),
+                    document.body.appendChild(e)) : 3 === t || 4 === t || 5 === t || 6 === t || 7 === t ? (e = document.createElement("d2l-practice-quick-quiz"),
+                    e.dataset.activity = j,
+                    e.dataset.context = w,
+                    e.dataset.langTerms = JSON.stringify(_),
+                    e.dir = document.querySelector("html").getAttribute("dir"),
+                    "" !== S && (e.dataset.fallbackUrl = S),
+                    document.body.appendChild(e)) : x("Type was undefined", t),
+                    v = !0,
+                    window.parent.window.postMessage(JSON.stringify({
+                        id: k("id"),
+                        subject: "frameState",
+                        message: "ready"
+                    }), "*")
+                } catch (t) {
+                    x("There was a problem with buildActivity.", t)
+                }
+            }()) : T(_["general:errorLoadingPractice"]);
+            break;
+        case "doneGetActivityContext":
+            A(e.message) ? (w = e.message,
+            x("Requesting ActivityData."),
+            window.parent.window.postMessage(JSON.stringify({
+                id: k("id"),
+                subject: "getActivityData",
+                message: ""
+            }), "*")) : T(_["general:errorLoadingContext"]);
+            break;
+        case "doneGetLang":
+            e.message ? (_ = await N(e.message),
+            document.querySelector("html").setAttribute("lang", e.message),
+            document.querySelector("html").setAttribute("dir", $.includes(e.message) || $.includes(e.message.split("-")[0]) ? "rtl" : "ltr"),
+            x("Requesting ActivityContext."),
+            window.parent.window.postMessage(JSON.stringify({
+                id: k("id"),
+                title: _["general:frameTitle"],
+                subject: "getActivityContext",
+                message: ""
+            }), "*")) : T("Error Loading Lang Terms")
+        }
+    } catch (t) {
+        x("There was a problem with events.")
+    }
+}
+), !1),
+window.addEventListener("DOMContentLoaded", (function() {
+    v || z()
+}
+));
