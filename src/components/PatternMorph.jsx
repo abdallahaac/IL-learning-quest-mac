@@ -7,7 +7,8 @@ export default function PatternMorph({
 	pageIndex = 0,
 	sequence = ["dots", "grid"],
 	bg = "#ffff",
-	ink = "rgba(0,0,0,0.05)",
+	ink = "rgba(0,0,0,0.08)", // stroke/fill color base
+	dotOpacity = 1, // NEW: independent opacity scaler for DOTS only (0..1)
 	duration = 800,
 	cellPx = PATTERN_CELL_PX,
 	showFold = true,
@@ -99,7 +100,7 @@ export default function PatternMorph({
 		const to = toRef.current;
 		const w = weights(from, to, t);
 
-		// Sizes in device px. These appear as CSS px because canvas is DPR-scaled.
+		// Sizes in device px -> appear as CSS px thanks to DPR scaling
 		const dotR = mix(0, 2.0 * dpr, w.dot); // 2 CSS px radius
 		const arm = mix(0, 7.0 * dpr, w.plus);
 		const astArm = mix(0, 6.5 * dpr, w.ast);
@@ -151,13 +152,15 @@ export default function PatternMorph({
 
 		for (let y = cy0; y < H; y += cell) {
 			for (let x = cx0; x < W; x += cell) {
+				// DOTS — independent opacity scaler
 				if (w.dot > 0 && dotR > 0.01) {
-					ctx.globalAlpha = clamp01(w.dot);
+					ctx.globalAlpha = clamp01(w.dot) * clamp01(dotOpacity);
 					ctx.fillStyle = ink;
 					ctx.beginPath();
 					ctx.arc(x, y, dotR, 0, Math.PI * 2);
 					ctx.fill();
 				}
+				// PLUS
 				if (w.plus > 0 && arm > 0.01) {
 					ctx.save();
 					ctx.translate(x, y);
@@ -174,6 +177,7 @@ export default function PatternMorph({
 					ctx.stroke();
 					ctx.restore();
 				}
+				// ASTERISKS
 				if (w.ast > 0 && astArm > 0.01) {
 					ctx.globalAlpha = clamp01(w.ast) * lineAlpha;
 					ctx.strokeStyle = ink;

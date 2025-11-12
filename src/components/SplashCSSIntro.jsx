@@ -102,11 +102,55 @@ function buildShadow({
 	)})`;
 }
 
+/* ---------- color helpers to force dot alpha ---------- */
+function parseColor(color) {
+	if (!color) return { r: 255, g: 255, b: 255, a: 1 };
+	const c = color.trim();
+
+	// rgba(...)
+	let m = c.match(
+		/^rgba?\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i
+	);
+	if (m) {
+		const r = Math.max(0, Math.min(255, +m[1]));
+		const g = Math.max(0, Math.min(255, +m[2]));
+		const b = Math.max(0, Math.min(255, +m[3]));
+		const a = m[4] == null ? 1 : clamp01(+m[4]);
+		return { r, g, b, a };
+	}
+
+	// #rgb or #rrggbb
+	m = c.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+	if (m) {
+		let hex = m[1];
+		if (hex.length === 3)
+			hex = hex
+				.split("")
+				.map((ch) => ch + ch)
+				.join("");
+		const num = parseInt(hex, 16);
+		const r = (num >> 16) & 255;
+		const g = (num >> 8) & 255;
+		const b = num & 255;
+		return { r, g, b, a: 1 };
+	}
+
+	// default fallback: white
+	return { r: 255, g: 255, b: 255, a: 1 };
+}
+function withAlpha(color, alpha) {
+	const { r, g, b } = parseColor(color);
+	const a = clamp01(alpha);
+	return `rgba(${r},${g},${b},${a})`;
+}
+
 export default function SplashCSSIntro({
 	bg = "#4b3a69",
 	dotColor = "rgba(255,255,255,0.08)",
 	dotSize = 4, // must be 4 CSS px to match canvas 2px radius
 	dotGap = 24, // must match PATTERN_CELL_PX
+	cssDotOpacity, // NEW: optional override for CSS-dot alpha (0..1)
+
 	logos = [],
 	collabText = DEFAULT_TEXT,
 	locale,
@@ -159,7 +203,7 @@ export default function SplashCSSIntro({
 	const [canRender, setCanRender] = useState(false);
 	const [container, setContainer] = useState(null);
 
-	// Exact same centering math as PatternMorph
+	// Same centering math as PatternMorph
 	const [bgPos, setBgPos] = useState("0px 0px");
 	const recomputeBgPos = () => setBgPos(computeCssBackgroundPosition(dotGap));
 
@@ -247,13 +291,19 @@ export default function SplashCSSIntro({
 		onDone?.();
 	};
 
+	// Force CSS-dot opacity if requested
+	const cssDotColor = useMemo(() => {
+		if (cssDotOpacity == null) return dotColor;
+		return withAlpha(dotColor, cssDotOpacity);
+	}, [dotColor, cssDotOpacity]);
+
 	const size = `${dotGap}px ${dotGap}px`;
 	const bgImage = useMemo(
 		() =>
-			`radial-gradient(${dotColor} ${dotSize / 2}px, transparent ${
+			`radial-gradient(${cssDotColor} ${dotSize / 2}px, transparent ${
 				dotSize / 2 + 0.01
 			}px)`,
-		[dotColor, dotSize]
+		[cssDotColor, dotSize]
 	);
 
 	const Z = 2147483647;
@@ -470,9 +520,10 @@ export default function SplashCSSIntro({
 										background: gradientCSS,
 										boxShadow: shadowCSS,
 										filter: `blur(${backdropBlurPx}px)`,
-										WebkitMaskImage: `radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)`,
+										WebkitMaskImage:
+											"radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)",
 										maskImage: `radial-gradient(closest-side, rgba(0,0,0,1) calc(60% - ${backdropMaskFeatherPx}px), rgba(0,0,0,0) 100%)`,
-										opacity: clamp01(backdropOpacity),
+										opacity: gradientOpacity,
 									}}
 								/>
 								<span

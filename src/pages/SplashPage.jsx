@@ -34,9 +34,10 @@ export default function SplashPage({ onDone }) {
 					{ el: ParcsCanadaLogo, height: 220 },
 				]}
 				bg="#4b3a69"
-				dotGap={PATTERN_CELL_PX} // spacing must match PatternMorph.cellPx
-				dotSize={4} // 4 CSS px diameter to match canvas 2px radius
-				dotColor="rgba(255,255,255,0.08)"
+				dotGap={PATTERN_CELL_PX} // must match PatternMorph.cellPx
+				dotSize={4} // 4 CSS px diameter matches canvas 2px radius
+				cssDotOpacity={0.04} // NEW: independent CSS-dot alpha
+				dotColor="rgba(255,255,255,1)" // base color; alpha overridden by cssDotOpacity
 				timing={{
 					HOLD_AFTER_CAPTION_MS: 3600,
 					FADE_OUT_MS: 700,
