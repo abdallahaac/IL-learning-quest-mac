@@ -55,6 +55,24 @@ import { MOBILE_FOOTER_GAP_PX } from "./constants/layout.js";
 const SPLASH_SEEN_KEY = "__APP_SPLASH_SEEN_ONCE__";
 const DEBUG_ALWAYS_SHOW_SPLASH_ON_REFRESH = true;
 
+// Locks splash permanently for debugging (hard mode)
+const DEBUG_STICKY_SPLASH =
+	(() => {
+		try {
+			return new URLSearchParams(window.location.search).has("stickySplash");
+		} catch {}
+		return false;
+	})() || String(import.meta.env?.VITE_STICKY_SPLASH || "").trim() === "1";
+
+// Older “lock” that keeps splash page up but still renders app shell if you let it end
+const DEBUG_LOCK_SPLASH =
+	(() => {
+		try {
+			return new URLSearchParams(window.location.search).has("lockSplash");
+		} catch {}
+		return false;
+	})() || String(import.meta.env?.VITE_LOCK_SPLASH || "").trim() === "1";
+
 /* --------------- helpers --------------- */
 function isSplashDisabled() {
 	try {
@@ -199,6 +217,35 @@ export default function AppShell() {
 		totalPages,
 	});
 
+	// If sticky mode is enabled, always show splash and never dismiss.
+	if (DEBUG_STICKY_SPLASH) {
+		const currentPage = pages[0] ?? { type: "cover" };
+		return (
+			<div
+				className={`app-shell relative flex flex-col bg-white ${
+					currentPage.type === "activity"
+						? activityThemes[currentPage.activityIndex]
+						: pageThemes[currentPage.type] || ""
+				}`}
+				style={{ minHeight: "190vh" }}
+			>
+				<div className="absolute inset-0 z-0 pointer-events-none">
+					<PatternMorph pageIndex={0} sequence={["dots", "grid"]} />
+				</div>
+				<div className="relative z-20">
+					<SplashPage
+						// Park it here forever: essentially infinite hold, no fade
+						timing={{ HOLD_AFTER_CAPTION_MS: 60_000_000, FADE_OUT_MS: 0 }}
+						// Don’t dismiss under any circumstance
+						onDone={() => {}}
+						// If your SplashPage/SplashCSSIntro supports it, this prevents click-to-skip
+						allowSkip={false}
+					/>
+				</div>
+			</div>
+		);
+	}
+
 	const [showSplash, setShowSplash] = React.useState(() => {
 		try {
 			maybeResetSplashFlagFromQuery();
@@ -297,7 +344,6 @@ export default function AppShell() {
 
 	if (typeof window !== "undefined") window.__footerH = footerHeight;
 
-	/* Push measured and configured values into CSS variables */
 	React.useEffect(() => {
 		try {
 			const fh = `${Math.max(footerHeight || 0, 56)}px`;
@@ -314,7 +360,7 @@ export default function AppShell() {
 		} catch (e) {
 			console.error("[footer-vars:set:fail]", e);
 		}
-	}, [footerHeight, MOBILE_FOOTER_GAP_PX]); // include the constant so HMR updates
+	}, [footerHeight]);
 
 	const activitySteps = activityPages.map(({ p, idx }, i) => ({
 		key: p.content.id,
@@ -400,16 +446,17 @@ export default function AppShell() {
 						? activityThemes[currentPage.activityIndex]
 						: pageThemes[currentPage.type] || ""
 				}`}
-				style={{
-					minHeight: "190vh",
-				}}
+				style={{ minHeight: "190vh" }}
 			>
 				<div className="absolute inset-0 z-0 pointer-events-none">
 					<PatternMorph pageIndex={0} sequence={["dots", "grid"]} />
 				</div>
 				<div className="relative z-20">
 					<SplashPage
+						// Normal mode uses your default timing;
+						// flip on DEBUG_STICKY_SPLASH for permanent splash.
 						onDone={() => {
+							if (DEBUG_LOCK_SPLASH) return; // keep splash up if lockSplash is used
 							markSplashSeen();
 							setShowSplash(false);
 							try {
@@ -466,7 +513,6 @@ export default function AppShell() {
 						style={{
 							WebkitOverflowScrolling: "touch",
 							overscrollBehavior: "contain",
-							// publish CSS vars right on the element so they always win
 							"--footer-h": `${footerHeight}px`,
 							"--mobile-footer-gap": `${MOBILE_FOOTER_GAP_PX}px`,
 						}}
@@ -612,7 +658,6 @@ export default function AppShell() {
 							</div>
 						</main>
 
-						{/* mobile-only physical spacer so nothing can hide under the footer */}
 						<div className="mobile-gap-spacer mt-20" aria-hidden="true" />
 					</div>
 				</div>

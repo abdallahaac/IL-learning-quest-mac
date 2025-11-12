@@ -1,19 +1,16 @@
 // src/components/PatternMorph.jsx
 import React, { useEffect, useMemo, useRef } from "react";
+import { PATTERN_CELL_PX } from "../constants/pattern.js"; // export const PATTERN_CELL_PX = 24;
 
-/**
- * Seamless, in-place pattern morph:
- * dots ⇄ plus (rotates) ⇄ grid ⇄ asterisks ⇄ lines ⇄ dots
- *
- * Plus symbols spin exactly once during any morph that goes
- * to or from "plus".
- */
 export default function PatternMorph({
 	pageIndex = 0,
 	sequence = ["dots", "grid"],
 	bg = "#ffff",
 	ink = "rgba(0,0,0,0.10)",
 	duration = 800,
+
+	// Use the same number you pass to SplashCSSIntro.dotGap
+	cellPx = PATTERN_CELL_PX,
 
 	/* === Dog-ear options (top-right) === */
 	showFold = true,
@@ -95,8 +92,8 @@ export default function PatternMorph({
 		ctx.fillStyle = bg;
 		ctx.fillRect(0, 0, W, H);
 
-		// Lattice for all shapes
-		const cell = 32 * dpr;
+		// Lattice for all shapes — now driven by cellPx
+		const cell = Math.max(2, cellPx) * dpr;
 		const cx0 = Math.round((W % cell) / 2);
 		const cy0 = Math.round((H % cell) / 2);
 
@@ -204,17 +201,17 @@ export default function PatternMorph({
 		// Reset alpha for overlays
 		ctx.globalAlpha = 1;
 
-		// --- Dog-eared fold overlay (drawn last, above pattern) ---
+		// --- Dog-eared fold overlay (optional) ---
 		// if (showFold) {
-		// 	drawDogEarFold(ctx, {
-		// 		W,
-		// 		H,
-		// 		dpr,
-		// 		size: foldSize * dpr,
-		// 		fill: foldFill,
-		// 		stroke: foldStroke,
-		// 		shadow: foldShadow,
-		// 	});
+		//   drawDogEarFold(ctx, {
+		//     W,
+		//     H,
+		//     dpr,
+		//     size: foldSize * dpr,
+		//     fill: foldFill,
+		//     stroke: foldStroke,
+		//     shadow: foldShadow,
+		//   });
 		// }
 	}
 
@@ -317,7 +314,7 @@ function unit(kind) {
 			return { grid: 1 };
 		case "asterisks":
 			return { ast: 1 };
-		case "lines": // NEW: horizontal notebook lines
+		case "lines":
 			return { lines: 1 };
 		default:
 			return { dot: 1 };
