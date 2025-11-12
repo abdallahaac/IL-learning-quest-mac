@@ -8,7 +8,7 @@ export default function PatternMorph({
 	sequence = ["dots", "grid"],
 	bg = "#ffff",
 	ink = "rgba(0,0,0,0.08)", // stroke/fill color base
-	dotOpacity = 1, // NEW: independent opacity scaler for DOTS only (0..1)
+	dotOpacity = 0.6, // NEW: independent opacity scaler for DOTS only (0..1)
 	duration = 800,
 	cellPx = PATTERN_CELL_PX,
 	showFold = true,
