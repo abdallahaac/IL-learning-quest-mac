@@ -45,6 +45,11 @@ export default function SplashPage({ onDone }) {
 				}}
 				onWillEnd={handleWillEnd}
 				onDone={onDone}
+				usePreLine
+				collabText={{
+					en: "Canada School of Public Service\nin collaboration with Parks Canada",
+					fr: "École de la fonction publique du Canada\nen collaboration avec Parcs Canada",
+				}}
 			/>
 		</div>
 	);

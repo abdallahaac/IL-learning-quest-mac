@@ -102,12 +102,11 @@ function buildShadow({
 	)})`;
 }
 
-/* ---------- color helpers to force dot alpha ---------- */
+/* ---- color helpers to force dot alpha ---- */
 function parseColor(color) {
 	if (!color) return { r: 255, g: 255, b: 255, a: 1 };
 	const c = color.trim();
 
-	// rgba(...)
 	let m = c.match(
 		/^rgba?\s*\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i
 	);
@@ -119,7 +118,6 @@ function parseColor(color) {
 		return { r, g, b, a };
 	}
 
-	// #rgb or #rrggbb
 	m = c.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
 	if (m) {
 		let hex = m[1];
@@ -135,7 +133,6 @@ function parseColor(color) {
 		return { r, g, b, a: 1 };
 	}
 
-	// default fallback: white
 	return { r: 255, g: 255, b: 255, a: 1 };
 }
 function withAlpha(color, alpha) {
@@ -144,15 +141,28 @@ function withAlpha(color, alpha) {
 	return `rgba(${r},${g},${b},${a})`;
 }
 
+/* ---- tiny helper to render only <br> and \n as line breaks ---- */
+function toNodesWithBreaks(s) {
+	return String(s)
+		.split(/<br\s*\/?>|\n/gi)
+		.flatMap((chunk, i) =>
+			i === 0 ? [chunk] : [<br key={`br-${i}`} />, chunk]
+		);
+}
+
 export default function SplashCSSIntro({
 	bg = "#4b3a69",
 	dotColor = "rgba(255,255,255,0.08)",
-	dotSize = 4, // must be 4 CSS px to match canvas 2px radius
-	dotGap = 24, // must match PATTERN_CELL_PX
-	cssDotOpacity, // NEW: optional override for CSS-dot alpha (0..1)
+	dotSize = 4,
+	dotGap = 24,
+	cssDotOpacity,
 
 	logos = [],
-	collabText = DEFAULT_TEXT,
+	collabText = DEFAULT_TEXT, // string or {en, fr}
+	collabContent = null, // ReactNode override (safest, no parsing)
+	interpretBreaks = false, // if true, convert only <br> or \n to <br/> nodes
+	usePreLine = false, // if true, honor \n via CSS white-space: pre-line
+
 	locale,
 	onDone,
 	onWillEnd,
@@ -203,7 +213,6 @@ export default function SplashCSSIntro({
 	const [canRender, setCanRender] = useState(false);
 	const [container, setContainer] = useState(null);
 
-	// Same centering math as PatternMorph
 	const [bgPos, setBgPos] = useState("0px 0px");
 	const recomputeBgPos = () => setBgPos(computeCssBackgroundPosition(dotGap));
 
@@ -221,6 +230,13 @@ export default function SplashCSSIntro({
 		() => resolveCollabText(collabText, isFr),
 		[collabText, isFr]
 	);
+
+	// Decide what we actually render inside the caption
+	const captionNode = useMemo(() => {
+		if (collabContent != null) return collabContent; // caller-supplied ReactNode
+		if (interpretBreaks) return toNodesWithBreaks(captionTextResolved); // only <br> / \n
+		return captionTextResolved; // plain string
+	}, [collabContent, interpretBreaks, captionTextResolved]);
 
 	const gradientCSS = useMemo(() => {
 		if (backdropGradient) return backdropGradient;
@@ -425,7 +441,7 @@ export default function SplashCSSIntro({
 				background: bg,
 				backgroundImage: bgImage,
 				backgroundSize: size,
-				backgroundPosition: bgPos, // exact match with PatternMorph centering
+				backgroundPosition: bgPos,
 				opacity: 0,
 				pointerEvents: "auto",
 				isolation: "isolate",
@@ -489,60 +505,59 @@ export default function SplashCSSIntro({
 				</div>
 			</div>
 
-			{captionTextResolved ? (
-				<div ref={captionRef} style={captionWrapStyle}>
-					<span
-						className="text-white"
-						style={{
-							fontSize: captionFontSize,
-							lineHeight: captionLineHeight,
-							fontWeight: captionFontWeight,
-							letterSpacing: captionLetterSpacing,
-							textAlign: captionTextAlign,
-							maxWidth: captionMaxWidth,
-							width: captionWidth,
-							textShadow: "0 1px 2px rgba(0,0,0,0.6)",
-							display: "inline-block",
-							pointerEvents: "none",
-						}}
-					>
-						{enableCaptionBackdrop ? (
-							<span style={{ position: "relative", display: "inline-block" }}>
-								<span
-									aria-hidden="true"
-									style={{
-										position: "absolute",
-										left: `-${backdropPadX + 8}px`,
-										right: `-${backdropPadX + 8}px`,
-										top: `-${backdropPadY + 8}px`,
-										bottom: `-${backdropPadY + 8}px`,
-										borderRadius: backdropRadius,
-										background: gradientCSS,
-										boxShadow: shadowCSS,
-										filter: `blur(${backdropBlurPx}px)`,
-										WebkitMaskImage:
-											"radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)",
-										maskImage: `radial-gradient(closest-side, rgba(0,0,0,1) calc(60% - ${backdropMaskFeatherPx}px), rgba(0,0,0,0) 100%)`,
-										opacity: gradientOpacity,
-									}}
-								/>
-								<span
-									style={{
-										position: "relative",
-										display: "inline-block",
-										padding: `${backdropPadY}px ${backdropPadX}px`,
-										borderRadius: backdropRadius,
-									}}
-								>
-									{captionTextResolved}
-								</span>
+			<div ref={captionRef} style={captionWrapStyle}>
+				<span
+					className="text-white"
+					style={{
+						fontSize: captionFontSize,
+						lineHeight: captionLineHeight,
+						fontWeight: captionFontWeight,
+						letterSpacing: captionLetterSpacing,
+						textAlign: captionTextAlign,
+						maxWidth: captionMaxWidth,
+						width: captionWidth,
+						textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+						display: "inline-block",
+						pointerEvents: "none",
+						...(usePreLine ? { whiteSpace: "pre-line" } : null), // Option A
+					}}
+				>
+					{enableCaptionBackdrop ? (
+						<span style={{ position: "relative", display: "inline-block" }}>
+							<span
+								aria-hidden="true"
+								style={{
+									position: "absolute",
+									left: `-${backdropPadX + 8}px`,
+									right: `-${backdropPadX + 8}px`,
+									top: `-${backdropPadY + 8}px`,
+									bottom: `-${backdropPadY + 8}px`,
+									borderRadius: backdropRadius,
+									background: gradientCSS,
+									boxShadow: shadowCSS,
+									filter: `blur(${backdropBlurPx}px)`,
+									WebkitMaskImage:
+										"radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)",
+									maskImage: `radial-gradient(closest-side, rgba(0,0,0,1) calc(60% - ${backdropMaskFeatherPx}px), rgba(0,0,0,0) 100%)`,
+									opacity: gradientOpacity,
+								}}
+							/>
+							<span
+								style={{
+									position: "relative",
+									display: "inline-block",
+									padding: `${backdropPadY}px ${backdropPadX}px`,
+									borderRadius: backdropRadius,
+								}}
+							>
+								{captionNode}
 							</span>
-						) : (
-							captionTextResolved
-						)}
-					</span>
-				</div>
-			) : null}
+						</span>
+					) : (
+						captionNode
+					)}
+				</span>
+			</div>
 		</div>,
 		container
 	);
