@@ -8,11 +8,11 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import { gsap } from "gsap";
+import { computeCssBackgroundPosition } from "../utils/patternGrid.js";
 
 export const SPLASH_LOCK_KEY = "__APP_SPLASH_ACTIVE__";
 const CONTAINER_ID = "app-splash-overlay-root";
 
-/** Timing constants you can edit at a glance */
 export const SPLASH_TIMING_DEFAULTS = {
 	FADE_IN_MS: 600,
 	LOGO_ENTRANCE_MS: 800,
@@ -40,7 +40,6 @@ const prefersReduced = () =>
 	window.matchMedia &&
 	window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// Detect page language via <html lang="...">, then navigator as fallback
 function detectIsFr() {
 	if (typeof document !== "undefined") {
 		const langAttr = (
@@ -60,13 +59,11 @@ function detectIsFr() {
 	return false;
 }
 
-// Default bilingual caption text
 const DEFAULT_TEXT = {
 	en: "Canada School of Public Service in collaboration with Parks Canada",
 	fr: "École de la fonction publique du Canada en collaboration avec Parcs Canada",
 };
 
-// Resolve final caption text based on locale and overrides
 function resolveCollabText(collabText, isFr) {
 	if (typeof collabText === "string") return collabText;
 	if (collabText && typeof collabText === "object") {
@@ -77,7 +74,6 @@ function resolveCollabText(collabText, isFr) {
 	return isFr ? DEFAULT_TEXT.fr : DEFAULT_TEXT.en;
 }
 
-// Helpers to build gradient and shadow from variables
 const clamp01 = (v) => Math.max(0, Math.min(1, Number(v) || 0));
 const pct = (v) => (typeof v === "number" ? `${v}%` : String(v));
 
@@ -92,7 +88,6 @@ function buildRadialGradient({
 	);
 	return `radial-gradient(${shape}, ${parts.join(", ")})`;
 }
-
 function buildShadow({
 	x = 0,
 	y = 18,
@@ -109,39 +104,23 @@ function buildShadow({
 
 export default function SplashCSSIntro({
 	bg = "#4b3a69",
-	dotColor = "rgba(255,255,255,0.28)",
-	dotSize = 4,
-	dotGap = 22,
+	dotColor = "rgba(255,255,255,0.08)",
+	dotSize = 4, // must be 4 CSS px to match canvas 2px radius
+	dotGap = 24, // must match PATTERN_CELL_PX
 	logos = [],
-
-	// Caption text, can be string or { en, fr }
 	collabText = DEFAULT_TEXT,
-
-	// Optional manual override; if omitted, auto-detect from document/navigator
 	locale,
-
-	// Callbacks
 	onDone,
 	onWillEnd,
-
-	// Timing
 	timing = SPLASH_TIMING_DEFAULTS,
-
-	// Backdrop behind caption
 	enableCaptionBackdrop = true,
-
-	// Backdrop geometry/softness
 	backdropRadius = "9999px",
 	backdropPadX = 18,
 	backdropPadY = 10,
 	backdropBlurPx = 20,
 	backdropMaskFeatherPx = 22,
-
-	// Optional full CSS overrides
 	backdropGradient,
 	backdropShadow,
-
-	// Variable-driven gradient
 	backdropGradientRGB = [0, 0, 0],
 	backdropGradientShape = "160% 200% at 50% 50%",
 	backdropGradientStops = [
@@ -151,31 +130,23 @@ export default function SplashCSSIntro({
 		{ pos: "90%", alpha: 0.1 },
 		{ pos: "100%", alpha: 0.0 },
 	],
-
-	// Shadow controls
 	backdropShadowRGB = [0, 0, 0],
 	backdropShadowAlpha = 0.28,
 	backdropShadowX = 0,
 	backdropShadowY = 22,
 	backdropShadowBlur = 90,
 	backdropShadowSpread = 0,
-
-	// Overall opacity
 	backdropOpacity = 0.1,
-
-	// Caption typography controls
 	captionFontSize = "clamp(1.5rem, 2.8vw + 0.5rem, 2.4rem)",
 	captionLineHeight = 1.2,
 	captionFontWeight = 500,
 	captionLetterSpacing = 1,
-
-	// Caption width/position controls
 	captionMaxWidth = "min(98vw, 2000px)",
-	captionWidth, // e.g., "820px" to force a fixed width
+	captionWidth,
 	captionTop = "65%",
-	captionRight, // e.g., "8%"
-	captionBottom = "12%", // default relative bottom
-	captionLeft = "50%", // center horizontally by default
+	captionRight,
+	captionBottom = "12%",
+	captionLeft = "50%",
 	captionTranslate = "translate(-50%, 0)",
 	captionTextAlign = "center",
 }) {
@@ -188,25 +159,12 @@ export default function SplashCSSIntro({
 	const [canRender, setCanRender] = useState(false);
 	const [container, setContainer] = useState(null);
 
-	// DPR-aware background-position to align CSS dots with PatternMorph lattice
+	// Exact same centering math as PatternMorph
 	const [bgPos, setBgPos] = useState("0px 0px");
-	const computeBgPosition = () => {
-		if (typeof window === "undefined") return;
-		const dpr = Math.max(1, window.devicePixelRatio || 1);
-		const cellDevicePx = Math.max(2, dotGap) * dpr; // PatternMorph: cell = cellPx * dpr
-		const W = Math.floor(window.innerWidth * dpr);
-		const H = Math.floor(window.innerHeight * dpr);
-		const offXDevice = Math.round((W % cellDevicePx) / 2);
-		const offYDevice = Math.round((H % cellDevicePx) / 2);
-		const offXCss = offXDevice / dpr;
-		const offYCss = offYDevice / dpr;
-		setBgPos(`${offXCss}px ${offYCss}px`);
-	};
+	const recomputeBgPos = () => setBgPos(computeCssBackgroundPosition(dotGap));
 
-	// Normalize timing with defaults
 	const T = { ...SPLASH_TIMING_DEFAULTS, ...(timing || {}) };
 
-	// Determine whether we should use French
 	const isFr = useMemo(() => {
 		if (locale) {
 			const lc = String(locale).toLowerCase();
@@ -215,13 +173,11 @@ export default function SplashCSSIntro({
 		return detectIsFr();
 	}, [locale]);
 
-	// Compute the final caption string
 	const captionTextResolved = useMemo(
 		() => resolveCollabText(collabText, isFr),
 		[collabText, isFr]
 	);
 
-	// Build gradient/shadow CSS from variables unless explicit strings are provided
 	const gradientCSS = useMemo(() => {
 		if (backdropGradient) return backdropGradient;
 		return buildRadialGradient({
@@ -268,17 +224,17 @@ export default function SplashCSSIntro({
 		};
 	}, []);
 
-	// Keep CSS background aligned with PatternMorph lattice (on mount, resize, DPR change-ish)
 	useEffect(() => {
 		if (typeof window === "undefined") return;
-		const handler = () => computeBgPosition();
-		computeBgPosition();
+		const handler = () => recomputeBgPos();
+		recomputeBgPos();
 		window.addEventListener("resize", handler);
-		// Re-run shortly after mount to catch mobile UI chrome changes
+		window.addEventListener("orientationchange", handler);
 		const id = setTimeout(handler, 50);
 		return () => {
 			clearTimeout(id);
 			window.removeEventListener("resize", handler);
+			window.removeEventListener("orientationchange", handler);
 		};
 	}, [dotGap]);
 
@@ -314,15 +270,11 @@ export default function SplashCSSIntro({
 		gsap.set(rootRef.current, { opacity: 0, pointerEvents: "auto" });
 
 		const tlIn = gsap.timeline();
-
-		// Overlay fade-in
 		tlIn.to(rootRef.current, {
 			opacity: 1,
 			duration: T.FADE_IN_MS / 1000,
 			ease: "power2.out",
 		});
-
-		// Logos entrance
 		tlIn.fromTo(
 			logosRef.current?.children || [],
 			{ opacity: 0, y: 10, scale: 0.975 },
@@ -336,8 +288,6 @@ export default function SplashCSSIntro({
 			},
 			"+=0.08"
 		);
-
-		// Caption entrance
 		if (captionRef.current) {
 			tlIn.fromTo(
 				captionRef.current,
@@ -352,12 +302,9 @@ export default function SplashCSSIntro({
 			);
 		}
 
-		// Hold after caption appears
 		const holdSec =
 			Math.max(0, T.PRE_HOLD_MS) / 1000 +
 			Math.max(0, T.HOLD_AFTER_CAPTION_MS) / 1000;
-
-		// When to call onWillEnd slightly before exit
 		const fadeSec = Math.max(0.01, T.FADE_OUT_MS / 1000);
 		const totalSec = holdSec + fadeSec;
 		const willEndAt = Math.max(
@@ -367,7 +314,6 @@ export default function SplashCSSIntro({
 		const dc = gsap.delayedCall(willEndAt, () => onWillEnd?.());
 		willEndCallRef.current = dc;
 
-		// Exit timeline
 		const tlOut = gsap.timeline({
 			defaults: { ease: "power2.out" },
 			onComplete: safeDone,
@@ -376,7 +322,6 @@ export default function SplashCSSIntro({
 		tlOut.set(rootRef.current, { pointerEvents: "none" });
 		tlOut.to(rootRef.current, { opacity: 0, duration: fadeSec });
 
-		// Skip on click or key
 		const skip = () => {
 			if (doneRef.current) return;
 			onWillEnd?.();
@@ -407,7 +352,6 @@ export default function SplashCSSIntro({
 
 	const gradientOpacity = clamp01(backdropOpacity);
 
-	// Compute caption wrapper absolute positioning from variables
 	const captionWrapStyle = {
 		position: "absolute",
 		left: captionLeft,
@@ -419,7 +363,7 @@ export default function SplashCSSIntro({
 		alignItems: "center",
 		justifyContent: "center",
 		pointerEvents: "none",
-		opacity: 0, // animated in
+		opacity: 0,
 	};
 
 	return createPortal(
@@ -431,7 +375,7 @@ export default function SplashCSSIntro({
 				background: bg,
 				backgroundImage: bgImage,
 				backgroundSize: size,
-				backgroundPosition: bgPos, // DPR-aware centering to match PatternMorph lattice
+				backgroundPosition: bgPos, // exact match with PatternMorph centering
 				opacity: 0,
 				pointerEvents: "auto",
 				isolation: "isolate",
@@ -500,14 +444,13 @@ export default function SplashCSSIntro({
 					<span
 						className="text-white"
 						style={{
-							// Typography variables
 							fontSize: captionFontSize,
 							lineHeight: captionLineHeight,
 							fontWeight: captionFontWeight,
 							letterSpacing: captionLetterSpacing,
 							textAlign: captionTextAlign,
 							maxWidth: captionMaxWidth,
-							width: captionWidth, // optional fixed width
+							width: captionWidth,
 							textShadow: "0 1px 2px rgba(0,0,0,0.6)",
 							display: "inline-block",
 							pointerEvents: "none",
@@ -515,7 +458,6 @@ export default function SplashCSSIntro({
 					>
 						{enableCaptionBackdrop ? (
 							<span style={{ position: "relative", display: "inline-block" }}>
-								{/* Backdrop layer */}
 								<span
 									aria-hidden="true"
 									style={{
@@ -530,10 +472,9 @@ export default function SplashCSSIntro({
 										filter: `blur(${backdropBlurPx}px)`,
 										WebkitMaskImage: `radial-gradient(closest-side, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%)`,
 										maskImage: `radial-gradient(closest-side, rgba(0,0,0,1) calc(60% - ${backdropMaskFeatherPx}px), rgba(0,0,0,0) 100%)`,
-										opacity: gradientOpacity,
+										opacity: clamp01(backdropOpacity),
 									}}
 								/>
-								{/* Content with padding */}
 								<span
 									style={{
 										position: "relative",

@@ -1,5 +1,5 @@
 // src/pages/SplashPage.jsx
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import SplashCSSIntro from "../components/SplashCSSIntro.jsx";
 import CspsLogo from "../components/logos/cspslogo.jsx";
 import ParcsCanadaLogo from "../components/logos/parcsCanadaLogo.jsx";
@@ -26,14 +26,6 @@ export default function SplashPage({ onDone }) {
 		} catch {}
 	};
 
-	// Match PatternMorph’s dots:
-	// PatternMorph dot radius ≈ 2 * dpr  → diameter ≈ 4 * dpr (in CSS px)
-	const dotSize = useMemo(() => {
-		if (typeof window === "undefined") return 4; // SSR fallback
-		const dpr = Math.max(1, window.devicePixelRatio || 1);
-		return Math.round(4 * dpr);
-	}, []);
-
 	return (
 		<div className="fixed inset-0">
 			<SplashCSSIntro
@@ -42,12 +34,8 @@ export default function SplashPage({ onDone }) {
 					{ el: ParcsCanadaLogo, height: 220 },
 				]}
 				bg="#4b3a69"
-				// Keep spacing identical to PatternMorph
-				dotGap={PATTERN_CELL_PX}
-				// Keep dot diameter visually identical to PatternMorph’s dots
-				dotSize={dotSize}
-				// Optional: nudge color alpha to match canvas ink
-				// (PatternMorph ink default is rgba(0,0,0,0.10); yours is white dots on purple bg.)
+				dotGap={PATTERN_CELL_PX} // spacing must match PatternMorph.cellPx
+				dotSize={4} // 4 CSS px diameter to match canvas 2px radius
 				dotColor="rgba(255,255,255,0.08)"
 				timing={{
 					HOLD_AFTER_CAPTION_MS: 3600,

@@ -1,22 +1,19 @@
 // src/components/PatternMorph.jsx
 import React, { useEffect, useMemo, useRef } from "react";
-import { PATTERN_CELL_PX } from "../constants/pattern.js"; // export const PATTERN_CELL_PX = 24;
+import { PATTERN_CELL_PX } from "../constants/pattern.js";
+import { getCanvasDeviceSize } from "../utils/patternGrid.js";
 
 export default function PatternMorph({
 	pageIndex = 0,
 	sequence = ["dots", "grid"],
 	bg = "#ffff",
-	ink = "rgba(0,0,0,0.10)",
+	ink = "rgba(0,0,0,0.05)",
 	duration = 800,
-
-	// Use the same number you pass to SplashCSSIntro.dotGap
 	cellPx = PATTERN_CELL_PX,
-
-	/* === Dog-ear options (top-right) === */
 	showFold = true,
-	foldSize = 900, // CSS px — auto-scales with DPR
+	foldSize = 900,
 	foldFill = "rgba(255,255,255,0.94)",
-	foldStroke = "rgba(0,0,0,0.06)",
+	foldStroke = "rgba(0,0,0,0.04)",
 	foldShadow = "rgba(0,0,0,0)",
 }) {
 	const canvasRef = useRef(null);
@@ -56,18 +53,20 @@ export default function PatternMorph({
 		const handle = () => {
 			const c = canvasRef.current;
 			if (!c) return;
-			const dpr = Math.max(1, window.devicePixelRatio || 1);
-			const w = window.innerWidth;
-			const h = window.innerHeight;
-			c.width = Math.floor(w * dpr);
-			c.height = Math.floor(h * dpr);
-			c.style.width = `${w}px`;
-			c.style.height = `${h}px`;
+			const { W, H, cssW, cssH } = getCanvasDeviceSize();
+			c.width = W;
+			c.height = H;
+			c.style.width = `${cssW}px`;
+			c.style.height = `${cssH}px`;
 			draw();
 		};
 		handle();
 		window.addEventListener("resize", handle);
-		return () => window.removeEventListener("resize", handle);
+		window.addEventListener("orientationchange", handle);
+		return () => {
+			window.removeEventListener("resize", handle);
+			window.removeEventListener("orientationchange", handle);
+		};
 	}, []);
 
 	useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
@@ -83,16 +82,14 @@ export default function PatternMorph({
 		const c = canvasRef.current;
 		if (!c) return;
 		const ctx = c.getContext("2d");
-		const dpr = Math.max(1, window.devicePixelRatio || 1);
-		const W = c.width;
-		const H = c.height;
+		const { W, H, dpr } = getCanvasDeviceSize();
 
 		// Paper base
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		ctx.fillStyle = bg;
 		ctx.fillRect(0, 0, W, H);
 
-		// Lattice for all shapes — now driven by cellPx
+		// Lattice
 		const cell = Math.max(2, cellPx) * dpr;
 		const cx0 = Math.round((W % cell) / 2);
 		const cy0 = Math.round((H % cell) / 2);
@@ -100,16 +97,16 @@ export default function PatternMorph({
 		const t = easeInOutCubic(tRef.current);
 		const from = fromRef.current;
 		const to = toRef.current;
-		const w = weights(from, to, t); // {dot, plus, grid, ast, lines}
+		const w = weights(from, to, t);
 
-		// Per-primitive sizing from weights
-		const dotR = mix(0, 2.0 * dpr, w.dot);
+		// Sizes in device px. These appear as CSS px because canvas is DPR-scaled.
+		const dotR = mix(0, 2.0 * dpr, w.dot); // 2 CSS px radius
 		const arm = mix(0, 7.0 * dpr, w.plus);
 		const astArm = mix(0, 6.5 * dpr, w.ast);
 		const lw = 1.2 * dpr;
 		const lineAlpha = 0.9;
 
-		// HORIZONTAL LINES (underlay)
+		// Lines underlay
 		if (w.lines > 0) {
 			ctx.save();
 			ctx.globalAlpha = w.lines * lineAlpha;
@@ -124,7 +121,7 @@ export default function PatternMorph({
 			ctx.restore();
 		}
 
-		// GRID (underlay)
+		// Grid underlay
 		if (w.grid > 0) {
 			ctx.save();
 			ctx.globalAlpha = w.grid * lineAlpha;
@@ -145,16 +142,15 @@ export default function PatternMorph({
 			ctx.restore();
 		}
 
-		// Rotation angle for PLUS (spin once)
+		// Rotation for plus
 		const plusAngle = from === "plus" || to === "plus" ? 2 * Math.PI * t : 0;
 
-		// Glyphs on the lattice
+		// Glyphs
 		ctx.lineCap = "round";
 		ctx.lineWidth = lw;
 
 		for (let y = cy0; y < H; y += cell) {
 			for (let x = cx0; x < W; x += cell) {
-				// Dots
 				if (w.dot > 0 && dotR > 0.01) {
 					ctx.globalAlpha = clamp01(w.dot);
 					ctx.fillStyle = ink;
@@ -162,28 +158,22 @@ export default function PatternMorph({
 					ctx.arc(x, y, dotR, 0, Math.PI * 2);
 					ctx.fill();
 				}
-
-				// Plus (with spin)
 				if (w.plus > 0 && arm > 0.01) {
 					ctx.save();
 					ctx.translate(x, y);
 					ctx.rotate(plusAngle);
 					ctx.globalAlpha = clamp01(w.plus) * lineAlpha;
 					ctx.strokeStyle = ink;
-					// vertical
 					ctx.beginPath();
 					ctx.moveTo(0, -arm);
 					ctx.lineTo(0, arm);
 					ctx.stroke();
-					// horizontal
 					ctx.beginPath();
 					ctx.moveTo(-arm, 0);
 					ctx.lineTo(arm, 0);
 					ctx.stroke();
 					ctx.restore();
 				}
-
-				// Asterisks (optional)
 				if (w.ast > 0 && astArm > 0.01) {
 					ctx.globalAlpha = clamp01(w.ast) * lineAlpha;
 					ctx.strokeStyle = ink;
@@ -197,22 +187,7 @@ export default function PatternMorph({
 				}
 			}
 		}
-
-		// Reset alpha for overlays
 		ctx.globalAlpha = 1;
-
-		// --- Dog-eared fold overlay (optional) ---
-		// if (showFold) {
-		//   drawDogEarFold(ctx, {
-		//     W,
-		//     H,
-		//     dpr,
-		//     size: foldSize * dpr,
-		//     fill: foldFill,
-		//     stroke: foldStroke,
-		//     shadow: foldShadow,
-		//   });
-		// }
 	}
 
 	return (
@@ -224,74 +199,11 @@ export default function PatternMorph({
 	);
 }
 
-/* --------- dog-ear helper --------- */
-function drawDogEarFold(ctx, { W, H, dpr, size, fill, stroke, shadow }) {
-	const s = Math.min(size, Math.min(W, H) * 0.25);
-	if (s <= 0) return;
-
-	ctx.save();
-
-	// Main folded paper
-	ctx.fillStyle = fill;
-	ctx.strokeStyle = stroke;
-	ctx.lineWidth = 1 * dpr;
-	ctx.beginPath();
-	ctx.moveTo(W, 0);
-	ctx.lineTo(W, s);
-	ctx.lineTo(W - s, 0);
-	ctx.closePath();
-	ctx.fill();
-	ctx.stroke();
-
-	// Soft shadow along the diagonal fold (C -> B)
-	let grad = ctx.createLinearGradient(W - s, 0, W, s);
-	grad.addColorStop(0, "rgba(0,0,0,0.06)");
-	grad.addColorStop(1, "rgba(0,0,0,0)");
-	ctx.fillStyle = grad;
-	ctx.beginPath();
-	ctx.moveTo(W - s, 0);
-	ctx.lineTo(W, s);
-	ctx.lineTo(W, s + 3 * dpr);
-	ctx.lineTo(W - s - 3 * dpr, 0);
-	ctx.closePath();
-	ctx.fill();
-
-	// Slight cast shadow onto the page
-	grad = ctx.createLinearGradient(W - s, 0, W, s);
-	grad.addColorStop(0, shadow);
-	grad.addColorStop(1, "rgba(0,0,0,0)");
-	ctx.fillStyle = grad;
-	ctx.beginPath();
-	ctx.moveTo(W - s + 1 * dpr, 1 * dpr);
-	ctx.lineTo(W, s + 1 * dpr);
-	ctx.lineTo(W, s + 8 * dpr);
-	ctx.lineTo(W - s - 6 * dpr, 0);
-	ctx.closePath();
-	ctx.fill();
-
-	// Tiny highlight along the outer edges for thickness
-	ctx.strokeStyle = "rgba(255,255,255,0.5)";
-	ctx.lineWidth = 1 * dpr;
-	ctx.beginPath(); // along top edge (C -> A)
-	ctx.moveTo(W - s + 0.5 * dpr, 0.5 * dpr);
-	ctx.lineTo(W - 0.5 * dpr, 0.5 * dpr);
-	ctx.stroke();
-
-	ctx.beginPath(); // along right edge (A -> B)
-	ctx.moveTo(W - 0.5 * dpr, 0.5 * dpr);
-	ctx.lineTo(W - 0.5 * dpr, s - 0.5 * dpr);
-	ctx.stroke();
-
-	ctx.restore();
-}
-
-/* --------- original helpers --------- */
 function easeInOutCubic(t) {
 	return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 const clamp01 = (v) => Math.max(0, Math.min(1, v));
 const mix = (a, b, t) => a + (b - a) * clamp01(t);
-
 function weights(from, to, t) {
 	const zero = { dot: 0, plus: 0, grid: 0, ast: 0, lines: 0 };
 	const A = { ...zero, ...unit(from) };
