@@ -291,7 +291,7 @@ export default function Activity02({
 						initial="hidden"
 						animate="show"
 					>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center h-39">
 							{hasRealLinks
 								? linkItems.map((lnk, i) => {
 										const labelForAria = `${lnk.label}${enOnlySuffix}`;

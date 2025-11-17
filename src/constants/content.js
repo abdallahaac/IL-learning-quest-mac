@@ -13,21 +13,21 @@ export const COVER_CONTENT = {
 export const INTRO_INFO_CONTENT = {
 	title: "Introduction",
 	paragraphs: [
-		"The Learning Quest was created to spark joy and curiosity in public servants while supporting their journey toward meaningful allyship. Developed by Indigenous-identifying creators, it encourages learning through shared experiences, helping participants connect through common interests and resource sharing.",
+		"The Learning Quest was created to spark joy and curiosity in public servants while supporting their journey toward meaningful allyship. Developed by Indigenous creators, it encourages learning through shared experiences, helping participants connect through common interests and resource sharing.",
 		"Rather than being a test of knowledge, the Learning Quest is a lifelong practice—an invitation to explore Indigenous perspectives in everyday life with openness and intention.",
 		"The Learning Quest on Indigenous Cultures is a flexible team activity designed to help you learn more about Indigenous histories, cultures, and perspectives. Through 10 engaging activities, you’ll explore, reflect, and take action to build your cultural awareness and support reconciliation.",
 		"You can complete the quest individually or with a team. Working together allows for deeper conversations and shared learning. Each activity encourages you to think critically, ask questions, and connect what you learn to your personal and professional lives.",
-		"The quest is customizable and can be done at your own pace over several weeks. Regular team check-ins help you share insights, discuss challenges, and support each other’s learning journeys.",
+		"The quest is customizable and can be done at your own pace over several weeks. Regular team check-ins help you share insights, discuss challenges, and support each other’s learning journeys. A notes space is provided within the activities so you can document your reflections as you progress.",
 	],
 	bullets: [
 		{
 			heading: "How does the Learning Quest work?",
 			items: [
-				"Gather your team. If your work team can’t participate, form your own team or find a partner to be your study-buddy.",
+				"Gather your team. If your work team can’t participate, form your own team or find a partner to be your study buddy.",
 				"As a team, determine the quest parameters: Will you focus on specific nations and communities, or will you take a regional approach and learn something about Indigenous Peoples from each area of the country? Will you try to learn about all three distinct peoples: First Nations, Inuit and Métis?",
 				"Give yourself time to work on the quest: Encourage your colleagues, post updates and share resources in your Teams chat. If there’s a topic that interests you beyond the quest questions, go for it!",
-				"Book a team meeting to discuss your experiences: Set protocols for a safe space. What does everyone need to feel respected, heard, and supported? What was your main take-away from the experience?",
-				"Wrap it up… and keep questing: Share your resources on Best media by Indigenous voices, continue your learning journey all year long, and be part of the change by getting actively involved in reconciliation. The Reconciliation Path interactive job aid provides practical resources and ideas.",
+				`Book a team meeting to discuss your experiences: Set protocols for creating a safe and respectful space. What does everyone need to feel respected, heard, and supported? What was your main takeaway from the experience?`,
+				`Wrap it up… and keep questing: Share your resources on the online mural, continue your learning journey all year long, and be part of the change by getting actively involved in reconciliation.`,
 			],
 		},
 	],
@@ -35,7 +35,7 @@ export const INTRO_INFO_CONTENT = {
 		steps: [
 			{
 				bullets: [
-					"If your work team can’t participate, form your own team or find a study-buddy.",
+					"If your work team can’t participate, form your own team or find a study buddy.",
 				],
 			},
 			{
@@ -52,15 +52,13 @@ export const INTRO_INFO_CONTENT = {
 			},
 			{
 				bullets: [
-					"Set protocols for a safe space—what do people need to feel respected and supported?",
+					"Set protocols for a safe and respectful space—what do people need to feel respected and supported?",
 					"What was your main takeaway from the experience?",
 				],
 			},
 			{
 				bullets: [
-					"Share your resources on “Best media by Indigenous voices”.",
-					"Continue learning year-round.",
-					"Be part of the change—get actively involved in reconciliation (see the Reconciliation Path job aid).",
+					`Wrap it up… and keep questing: <a href="https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f" target="_blank" rel="noopener noreferrer" class="font-semibold underline text-[#7443d6] hover:text-[#552fa3]">Share your resources on the online mural “Best media by Indigenous voices”</a>, continue your learning journey all year long, and be part of the change by getting actively involved in reconciliation. The <a href="https://catalogue.csps-efpc.gc.ca/product?catalog=IRA1-J16&cm_locale=en" target="_blank" rel="noopener noreferrer" class="font-semibold underline text-[#7443d6] hover:text-[#552fa3]">Reconciliation Path Interactive Job Aid (IRA1-J16)</a> provides practical resources and ideas.`,
 				],
 			},
 		],
@@ -85,19 +83,21 @@ export const INTRO_INFO_CONTENT = {
 			label: "Tip",
 			text: {
 				pre: "Use a",
-				highlight: "safe, respectful space",
+				highlight: "safe and respectful space",
 				post: "for team check-ins and keep learning by sharing resources together.",
 			},
 		},
 	},
 };
 
+// src/constants/content.js (excerpt)
+
 export const PREPARATION_CONTENT = {
 	title: "Preparation",
 	paragraphs: [
 		"Complete the tasks and activities that follow and use the notes space to keep track of your learning journey. You can also customize the activities based on your team’s quest parameters. Identify in advance how much time to give each activity.",
-		"Don’t feel pressured to complete all the activities in a set period. You should only complete the ones you feel comfortable completing. But be prepared to be challenged as you learn, grow, and build your cultural capacity.",
-		"Need a starting point? Consult Best media by Indigenous voices.",
+		"Don’t feel pressured to complete all the activities in a set period. Complete the ones you feel comfortable with, and give yourself space to be challenged as you learn, grow, and build your cultural capacity.",
+		`Need a starting point? <a href="https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f" target="_blank" rel="noopener noreferrer" class="font-semibold underline text-[#7443d6] hover:text-[#552fa3]">Best media by Indigenous voices</a>.`,
 	],
 	ui: {
 		sectionTitle: "Preparation",
@@ -447,7 +447,9 @@ export const INTRO_INFO_CONTENT_FR = {
         <p class="bullet-body">
           Publiez vos ressources en ligne sur la murale
           « <a href="https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f"
-                 target="_blank" rel="noopener noreferrer" aria-label="Murale - Les meilleurs médias par les voix autochtones">
+                 target="_blank" rel="noopener noreferrer"
+                 aria-label="Murale - Les meilleurs médias par les voix autochtones"
+                 class="font-semibold underline text-[#7443d6] hover:text-[#552fa3]">
                  Les meilleurs médias par les voix autochtones
               </a> », créée par des membres de l’équipe de Parcs Canada.
           Poursuivez votre parcours d’apprentissage toute l’année et participez activement
@@ -502,13 +504,12 @@ export const INTRO_INFO_CONTENT_FR = {
 		},
 	},
 };
-
 export const PREPARATION_CONTENT_FR = {
 	title: "Préparation",
 	paragraphs: [
 		"Accomplissez les tâches et les activités ci-dessous, et notez l’avancement de votre parcours d’apprentissage dans les zones prévues à cette fin. Vous pouvez également personnaliser les activités en fonction des paramètres de la quête établis précédemment. Prédéterminez la durée de chaque activité.",
 		"Il n’est toutefois pas obligatoire de mener toutes les activités dans un délai précis. Vous n’avez pas non plus à accomplir les activités qui vous mettent mal à l’aise. Mais préparez-vous à relever des défis au fur et à mesure de vos apprentissages, de votre croissance et du renforcement de vos compétences culturelles.",
-		"Vous ne savez pas par où commencer? Consultez Les meilleurs médias par les voix autochtones.",
+		`Vous ne savez pas par où commencer? Consultez <a href="https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f" target="_blank" rel="noopener noreferrer" class="font-semibold underline text-[#7443d6] hover:text-[#552fa3]">Les meilleurs médias par les voix autochtones</a>.`,
 	],
 	ui: {
 		sectionTitle: "Préparation",
@@ -522,6 +523,7 @@ export const PREPARATION_CONTENT_FR = {
 		},
 	},
 };
+
 export const TEAM_CONTENT_FR = {
 	title: "Réunion d’équipe : étapes et questions potentielles",
 	instructionPill: "Instruction",
@@ -881,7 +883,7 @@ export const ACTIVITIES_CONTENT = {
 			cdata: {
 				instructionsHtml: `
         <p>Décrivez la manière dont vous vous identifiez à cette personne.</p>
-        <p><strong>Comment vous inspire-t-elle&nbsp;?</strong></p>
+        <p>Comment vous inspire-t-elle&nbsp;?</p>
       `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
@@ -910,21 +912,21 @@ export const ACTIVITIES_CONTENT = {
 			cdata: {
 				instructionsHtml: `
           <p>Discover Indigenous medicinal uses for plants in your area.</p>
-          <p><strong>Describe what you learned.</strong></p>
+          <p>Describe what you learned.</p>
         `,
 			},
 			notePlaceholder: "Plants, uses, teachings you discovered…",
 			resourcesHeading: "Resources",
 			links: [
 				{
-					label: "Métis traditional uses for plants (PDF)",
-					url: "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf",
-					icon: "image",
-				},
-				{
 					label:
 						"Traditional plant foods of Indigenous Peoples in Canada (book)",
 					url: "https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content",
+					icon: "image",
+				},
+				{
+					label: "Métis traditional uses for plants (PDF)",
+					url: "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf",
 					icon: "image",
 				},
 			],
@@ -937,7 +939,7 @@ export const ACTIVITIES_CONTENT = {
 			cdata: {
 				instructionsHtml: `
           <p>Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.</p>
-          <p><strong>Décrivez vos apprentissages.</strong></p>
+          <p>Décrivez vos apprentissages.</p>
         `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
@@ -945,14 +947,14 @@ export const ACTIVITIES_CONTENT = {
 			links: [
 				{
 					label:
-						"Liste des utilisations traditionnelles des plantes chez les Métis (PDF)",
-					url: "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf",
+						"Livre sur les aliments végétaux traditionnels chez les peuples autochtones du Canada",
+					url: "https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content",
 					icon: "image",
 				},
 				{
 					label:
-						"Livre sur les aliments végétaux traditionnels chez les peuples autochtones du Canada",
-					url: "https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content",
+						"Liste des utilisations traditionnelles des plantes chez les Métis (PDF)",
+					url: "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf",
 					icon: "image",
 				},
 			],
@@ -1100,7 +1102,12 @@ export const ACTIVITIES_CONTENT = {
 			id: "a4",
 			number: 4,
 			title: "Indigenous Peoples Outside Canada",
-			tip: "Discover facts about an Indigenous population outside Canada. What stood out to you?",
+			tip: "Learn interesting facts about an Indigenous people outside Canada. Describe the things you learned.",
+			cdata: {
+				instructionsHtml: `
+Discover facts about an Indigenous population outside Canada. <br>What stood out to you?
+      `,
+			},
 			notePlaceholder: "Which community? What you learned…",
 			resourcesHeading: "Resources",
 			links: [
@@ -1114,28 +1121,27 @@ export const ACTIVITIES_CONTENT = {
 		fr: {
 			id: "a4",
 			number: 4,
-			// shorter visible title — fragment of the approved sentence
-			title: "Apprenez des faits  sur un peuple autochtone d’ailleurs",
-			// keep the approved full sentence for instructions/tip (linguistics happy)
-			tip: "Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.\nDécrivez vos apprentissages.",
+			// short visible title
+			title: "Apprenez des faits sur un peuple autochtone d’ailleurs",
+			tip: "Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde. Décrivez vos apprentissages.",
 			cdata: {
 				instructionsHtml: `
-        <p>Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.</p>
-     <strong>   <p>Décrivez vos apprentissages.</p></strong>
-
+            <p>Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.</p>
+  <p>Décrivez vos apprentissages.</p>
       `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
-					label: "Carte mondiale des peuples autochtone (PDF) ",
+					label: "Carte mondiale des peuples autochtones (PDF)",
 					url: "https://newshour-classroom-tc.digi-producers.pbs.org/uploads/app/uploads/2014/11/A-global-map-of-indigenous-peoples.pdf",
 					icon: "map",
 				},
 			],
 		},
 	},
+
 	// ... inside ACTIVITIES_CONTENT
 	// src/constants/content.js (ACTIVITIES_CONTENT.a5)
 	a5: {
@@ -1143,7 +1149,7 @@ export const ACTIVITIES_CONTENT = {
 			id: "a5",
 			number: 5,
 			title: "Film, TV, or Podcast",
-			tip: "Watch an Indigenous film or TV show, or listen to an Indigenous-focused podcast.<br><strong> What did you learn?</strong>",
+			tip: "Watch an Indigenous film or TV show, or listen to an Indigenous-focused podcast.<br> What did you learn?",
 			notePlaceholder: "Title, creator(s), insights…",
 			resourcesHeading: "Resources",
 			links: [
@@ -1172,7 +1178,7 @@ export const ACTIVITIES_CONTENT = {
 			cdata: {
 				instructionsHtml: `
         <p>Écoutez un film ou une série télévisée autochtone, ou bien un balado axé sur les Autochtones.</p>
-        <p><strong>Qu’avez-vous appris?</strong></p>
+        <p>Qu’avez-vous appris?</p>
       `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
@@ -1231,7 +1237,7 @@ export const ACTIVITIES_CONTENT = {
 			cdata: {
 				instructionsHtml: `
         <p>Lisez un livre d’un auteur ou autrice des Premières Nations, Inuit ou Métis.</p>
-        <p><strong>Faites part de vos impressions.</strong></p>
+        <p>Faites part de vos impressions.</p>
       `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
@@ -1313,7 +1319,7 @@ export const ACTIVITIES_CONTENT = {
 			ui: {
 				instructionsPill: "Instructions",
 				editorHeading: "Add your words (Flip Cards)",
-				editorTip: "Tip: press Enter in the Back field to add quickly.",
+				editorTip: "",
 				frontPlaceholder: "Front (word / phrase)",
 				backPlaceholder: "Back (meaning / translation)",
 				addCardButton: "Add card",
@@ -1397,7 +1403,7 @@ export const ACTIVITIES_CONTENT = {
 			],
 			instructionsHtml: `
       <p>Apprenez à prononcer trois mots dans une langue autochtone et partagez-les avec votre équipe.</p>
-      <p><strong>Conseil :</strong> Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.</p>
+      <p>Conseil : Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.</p>
     `,
 			ui: {
 				instructionsPill: "Consignes",
@@ -1486,7 +1492,7 @@ export const ACTIVITIES_CONTENT = {
 			cdata: {
 				instructionsHtml: `
         <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
-        <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</strong></p>
+        <p>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</p>
       `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
@@ -1635,7 +1641,7 @@ export const ACTIVITIES_CONTENT = {
 			],
 			instructionsHtml: `
       <p>Découvrez un reportage qui porte sur des sujets autochtones et réfléchissez à sa portée.</p>
-      <p><strong>Quels défis la communauté rencontre-t-elle?</strong></p>
+      <p>Quels défis la communauté rencontre-t-elle?</p>
     `,
 		},
 	},
@@ -1729,7 +1735,7 @@ export const ACTIVITIES_CONTENT = {
 			// optional HTML instructions to preserve formatting (displayed if present)
 			instructionsHtml: `
       <p>Découvrez une entreprise appartenant à une personne inuite, métisse ou des Premières Nations (en personne ou en ligne).</p>
-      <p><strong>Réfléchissez :</strong> quels produits ou services ont retenu votre attention et pourquoi? Comment pourriez-vous soutenir cette entreprise?</p>
+      <p>Réfléchissez : quels produits ou services ont retenu votre attention et pourquoi? Comment pourriez-vous soutenir cette entreprise?</p>
     `,
 		},
 	},

@@ -1,10 +1,9 @@
-// src/pages/activities/Activity07.jsx
-
 import React, { useState, useMemo, useEffect, useRef, useId } from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { Feather, BookOpen } from "lucide-react";
 import LinkCard from "../components/LinkCard.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
+import DownloadButton from "../components/DownloadButton.jsx"; // ← Added
 import { hasActivityStarted } from "../utils/activityProgress.js";
 import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
@@ -42,6 +41,13 @@ export default function Activity07({
 }) {
 	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
 	const reduceMotion = useReducedMotion();
+	// download animation state (matches Activity 02/04/05)
+	const [isDownloading, setIsDownloading] = useState(false);
+
+	const dlLocale = {
+		en: { downloadingLabel: "Downloading..." },
+		fr: { downloadingLabel: "Téléchargement..." },
+	}[lang];
 
 	// canonical source: ACTIVITIES_CONTENT.a7[lang] with fallback to .en
 	const a7Content =
@@ -59,11 +65,7 @@ export default function Activity07({
 			(lang === "fr"
 				? "Ajoutez vos mots (cartes à retourner)"
 				: "Add your words (Flip Cards)"),
-		editorTip:
-			ui.editorTip ||
-			(lang === "fr"
-				? "Astuce : appuyez sur Entrée dans le champ « Retour » pour ajouter rapidement."
-				: "Tip: press Enter in the Back field to add quickly."),
+		editorTip: ui.editorTip || (lang === "fr" ? "" : ""),
 		frontPlaceholder:
 			ui.frontPlaceholder ||
 			(lang === "fr" ? "Recto (mot / expression)" : "Front (word / phrase)"),
@@ -331,278 +333,292 @@ export default function Activity07({
 
 	/* ------- full page export (docx) ------- */
 	const downloadPageDocx = async () => {
-		const baseTitle = pageTitle;
-		const title = `Activity ${activityNumber}: ${baseTitle}`;
-		const subtitle = a7Content?.subtitle || "";
-		const headingHex = accent;
+		// prevent spam-clicks & require activity progress
+		if (!started || isDownloading) return;
 
-		// use content.links for resources (export)
-		const resources = exportLinks;
-
-		const bullets = (model.bullets || []).filter(Boolean);
-		const cards = (model.cards || []).filter(
-			(c) => c?.front?.trim() || c?.back?.trim()
-		);
-		const fileName = `activity-a${activityNumber}-reflection.docx`;
+		setIsDownloading(true);
 
 		try {
-			const {
-				Document,
-				Packer,
-				Paragraph,
-				TextRun,
-				AlignmentType,
-				Table,
-				TableRow,
-				TableCell,
-				WidthType,
-				BorderStyle,
-				ExternalHyperlink,
-			} = await import("docx");
+			const baseTitle = pageTitle;
+			const title = `Activity ${activityNumber}: ${baseTitle}`;
+			const subtitle = a7Content?.subtitle || "";
+			const headingHex = accent;
 
-			const Title = (t) =>
-				new Paragraph({
-					alignment: AlignmentType.LEFT,
-					spacing: { before: 0, after: 300 },
-					children: [
-						new TextRun({
-							text: t,
-							bold: true,
-							size: 48,
-							font: "Arial",
-							color: headingHex,
-						}),
-					],
-				});
-			const SubtitleP = (t) =>
-				new Paragraph({
-					spacing: { before: 0, after: 240 },
-					children: [
-						new TextRun({ text: t, italics: true, size: 28, font: "Arial" }),
-					],
-				});
-			const H2 = (t) =>
-				new Paragraph({
-					spacing: { before: 280, after: 160 },
-					children: [
-						new TextRun({
-							text: t,
-							bold: true,
-							size: 32,
-							font: "Arial",
-							color: headingHex,
-						}),
-					],
-				});
-			const Body = (t) =>
-				new Paragraph({
-					spacing: { before: 0, after: 120, line: 360 },
-					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
-				});
-			const BulletP = (t) =>
-				new Paragraph({
-					spacing: { before: 0, after: 60 },
-					bullet: { level: 0 },
-					children: [new TextRun({ text: t, size: 24, font: "Arial" })],
-				});
-			const BulletLink = (label, url) =>
-				new Paragraph({
-					spacing: { before: 0, after: 60 },
-					bullet: { level: 0 },
-					children: [
-						url
-							? new ExternalHyperlink({
-									link: url,
-									children: [
-										new TextRun({
-											text: label || url,
-											font: "Arial",
-											size: 24,
-											underline: {},
-											color: "0563C1",
-										}),
-									],
-							  })
-							: new TextRun({ text: label || "-", font: "Arial", size: 24 }),
-					],
-				});
+			const resources = exportLinks;
 
-			const children = [];
-			children.push(Title(title));
-			if (subtitle) children.push(SubtitleP(subtitle));
+			const bullets = (model.bullets || []).filter(Boolean);
+			const cards = (model.cards || []).filter(
+				(c) => c?.front?.trim() || c?.back?.trim()
+			);
+			const fileName = `activity-a${activityNumber}-reflection.docx`;
 
-			// Activity tip
-			children.push(H2(uiSafe.doc.activityTipHeader));
-			children.push(Body(tipText));
+			try {
+				const {
+					Document,
+					Packer,
+					Paragraph,
+					TextRun,
+					AlignmentType,
+					Table,
+					TableRow,
+					TableCell,
+					WidthType,
+					BorderStyle,
+					ExternalHyperlink,
+				} = await import("docx");
 
-			// Resources
-			if (resources.length) {
-				children.push(H2(uiSafe.doc.resourcesHeader));
-				resources.forEach((r) =>
-					children.push(BulletLink(r.label || r, r.url || r.href || ""))
-				);
-			}
-
-			// Saved response
-			if (model.text?.trim()) {
-				children.push(H2(uiSafe.doc.savedResponseHeader));
-				model.text
-					.split(/\n{2,}/)
-					.map((p) => p.trim())
-					.filter(Boolean)
-					.forEach((p) => children.push(Body(p)));
-			}
-
-			// Bullets
-			if (bullets.length) {
-				children.push(H2(uiSafe.doc.bulletPointsHeader));
-				bullets.forEach((b) => children.push(BulletP(b)));
-			}
-
-			// Cards table
-			if (cards.length) {
-				children.push(H2(uiSafe.doc.wordCardsHeader));
-				const headerRow = new TableRow({
-					children: [
-						new TableCell({ children: [Body(uiSafe.doc.wordColumn)] }),
-						new TableCell({ children: [Body(uiSafe.doc.meaningColumn)] }),
-					],
-					tableHeader: true,
-				});
-				const bodyRows = cards.map((c) => {
-					const f = (c?.front || "").trim();
-					const b = (c?.back || "").trim();
-					return new TableRow({
+				const Title = (t) =>
+					new Paragraph({
+						alignment: AlignmentType.LEFT,
+						spacing: { before: 0, after: 300 },
 						children: [
-							new TableCell({ children: [Body(f || "")] }),
-							new TableCell({ children: [Body(b || "")] }),
+							new TextRun({
+								text: t,
+								bold: true,
+								size: 48,
+								font: "Arial",
+								color: headingHex,
+							}),
 						],
 					});
-				});
-				const table = new Table({
-					width: { size: 100, type: WidthType.PERCENTAGE },
-					rows: [headerRow, ...bodyRows],
-					borders: {
-						top: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
-						bottom: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
-						left: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
-						right: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
-						insideHorizontal: {
-							style: BorderStyle.SINGLE,
-							size: 1,
-							color: "E5E7EB",
+
+				const SubtitleP = (t) =>
+					new Paragraph({
+						spacing: { before: 0, after: 240 },
+						children: [
+							new TextRun({ text: t, italics: true, size: 28, font: "Arial" }),
+						],
+					});
+
+				const H2 = (t) =>
+					new Paragraph({
+						spacing: { before: 280, after: 160 },
+						children: [
+							new TextRun({
+								text: t,
+								bold: true,
+								size: 32,
+								font: "Arial",
+								color: headingHex,
+							}),
+						],
+					});
+
+				const Body = (t) =>
+					new Paragraph({
+						spacing: { before: 0, after: 120, line: 360 },
+						children: [new TextRun({ text: t, size: 24, font: "Arial" })],
+					});
+
+				const BulletP = (t) =>
+					new Paragraph({
+						spacing: { before: 0, after: 60 },
+						bullet: { level: 0 },
+						children: [new TextRun({ text: t, size: 24, font: "Arial" })],
+					});
+
+				const BulletLink = (label, url) =>
+					new Paragraph({
+						spacing: { before: 0, after: 60 },
+						bullet: { level: 0 },
+						children: [
+							url
+								? new ExternalHyperlink({
+										link: url,
+										children: [
+											new TextRun({
+												text: label || url,
+												font: "Arial",
+												size: 24,
+												underline: {},
+												color: "0563C1",
+											}),
+										],
+								  })
+								: new TextRun({ text: label || "-", font: "Arial", size: 24 }),
+						],
+					});
+
+				const children = [];
+				children.push(Title(title));
+				if (subtitle) children.push(SubtitleP(subtitle));
+
+				// tip
+				children.push(H2(uiSafe.doc.activityTipHeader));
+				children.push(Body(tipText));
+
+				// resources
+				if (resources.length) {
+					children.push(H2(uiSafe.doc.resourcesHeader));
+					resources.forEach((r) =>
+						children.push(BulletLink(r.label || r, r.url || r.href || ""))
+					);
+				}
+
+				// saved text
+				if (model.text?.trim()) {
+					children.push(H2(uiSafe.doc.savedResponseHeader));
+					model.text
+						.split(/\n{2,}/)
+						.map((p) => p.trim())
+						.filter(Boolean)
+						.forEach((p) => children.push(Body(p)));
+				}
+
+				// bullets
+				if (bullets.length) {
+					children.push(H2(uiSafe.doc.bulletPointsHeader));
+					bullets.forEach((b) => children.push(BulletP(b)));
+				}
+
+				// cards table
+				if (cards.length) {
+					children.push(H2(uiSafe.doc.wordCardsHeader));
+
+					const headerRow = new TableRow({
+						children: [
+							new TableCell({ children: [Body(uiSafe.doc.wordColumn)] }),
+							new TableCell({ children: [Body(uiSafe.doc.meaningColumn)] }),
+						],
+						tableHeader: true,
+					});
+
+					const bodyRows = cards.map((c) => {
+						const f = (c?.front || "").trim();
+						const b = (c?.back || "").trim();
+						return new TableRow({
+							children: [
+								new TableCell({ children: [Body(f || "")] }),
+								new TableCell({ children: [Body(b || "")] }),
+							],
+						});
+					});
+
+					const table = new Table({
+						width: { size: 100, type: WidthType.PERCENTAGE },
+						rows: [headerRow, ...bodyRows],
+						borders: {
+							top: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+							bottom: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+							left: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+							right: { style: BorderStyle.SINGLE, size: 2, color: "CCCCCC" },
+							insideHorizontal: {
+								style: BorderStyle.SINGLE,
+								size: 1,
+								color: "E5E7EB",
+							},
+							insideVertical: {
+								style: BorderStyle.SINGLE,
+								size: 1,
+								color: "E5E7EB",
+							},
 						},
-						insideVertical: {
-							style: BorderStyle.SINGLE,
-							size: 1,
-							color: "E5E7EB",
+					});
+
+					children.push(table);
+				}
+
+				const doc = new Document({
+					styles: {
+						default: {
+							document: {
+								run: { font: "Arial", size: 24 },
+								paragraph: { spacing: { line: 360 } },
+							},
 						},
 					},
+					sections: [{ properties: {}, children }],
 				});
-				children.push(table);
+
+				const blob = await Packer.toBlob(doc);
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = fileName;
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
+				URL.revokeObjectURL(url);
+			} catch {
+				// fallback
+				const esc = (s = "") =>
+					String(s)
+						.replaceAll("&", "&amp;")
+						.replaceAll("<", "&lt;")
+						.replaceAll(">", "&gt;");
+
+				const resHtml = resources
+					.map(
+						(r) =>
+							`<li><a href="${
+								r.url || r.href || "#"
+							}" style="text-decoration:underline; color:#0563C1;">${esc(
+								r.label || r
+							)}</a></li>`
+					)
+					.join("");
+
+				const bulletsHtml = bullets.map((b) => `<li>${esc(b)}</li>`).join("");
+
+				const cardsHtml = cards
+					.map(
+						(c) =>
+							`<tr><td>${esc(c.front || "")}</td><td>${esc(
+								c.back || ""
+							)}</td></tr>`
+					)
+					.join("");
+
+				const html = `
+<html><head><meta charset="utf-8"><title>${esc(title)}</title></head>
+<body style="font-family:Arial; line-height:1.5;">
+  <h1>${esc(title)}</h1>
+  ${subtitle ? `<p style="font-style:italic">${esc(subtitle)}</p>` : ""}
+  <h2>${esc(uiSafe.doc.activityTipHeader)}</h2>
+  <p>${esc(tipText)}</p>
+  ${
+		resHtml
+			? `<h2>${esc(uiSafe.doc.resourcesHeader)}</h2><ul>${resHtml}</ul>`
+			: ""
+	}
+  ${
+		model.text?.trim()
+			? `<h2>${esc(uiSafe.doc.savedResponseHeader)}</h2><p>${esc(
+					model.text
+			  ).replace(/\n/g, "<br/>")}</p>`
+			: ""
+	}
+  ${
+		bulletsHtml
+			? `<h2>${esc(uiSafe.doc.bulletPointsHeader)}</h2><ul>${bulletsHtml}</ul>`
+			: ""
+	}
+  ${
+		cardsHtml
+			? `<h2>${esc(
+					uiSafe.doc.wordCardsHeader
+			  )}</h2><table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;"><thead><tr><th>${esc(
+					uiSafe.doc.wordColumn
+			  )}</th><th>${esc(
+					uiSafe.doc.meaningColumn
+			  )}</th></tr></thead><tbody>${cardsHtml}</tbody></table>`
+			: ""
+	}
+</body></html>`.trim();
+
+				const blob = new Blob([html], { type: "application/msword" });
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = fileName.replace(/\.docx$/i, ".doc");
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
+				URL.revokeObjectURL(url);
 			}
-
-			const doc = new Document({
-				styles: {
-					default: {
-						document: {
-							run: { font: "Arial", size: 24 },
-							paragraph: { spacing: { line: 360 } },
-						},
-					},
-				},
-				sections: [{ properties: {}, children }],
-			});
-
-			const blob = await Packer.toBlob(doc);
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = fileName;
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
-		} catch {
-			// dead-simple HTML fallback
-			const esc = (s = "") =>
-				String(s)
-					.replaceAll("&", "&amp;")
-					.replaceAll("<", "&lt;")
-					.replaceAll(">", "&gt;");
-			const resHtml = exportLinks
-				.map(
-					(r) =>
-						`<li><a href="${
-							r.url || r.href || "#"
-						}" style="text-decoration:underline; color:#0563C1;">${esc(
-							r.label || r
-						)}</a></li>`
-				)
-				.join("");
-			const bulletsHtml = (model.bullets || [])
-				.filter(Boolean)
-				.map((b) => `<li>${esc(b)}</li>`)
-				.join("");
-			const cardsHtml = (model.cards || [])
-				.filter((c) => c?.front?.trim() || c?.back?.trim())
-				.map(
-					(c) =>
-						`<tr><td>${esc(c?.front || "")}</td><td>${esc(
-							c?.back || ""
-						)}</td></tr>`
-				)
-				.join("");
-			const html = `
-        <html><head><meta charset="utf-8"><title>${esc(title)}</title></head>
-        <body style="font-family:Arial; line-height:1.5;">
-          ${subtitle ? `<p style="font-style:italic">${esc(subtitle)}</p>` : ""}
-          <h2 style="color:${esc(accent)}">${esc(
-				uiSafe.doc.activityTipHeader
-			)}</h2>
-          <p>${esc(tipText)}</p>
-          ${
-						resHtml
-							? `<h2 style="color:${esc(accent)}">${esc(
-									uiSafe.doc.resourcesHeader
-							  )}</h2><ul>${resHtml}</ul>`
-							: ""
-					}
-          ${
-						model.text?.trim()
-							? `<h2 style="color:${esc(accent)}">${esc(
-									uiSafe.doc.savedResponseHeader
-							  )}</h2><p>${esc(model.text).replace(/\n/g, "<br/>")}</p>`
-							: ""
-					}
-          ${
-						bulletsHtml
-							? `<h2 style="color:${esc(accent)}">${esc(
-									uiSafe.doc.bulletPointsHeader
-							  )}</h2><ul>${bulletsHtml}</ul>`
-							: ""
-					}
-          ${
-						cardsHtml
-							? `<h2 style="color:${esc(accent)}">${esc(
-									uiSafe.doc.wordCardsHeader
-							  )}</h2><table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;"><thead><tr><th>${esc(
-									uiSafe.doc.wordColumn
-							  )}</th><th>${esc(
-									uiSafe.doc.meaningColumn
-							  )}</th></tr></thead><tbody>${cardsHtml}</tbody></table>`
-							: ""
-					}
-        </body></html>`.trim();
-			const blob = new Blob([html], { type: "application/msword" });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement("a");
-			a.href = url;
-			a.download = fileName.replace(/\.docx$/i, ".doc");
-			document.body.appendChild(a);
-			a.click();
-			a.remove();
-			URL.revokeObjectURL(url);
+		} finally {
+			// cooldown for animation (matches Activity 02/04/05)
+			setTimeout(() => setIsDownloading(false), 700);
 		}
 	};
 
@@ -919,15 +935,16 @@ export default function Activity07({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
+
+					<DownloadButton
 						onClick={downloadPageDocx}
-						className="px-4 py-2 rounded-lg text-white"
-						style={{ backgroundColor: accent }}
-						title={uiSafe.downloadButton}
-					>
-						{uiSafe.downloadButton}
-					</button>
+						disabled={!started || isDownloading}
+						isDownloading={isDownloading}
+						accent={accent}
+						label={uiSafe.downloadButton}
+						downloadingLabel={dlLocale.downloadingLabel}
+						ariaLabel={uiSafe.downloadButton}
+					/>
 				</div>
 			</div>
 		</motion.div>

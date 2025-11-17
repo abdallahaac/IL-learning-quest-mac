@@ -71,8 +71,6 @@ export default function LinkCard({
 
 	// badge base used for spacing & visual identity (40px)
 	const BADGE_SIZE_PX = 40;
-	const BADGE_LEFT = 16; // px from left edge (keeps visual padding)
-	const BADGE_TOP = 16; // px from top edge (keeps visual padding)
 	const badgeBase =
 		"flex-none shrink-0 w-10 h-10 min-w-[40px] min-h-[40px] aspect-square rounded-xl grid place-items-center";
 
@@ -160,70 +158,60 @@ export default function LinkCard({
 			}
 			variants={variants}
 		>
-			{/* TOP */}
-			<div
-				className="relative flex-1 flex items-center justify-center"
-				style={{
-					paddingLeft: BADGE_LEFT + BADGE_SIZE_PX + 8,
-					minHeight: 0,
-				}}
-			>
-				{/* icon (absolute) */}
-				<div
-					className={badgeBase}
-					style={{
-						position: "absolute",
-						left: BADGE_LEFT,
-						top: BADGE_TOP,
-						backgroundColor: withAlpha(accent, "1A"),
-						color: accent,
-						zIndex: 2,
-					}}
-				>
+			{/* TOP: icon + text always vertically aligned */}
+			<div className="relative flex-1 flex items-center justify-center">
+				<div className="flex items-center justify-center w-full gap-3 px-2">
 					{Icon ? (
-						<Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+						<div
+							className={badgeBase}
+							style={{
+								backgroundColor: withAlpha(accent, "1A"),
+								color: accent,
+							}}
+						>
+							<Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+						</div>
 					) : null}
-				</div>
 
-				{/* centered text */}
-				<div className="text-center min-w-0 px-2">
-					{showAdvocates ? (
-						<>
+					<div className="flex-1 min-w-0 text-center">
+						{showAdvocates ? (
+							<>
+								<div
+									className="font-medium text-slate-900"
+									style={twoLineClampStyle}
+								>
+									{lang === "fr"
+										? "Personnes à découvrir"
+										: "Advocates to explore"}
+								</div>
+								<div
+									className="text-sm text-slate-600 mt-1"
+									style={{ whiteSpace: "pre-wrap" }}
+								>
+									{lang === "fr"
+										? "Cliquez et apprenez de ces voix"
+										: "Click and learn from these voices"}
+								</div>
+							</>
+						) : (
 							<div
-								className="font-medium text-slate-900"
+								className="min-w-0 text-center font-medium"
 								style={twoLineClampStyle}
 							>
-								{lang === "fr"
-									? "Personnes à découvrir"
-									: "Advocates to explore"}
-							</div>
-							<div
-								className="text-sm text-slate-600 mt-1"
-								style={{ whiteSpace: "pre-wrap" }}
-							>
-								{lang === "fr"
-									? "Cliquez et apprenez de ces voix"
-									: "Click and learn from these voices"}
-							</div>
-						</>
-					) : (
-						<div
-							className="min-w-0 text-center font-medium"
-							style={twoLineClampStyle}
-						>
-							<span className="group-hover:underline inline-block">
-								{link.label}
-							</span>
-							{suffixText && (
-								<span
-									className="ml-1 no-underline inline-block"
-									style={{ color: accent }}
-								>
-									{suffixText}
+								<span className="group-hover:underline inline-block">
+									{link.label}
 								</span>
-							)}
-						</div>
-					)}
+								{suffixText && (
+									<span
+										className="ml-1 no-underline inline-block"
+										style={{ color: accent }}
+									>
+										{suffixText}
+									</span>
+								)}
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 

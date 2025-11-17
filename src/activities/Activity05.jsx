@@ -1,5 +1,5 @@
 // src/pages/activities/Activity05.jsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Film } from "lucide-react";
 import NoteComposer, {
@@ -7,8 +7,9 @@ import NoteComposer, {
 } from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import LinkCard from "../components/LinkCard.jsx";
+import DownloadButton from "../components/DownloadButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
-import { ACTIVITIES_CONTENT } from "../constants/content.js";
+import { ACTIVITIES_CONTENT, ACTIVITY_UI } from "../constants/content.js";
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -47,6 +48,7 @@ export default function Activity05({
 }) {
 	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
 	const reduceMotion = useReducedMotion();
+	const L = ACTIVITY_UI[lang] || ACTIVITY_UI.en;
 
 	const a5Content =
 		(ACTIVITIES_CONTENT &&
@@ -76,8 +78,10 @@ export default function Activity05({
 		(lang === "fr"
 			? "Cliquez ou tapez ici pour saisir du texte."
 			: "Title, creator(s), insights…");
+
 	const exportLinksHeading =
 		a5Content?.resourcesHeading || (lang === "fr" ? "Ressources" : "Resources");
+
 	const activityNumber =
 		Number.isFinite(a5Content?.number) && a5Content.number > 0
 			? a5Content.number
@@ -96,6 +100,53 @@ export default function Activity05({
 	};
 
 	const started = hasActivityStarted(localNotes ?? notes, "notes");
+
+	// download state (same pattern as Activity 02/04)
+	const [isDownloading, setIsDownloading] = useState(false);
+
+	// localized labels for the document
+	const docLocale = {
+		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
+		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
+	}[lang];
+
+	// async download handler with guard + cooldown
+	const handleDownload = async () => {
+		if (!started || isDownloading) return;
+
+		setIsDownloading(true);
+
+		try {
+			const html =
+				typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+			const suffix = (docLocale?.suffix || "Reflection").replace(/\s+/g, "-");
+			const filename = `Activity-${
+				a5Content?.id || String(activityNumber).padStart(2, "0")
+			}-${suffix}.doc`;
+
+			await Promise.resolve(
+				downloadNotesAsWord({
+					html,
+					downloadFileName: filename,
+					docTitle: title,
+					docSubtitle: a5Content?.subtitle,
+					activityNumber,
+					docIntro: tipText, // use plain text in the document intro
+					includeLinks: hasLinks,
+					linksHeading: exportLinksHeading,
+					pageLinks,
+					headingColor: accent,
+					accent,
+					locale: lang,
+				})
+			);
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error("downloadNotesAsWord failed:", err);
+		} finally {
+			setTimeout(() => setIsDownloading(false), 700);
+		}
+	};
 
 	// animations
 	const STAGGER = 0.14;
@@ -128,35 +179,6 @@ export default function Activity05({
 
 	const linkGridCols =
 		"grid grid-cols-1 sm:grid-cols-2 gap-4 place-content-center";
-
-	const handleDownload = useCallback(() => {
-		const html =
-			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
-		downloadNotesAsWord({
-			html,
-			downloadFileName: `Activity-${
-				a5Content?.id || String(activityNumber).padStart(2, "0")
-			}-Reflection.doc`,
-			docTitle: title,
-			docSubtitle: a5Content?.subtitle,
-			activityNumber,
-			docIntro: tipText, // use plain text in the document intro
-			includeLinks: hasLinks,
-			linksHeading: exportLinksHeading,
-			pageLinks,
-			headingColor: accent,
-			accent,
-		});
-	}, [
-		localNotes,
-		a5Content,
-		activityNumber,
-		pageLinks,
-		exportLinksHeading,
-		title,
-		tipText,
-		accent,
-	]);
 
 	return (
 		<motion.div
@@ -271,7 +293,7 @@ export default function Activity05({
 											Icon={Film}
 											enOnlySuffix={enOnlySuffix}
 											variants={cardPop}
-											cardHeight={"160px"}
+											cardHeight={"120px"}
 										/>
 									</motion.div>
 								);
@@ -304,6 +326,7 @@ export default function Activity05({
 					pageLinks={pageLinks}
 					headingColor={accent}
 					showDownloadButton={false}
+					onRequestDownload={handleDownload}
 				/>
 
 				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4">
@@ -313,19 +336,16 @@ export default function Activity05({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
+
+					<DownloadButton
 						onClick={handleDownload}
-						className="px-4 py-2 rounded-lg text-white"
-						style={{ backgroundColor: accent }}
-						title={
-							lang === "fr"
-								? "Télécharger vos réflexions (.doc)"
-								: "Download your reflections as a Word-compatible .doc file"
-						}
-					>
-						{lang === "fr" ? "Télécharger (.doc)" : "Download (.doc)"}
-					</button>
+						disabled={!started || isDownloading}
+						isDownloading={isDownloading}
+						accent={accent}
+						label={L.downloadDoc}
+						downloadingLabel={docLocale.downloadingLabel}
+						ariaLabel={L.downloadDoc}
+					/>
 				</div>
 			</div>
 		</motion.div>

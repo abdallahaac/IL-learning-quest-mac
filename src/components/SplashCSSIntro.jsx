@@ -187,7 +187,7 @@ export default function SplashCSSIntro({
 	backdropShadowRGB = [0, 0, 0],
 	backdropShadowAlpha = 0.28,
 	backdropShadowX = 0,
-	backdropShadowY = 22,
+	backdropShadowY = 22, 
 	backdropShadowBlur = 90,
 	backdropShadowSpread = 0,
 	backdropOpacity = 0.1,

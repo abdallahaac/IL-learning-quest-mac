@@ -74,16 +74,13 @@ function FlipCard({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [flipped]);
 
-	// Keep focus on the button itself when flipped (outline stays on the card)
-	// No auto-focus into the inner scroll area.
-
 	const baseClasses = [
 		"group relative w-full",
 		"h-82 sm:h-80 lg:h-96",
 		"rounded-xl shadow-sm border transition-transform duration-500 will-change-transform",
 		// 2px ring + 2px offset, gold color
 		"focus:outline-none focus-visible:ring-3 focus-visible:ring-offset-3",
-		"focus-visible:ring-offset-white focus-visible:ring-[#D4AF37]", // ← gold
+		"focus-visible:ring-offset-white focus-visible:ring-[#D4AF37]", // gold
 		flipped && !reduceMotion ? "[transform:rotateY(180deg)]" : "",
 		"p-0",
 	].join(" ");
@@ -348,28 +345,41 @@ function FlipCard({
 export default function PreparationPage({ content, onStartActivities }) {
 	const ACCENT = "#7443d6";
 
+	const langCode = detectLang() === "fr" ? "fr" : "en";
+	const isFr = langCode === "fr";
+
 	const STR = content?.ui ?? {
-		sectionTitle: content?.title ?? "Preparation",
-		howTitle: "How does the Learning Quest work?",
-		instructions:
-			"Click a card to flip it and read the step. A green check will appear after you’ve viewed a card.",
-		stepLabel: "Step",
+		sectionTitle: content?.title ?? (isFr ? "Préparation" : "Preparation"),
+		howTitle: isFr
+			? "Comment fonctionne la quête d’apprentissage?"
+			: "How does the Learning Quest work?",
+		instructions: isFr
+			? "Cliquez sur une carte pour la retourner et lire l’étape. Une coche verte apparaîtra une fois la carte consultée."
+			: "Click a card to flip it and read the step. A green check will appear after you’ve viewed a card.",
+		stepLabel: isFr ? "Étape" : "Step",
 		sr: {
-			flip: "Press Enter to flip and read the description.",
-			flipBack: "Press Enter to flip back.",
-			readMore:
-				"When the card is open, use Space or Page Up/Down to scroll the content.",
-			cardOpen: "Card opened.",
-			cardClosed: "Card closed.",
+			flip: isFr
+				? "Appuyez sur Entrée pour retourner la carte et lire la description."
+				: "Press Enter to flip and read the description.",
+			flipBack: isFr
+				? "Appuyez sur Entrée pour revenir au recto de la carte."
+				: "Press Enter to flip back.",
+			readMore: isFr
+				? "Lorsque la carte est ouverte, utilisez la barre d’espace ou Page préc./suiv. pour faire défiler le contenu."
+				: "When the card is open, use Space or Page Up/Down to scroll the content.",
+			cardOpen: isFr ? "Carte ouverte." : "Card opened.",
+			cardClosed: isFr ? "Carte fermée." : "Card closed.",
 		},
 	};
 
-	const title = content?.title ?? STR.sectionTitle ?? "Preparation";
+	const title =
+		content?.title ??
+		STR.sectionTitle ??
+		(isFr ? "Préparation" : "Preparation");
 	const p0 = content?.paragraphs?.[0] ?? "";
 	const p1 = content?.paragraphs?.[1] ?? "";
 
-	const lang = detectLang() === "fr" ? "fr" : "en";
-	const intro = lang === "fr" ? INTRO_INFO_CONTENT_FR : INTRO_INFO_CONTENT;
+	const intro = isFr ? INTRO_INFO_CONTENT_FR : INTRO_INFO_CONTENT;
 	const items = intro?.bullets?.[0]?.items ?? [];
 	const prefersReduced = useReducedMotion();
 
@@ -415,6 +425,13 @@ export default function PreparationPage({ content, onStartActivities }) {
 		? { duration: 0 }
 		: { duration: 0.4, ease: "easeOut" };
 
+	const muralUrl =
+		"https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f";
+
+	const recPathUrl = isFr
+		? "https://catalogue.csps-efpc.gc.ca/product?catalog=IRA1-J16&cm_locale=fr"
+		: "https://catalogue.csps-efpc.gc.ca/product?catalog=IRA1-J16&cm_locale=en";
+
 	return (
 		<div className="relative bg-transparent min-h-[100svh]">
 			{/* subtle gradient background */}
@@ -449,8 +466,8 @@ export default function PreparationPage({ content, onStartActivities }) {
 
 					{(p0 || p1) && (
 						<div className="space-y-3 text-gray-800 leading-relaxed">
-							{p0 && <p>{p0}</p>}
-							{p1 && <p>{p1}</p>}
+							{p0 && <p dangerouslySetInnerHTML={{ __html: p0 }} />}
+							{p1 && <p dangerouslySetInnerHTML={{ __html: p1 }} />}
 						</div>
 					)}
 				</motion.section>
@@ -491,7 +508,64 @@ export default function PreparationPage({ content, onStartActivities }) {
 						))}
 					</ol>
 				</motion.section>
+
 				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4"></div>
+			</div>
+
+			{/* Reconciliation Path + Best media footer (bilingual) */}
+			<div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+				<div className="bg-white/95 backdrop-blur-sm shadow-md rounded-xl border border-gray-200 p-6">
+					{isFr ? (
+						<p className="text-gray-800 leading-relaxed">
+							Besoin d’un point de départ?{" "}
+							<a
+								href={muralUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="underline text-[#7443d6] hover:text-[#552fa3]"
+							>
+								La murale « Les meilleurs médias par les voix autochtones »
+							</a>{" "}
+							vous permet de partager et de découvrir des ressources
+							recommandées. L’{" "}
+							<a
+								href={recPathUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="underline text-[#7443d6] hover:text-[#552fa3]"
+							>
+								outil de travail interactif Le sentier de la réconciliation
+								(IRA1-J16)
+							</a>{" "}
+							propose des ressources pratiques et des idées sur la manière de
+							participer activement au processus de réconciliation.
+						</p>
+					) : (
+						<p className="text-gray-800 leading-relaxed">
+							Need a starting point?{" "}
+							<a
+								href={muralUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="underline text-[#7443d6] hover:text-[#552fa3]"
+							>
+								Best media by Indigenous voices
+							</a>{" "}
+							is an online mural where you can share and discover recommended
+							resources. The{" "}
+							<a
+								href={recPathUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="underline text-[#7443d6] hover:text-[#552fa3]"
+							>
+								Reconciliation Path Interactive Job Aid (IRA1-J16)
+							</a>{" "}
+							provides practical resources and ideas on how to be an active
+							participant in the reconciliation process.
+						</p>
+					)}
+				</div>
 			</div>
 		</div>
 	);

@@ -1,12 +1,15 @@
 // src/pages/activities/Activity06.jsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { BookOpen } from "lucide-react";
-import NoteComposer from "../components/NoteComposer.jsx";
+import NoteComposer, {
+	downloadNotesAsWord,
+} from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import LinkCard from "../components/LinkCard.jsx";
+import DownloadButton from "../components/DownloadButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
-import { ACTIVITIES_CONTENT } from "../constants/content.js";
+import { ACTIVITIES_CONTENT, ACTIVITY_UI } from "../constants/content.js";
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -43,6 +46,7 @@ export default function Activity06({
 }) {
 	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
 	const reduceMotion = useReducedMotion();
+	const L = ACTIVITY_UI[lang] || ACTIVITY_UI.en;
 
 	const a6Content =
 		(ACTIVITIES_CONTENT &&
@@ -56,20 +60,25 @@ export default function Activity06({
 		cdata.title ||
 		a6Content?.title ||
 		(lang === "fr" ? "Lisez un livre" : "Read a Book");
+
 	const instructionsHtml =
 		cdata.instructionsHtml ||
 		(a6Content?.prompt ? `<p>${a6Content.prompt}</p>` : "");
+
 	const tipText =
 		a6Content?.tip ||
 		a6Content?.prompt ||
 		(instructionsHtml ? instructionsHtml.replace(/<[^>]*>/g, "").trim() : "");
+
 	const placeholder =
 		a6Content?.notePlaceholder ||
 		(lang === "fr"
 			? "Cliquez ou tapez ici pour saisir du texte."
 			: "Author, title, key takeaways…");
+
 	const exportLinksHeading =
 		a6Content?.resourcesHeading || (lang === "fr" ? "Ressources" : "Resources");
+
 	const activityNumber = Number.isFinite(a6Content?.number)
 		? a6Content.number
 		: 6;
@@ -87,6 +96,53 @@ export default function Activity06({
 	};
 
 	const started = hasActivityStarted(localNotes ?? notes, "notes");
+
+	// download state (same pattern as other activities)
+	const [isDownloading, setIsDownloading] = useState(false);
+
+	// localized labels for document
+	const docLocale = {
+		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
+		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
+	}[lang];
+
+	// async download handler with guard + cooldown
+	const handleDownload = async () => {
+		if (!started || isDownloading) return;
+
+		setIsDownloading(true);
+
+		try {
+			const html =
+				typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+			const suffix = (docLocale?.suffix || "Reflection").replace(/\s+/g, "-");
+			const filename = `Activity-${
+				a6Content?.id || String(activityNumber).padStart(2, "0")
+			}-${suffix}.doc`; // 🔁 use .doc, not .docx
+
+			await Promise.resolve(
+				downloadNotesAsWord({
+					html,
+					downloadFileName: filename,
+					docTitle: title,
+					docSubtitle: a6Content?.subtitle,
+					activityNumber,
+					docIntro: tipText,
+					includeLinks: hasLinks,
+					linksHeading: exportLinksHeading,
+					pageLinks,
+					headingColor: accent,
+					accent,
+					locale: lang,
+				})
+			);
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error("downloadNotesAsWord failed:", err);
+		} finally {
+			setTimeout(() => setIsDownloading(false), 700);
+		}
+	};
 
 	// animations
 	const STAGGER = 0.14;
@@ -119,36 +175,6 @@ export default function Activity06({
 
 	const linkGridCols =
 		"grid grid-cols-1 sm:grid-cols-2 gap-4 place-content-center";
-
-	const handleDownload = useCallback(() => {
-		const html =
-			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
-		downloadNotesAsWord({
-			html,
-			downloadFileName: `Activity-${
-				a6Content?.id || String(activityNumber).padStart(2, "0")
-			}-Reflection.docx`,
-			docTitle: title,
-			docSubtitle: a6Content?.subtitle,
-			activityNumber,
-			docIntro: tipText,
-			includeLinks: hasLinks,
-			linksHeading: exportLinksHeading,
-			pageLinks,
-			headingColor: accent,
-			accent,
-		});
-	}, [
-		localNotes,
-		a6Content,
-		activityNumber,
-		pageLinks,
-		exportLinksHeading,
-		title,
-		tipText,
-		accent,
-		hasLinks,
-	]);
 
 	return (
 		<motion.div
@@ -254,7 +280,6 @@ export default function Activity06({
 					>
 						<div className={linkGridCols}>
 							{pageLinks.map((lnk, i) => {
-								// compute suffix shown on French pages when link is English-only
 								const enOnlySuffix =
 									lang === "fr" && lnk.enOnly ? " (en anglais seulement)" : "";
 								return (
@@ -291,7 +316,7 @@ export default function Activity06({
 					accent={accent}
 					downloadFileName={`Activity-${
 						a6Content?.id || String(activityNumber).padStart(2, "0")
-					}-Reflection.docx`}
+					}-Reflection.doc`} // 🔁 .doc here too
 					docTitle={title}
 					docSubtitle={a6Content?.subtitle}
 					activityNumber={activityNumber}
@@ -301,24 +326,26 @@ export default function Activity06({
 					pageLinks={pageLinks}
 					headingColor={accent}
 					showDownloadButton={false}
+					onRequestDownload={handleDownload}
 				/>
 
 				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4">
-
 					<CompleteButton
 						started={started}
 						completed={!!completed}
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
+
+					<DownloadButton
 						onClick={handleDownload}
-						className="ml-2 px-4 py-2 rounded-lg text-white"
-						style={{ backgroundColor: accent }}
-					>
-						{lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
-					</button>
+						disabled={!started || isDownloading}
+						isDownloading={isDownloading}
+						accent={accent}
+						label={L.downloadDoc}
+						downloadingLabel={docLocale.downloadingLabel}
+						ariaLabel={L.downloadDoc}
+					/>
 				</div>
 			</div>
 		</motion.div>

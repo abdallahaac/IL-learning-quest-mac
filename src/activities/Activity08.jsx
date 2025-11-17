@@ -3,9 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Rainbow } from "lucide-react";
-import NoteComposer from "../components/NoteComposer.jsx";
+import NoteComposer, {
+	downloadNotesAsWord,
+} from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import LinkCard from "../components/LinkCard.jsx";
+import DownloadButton from "../components/DownloadButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
@@ -114,6 +117,54 @@ export default function Activity08({
 	};
 
 	const started = hasActivityStarted(localNotes);
+	const hasLinks = pageLinks && pageLinks.length > 0;
+	const linksHeading =
+		a8Content?.resourcesHeading || (lang === "fr" ? "Ressources" : "Resources");
+
+	// download state + labels (same pattern as Activity 05/07)
+	const [isDownloading, setIsDownloading] = useState(false);
+	const docLocale = {
+		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
+		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
+	}[lang];
+
+	// async download handler with guard + cooldown
+	const handleDownload = async () => {
+		if (!started || isDownloading) return;
+
+		setIsDownloading(true);
+
+		try {
+			const html =
+				typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+			const suffix = (docLocale?.suffix || "Reflection").replace(/\s+/g, "-");
+			const filename = `Activity-${
+				a8Content?.id || String(activityNumber).padStart(2, "0")
+			}-${suffix}.docx`;
+
+			await Promise.resolve(
+				downloadNotesAsWord({
+					html,
+					downloadFileName: filename,
+					docTitle: pageTitle,
+					docSubtitle: a8Content?.subtitle,
+					activityNumber,
+					docIntro: tipText,
+					includeLinks: hasLinks,
+					linksHeading,
+					pageLinks,
+					headingColor: accent,
+					accent,
+					locale: lang,
+				})
+			);
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error("downloadNotesAsWord failed (Activity 08):", err);
+		} finally {
+			setTimeout(() => setIsDownloading(false), 700);
+		}
+	};
 
 	// animations
 	const STAGGER = 0.14;
@@ -343,7 +394,6 @@ export default function Activity08({
 						</motion.div>
 
 						{/* Advocates card (fourth) */}
-						{/* Advocates card (fourth) */}
 						{showAdvocatesCard ? (
 							<motion.div
 								variants={cardPop}
@@ -385,14 +435,12 @@ export default function Activity08({
 					docSubtitle={a8Content?.subtitle}
 					activityNumber={activityNumber}
 					docIntro={tipText}
-					includeLinks={pageLinks && pageLinks.length > 0}
-					linksHeading={
-						a8Content?.resourcesHeading ||
-						(lang === "fr" ? "Ressources" : "Resources")
-					}
+					includeLinks={hasLinks}
+					linksHeading={linksHeading}
 					pageLinks={pageLinks}
 					headingColor={accent}
 					showDownloadButton={false}
+					onRequestDownload={handleDownload}
 				/>
 
 				{/* Complete + Download */}
@@ -403,21 +451,20 @@ export default function Activity08({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
-						onClick={() => {
-							/* hook up a page-level .docx export if/when you add it */
-						}}
-						className="px-4 py-2 rounded-lg text-white"
-						style={{ backgroundColor: accent }}
-						title={
+
+					<DownloadButton
+						onClick={handleDownload}
+						disabled={!started || isDownloading}
+						isDownloading={isDownloading}
+						accent={accent}
+						label={lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
+						downloadingLabel={docLocale.downloadingLabel}
+						ariaLabel={
 							lang === "fr"
 								? "Télécharger vos notes et ressources en .docx"
 								: "Download your notes and resources as .docx"
 						}
-					>
-						{lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
-					</button>
+					/>
 				</div>
 			</div>
 		</motion.div>

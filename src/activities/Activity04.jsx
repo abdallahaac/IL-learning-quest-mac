@@ -1,5 +1,5 @@
 // src/pages/activities/Activity04.jsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Globe2 } from "lucide-react";
 import NoteComposer, {
@@ -7,8 +7,9 @@ import NoteComposer, {
 } from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
 import LinkCard from "../components/LinkCard.jsx";
+import DownloadButton from "../components/DownloadButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
-import { ACTIVITIES_CONTENT } from "../constants/content.js";
+import { ACTIVITIES_CONTENT, ACTIVITY_UI } from "../constants/content.js";
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
@@ -45,6 +46,7 @@ export default function Activity04({
 }) {
 	const lang = React.useMemo(() => (detectLang() === "fr" ? "fr" : "en"), []);
 	const reduceMotion = useReducedMotion();
+	const L = ACTIVITY_UI[lang] || ACTIVITY_UI.en;
 
 	// authoritative content pulled from constants/content.js
 	const a4Content =
@@ -103,6 +105,53 @@ export default function Activity04({
 
 	const started = hasActivityStarted(localNotes ?? notes, "notes");
 
+	// download state (same pattern as Activity 02)
+	const [isDownloading, setIsDownloading] = useState(false);
+
+	// localized labels for the document
+	const docLocale = {
+		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
+		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
+	}[lang];
+
+	// async download handler with guard + small cooldown (same logic as A02)
+	const handleDownload = async () => {
+		if (!started || isDownloading) return;
+
+		setIsDownloading(true);
+
+		try {
+			const html =
+				typeof localNotes === "string" ? localNotes : localNotes?.text || "";
+			const suffix = (docLocale?.suffix || "Reflection").replace(/\s+/g, "-");
+			const filename = `Activity-${
+				a4Content?.id || String(activityNumber).padStart(2, "0")
+			}-${suffix}.doc`;
+
+			await Promise.resolve(
+				downloadNotesAsWord({
+					html,
+					downloadFileName: filename,
+					docTitle: title,
+					docSubtitle: a4Content?.subtitle,
+					activityNumber,
+					docIntro: tipText,
+					includeLinks: hasLinks,
+					linksHeading: exportLinksHeading,
+					pageLinks,
+					headingColor: accent,
+					accent,
+					locale: lang,
+				})
+			);
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error("downloadNotesAsWord failed:", err);
+		} finally {
+			setTimeout(() => setIsDownloading(false), 700);
+		}
+	};
+
 	// animations — match rhythm used across other activities
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
@@ -132,37 +181,7 @@ export default function Activity04({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	const linkGridCols = "grid grid-cols-1  place-content-center";
-
-	// download handler
-	const handleDownload = useCallback(() => {
-		const html =
-			typeof localNotes === "string" ? localNotes : localNotes?.text || "";
-		downloadNotesAsWord({
-			html,
-			downloadFileName: `Activity-${
-				a4Content?.id || String(activityNumber).padStart(2, "0")
-			}-Reflection.doc`,
-			docTitle: title,
-			docSubtitle: a4Content?.subtitle,
-			activityNumber,
-			docIntro: tipText,
-			includeLinks: hasLinks,
-			linksHeading: exportLinksHeading,
-			pageLinks,
-			headingColor: accent,
-			accent,
-		});
-	}, [
-		localNotes,
-		a4Content,
-		activityNumber,
-		pageLinks,
-		exportLinksHeading,
-		title,
-		tipText,
-		accent,
-	]);
+	const linkGridCols = "grid grid-cols-1 place-content-center";
 
 	return (
 		<motion.div
@@ -235,7 +254,6 @@ export default function Activity04({
 								>
 									{lang === "fr" ? "Instructions" : "Instructions"}
 								</div>
-
 								{instructionsHtml ? (
 									<div
 										className="text-slate-800 max-w-2xl"
@@ -252,7 +270,7 @@ export default function Activity04({
 										<strong>
 											{lang === "fr"
 												? "Décrivez les choses que vous avez apprises."
-												: "Describe the things you learned about."}
+												: "Describe the things you learned."}
 										</strong>
 									</p>
 								)}
@@ -281,7 +299,7 @@ export default function Activity04({
 										Icon={Globe2}
 										enOnlySuffix={enOnlySuffix}
 										variants={cardPop}
-										cardHeight={"140px"}
+										cardHeight={"120px"}
 									/>
 								</motion.div>
 							))}
@@ -314,6 +332,7 @@ export default function Activity04({
 					pageLinks={pageLinks}
 					headingColor={accent}
 					showDownloadButton={false}
+					onRequestDownload={handleDownload}
 				/>
 
 				{/* actions */}
@@ -324,19 +343,16 @@ export default function Activity04({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
+
+					<DownloadButton
 						onClick={handleDownload}
-						className="px-4 py-2 rounded-lg text-white"
-						style={{ backgroundColor: accent }}
-						title={
-							lang === "fr"
-								? "Télécharger vos réflexions (.doc)"
-								: "Download your reflections as a Word-compatible .doc file"
-						}
-					>
-						{lang === "fr" ? "Télécharger (.doc)" : "Download (.doc)"}
-					</button>
+						disabled={!started || isDownloading}
+						isDownloading={isDownloading}
+						accent={accent}
+						label={L.downloadDoc}
+						downloadingLabel={docLocale.downloadingLabel}
+						ariaLabel={L.downloadDoc}
+					/>
 				</div>
 			</div>
 		</motion.div>

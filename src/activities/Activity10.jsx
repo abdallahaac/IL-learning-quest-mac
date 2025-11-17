@@ -10,6 +10,7 @@ import NoteComposer, {
 	downloadNotesAsWord,
 } from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
+import DownloadButton from "../components/DownloadButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
@@ -74,6 +75,13 @@ export default function Activity10({
 	};
 
 	const started = hasActivityStarted(localNotes);
+
+	// download state + labels (match other activities)
+	const [isDownloading, setIsDownloading] = useState(false);
+	const dlLocale = {
+		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
+		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
+	}[lang];
 
 	// animations (same as other activities)
 	const STAGGER = 0.14;
@@ -163,27 +171,45 @@ export default function Activity10({
 		</div>
 	);
 
-	// Download handler uses the NoteComposer export helper (still imported)
-	const handleDownload = () => {
-		const html =
-			typeof localNotes === "string"
-				? localNotes || ""
-				: localNotes?.text || "";
-		downloadNotesAsWord({
-			html,
-			downloadFileName: `Activity-${
+	// async download handler with guard + cooldown
+	const handleDownload = async () => {
+		if (!started || isDownloading) return;
+
+		setIsDownloading(true);
+
+		try {
+			const html =
+				typeof localNotes === "string"
+					? localNotes || ""
+					: localNotes?.text || "";
+
+			const suffix = (dlLocale?.suffix || "Reflection").replace(/\s+/g, "-");
+			const filename = `Activity-${
 				a10Content?.id || String(activityNumber)
-			}-Reflection.docx`,
-			docTitle: pageTitle,
-			docSubtitle: a10Content?.subtitle,
-			activityNumber,
-			docIntro: tipText,
-			includeLinks: true,
-			linksHeading,
-			pageLinks,
-			headingColor: accent,
-			accent,
-		});
+			}-${suffix}.docx`;
+
+			await Promise.resolve(
+				downloadNotesAsWord({
+					html,
+					downloadFileName: filename,
+					docTitle: pageTitle,
+					docSubtitle: a10Content?.subtitle,
+					activityNumber,
+					docIntro: tipText,
+					includeLinks: true,
+					linksHeading,
+					pageLinks,
+					headingColor: accent,
+					accent,
+					locale: lang,
+				})
+			);
+		} catch (err) {
+			// eslint-disable-next-line no-console
+			console.error("downloadNotesAsWord failed (Activity 10):", err);
+		} finally {
+			setTimeout(() => setIsDownloading(false), 700);
+		}
 	};
 
 	return (
@@ -302,29 +328,17 @@ export default function Activity10({
 												aria-label={`Open ${ariaTitle} in a new tab`}
 												variants={cardPop}
 											>
-												<div className="relative flex items-center pl-14">
-													<div
-														className={`${badgeBase} absolute left-0 top-1/2 -translate-y-1/2`}
-														style={{
-															backgroundColor: withAlpha(accent, "1A"),
-															color: accent,
-														}}
-														aria-hidden="true"
-													>
-														<TheIcon className="w-5 h-5" />
-													</div>
-													<div className="w-full text-center font-medium text-gray-800 group-hover:underline">
-														{title}
-														{showSuffix && (
-															<span
-																className="ml-1 font-semibold"
-																style={{ color: accent }}
-															>
-																(en anglais seulement)
-															</span>
-														)}
-													</div>
-												</div>
+												<TitleRow Icon={TheIcon}>
+													{title}
+													{showSuffix && (
+														<span
+															className="ml-1 font-semibold"
+															style={{ color: accent }}
+														>
+															(en anglais seulement)
+														</span>
+													)}
+												</TitleRow>
 
 												<div
 													className={linkFooterBase}
@@ -367,6 +381,7 @@ export default function Activity10({
 					pageLinks={pageLinks}
 					headingColor={accent}
 					showDownloadButton={false}
+					onRequestDownload={handleDownload}
 				/>
 
 				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4">
@@ -376,19 +391,20 @@ export default function Activity10({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
+
+					<DownloadButton
 						onClick={handleDownload}
-						className="px-4 py-2 rounded-lg text-white"
-						style={{ backgroundColor: accent }}
-						title={
+						disabled={!started || isDownloading}
+						isDownloading={isDownloading}
+						accent={accent}
+						label={lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
+						downloadingLabel={dlLocale.downloadingLabel}
+						ariaLabel={
 							lang === "fr"
 								? "Télécharger vos notes et ressources en .docx"
 								: "Download your notes and resources as .docx"
 						}
-					>
-						{lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
-					</button>
+					/>
 				</div>
 			</div>
 		</motion.div>

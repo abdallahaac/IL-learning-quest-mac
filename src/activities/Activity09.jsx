@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Newspaper, ExternalLink } from "lucide-react";
 import NoteComposer from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
+import DownloadButton from "../components/DownloadButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
@@ -77,6 +78,13 @@ export default function Activity09({
 	};
 
 	const started = hasActivityStarted(localNotes);
+
+	// download state & labels (same pattern as 05/07/08)
+	const [isDownloading, setIsDownloading] = useState(false);
+	const dlLocale = {
+		en: { downloadingLabel: "Downloading..." },
+		fr: { downloadingLabel: "Téléchargement..." },
+	}[lang];
 
 	// animations
 	const STAGGER = 0.14;
@@ -192,6 +200,11 @@ export default function Activity09({
 	}, [a9Content]);
 
 	const downloadPageDocx = async () => {
+		// guard & animation (same pattern as other activities)
+		if (!started || isDownloading) return;
+
+		setIsDownloading(true);
+
 		const title = `${
 			lang === "fr" ? "Activité" : "Activity"
 		} ${activityNumber}: ${pageTitle}`;
@@ -363,6 +376,8 @@ export default function Activity09({
 			a.click();
 			a.remove();
 			URL.revokeObjectURL(url);
+		} finally {
+			setTimeout(() => setIsDownloading(false), 700);
 		}
 	};
 
@@ -551,19 +566,20 @@ export default function Activity09({
 						onToggle={onToggleComplete}
 						accent="#10B981"
 					/>
-					<button
-						type="button"
+
+					<DownloadButton
 						onClick={downloadPageDocx}
-						className="px-4 py-2 rounded-lg text-white"
-						style={{ backgroundColor: accent }}
-						title={
+						disabled={!started || isDownloading}
+						isDownloading={isDownloading}
+						accent={accent}
+						label={lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
+						downloadingLabel={dlLocale.downloadingLabel}
+						ariaLabel={
 							lang === "fr"
 								? "Télécharger vos notes et ressources en .docx"
 								: "Download your notes and resources as .docx"
 						}
-					>
-						{lang === "fr" ? "Télécharger (.docx)" : "Download (.docx)"}
-					</button>
+					/>
 				</div>
 			</div>
 		</motion.div>
