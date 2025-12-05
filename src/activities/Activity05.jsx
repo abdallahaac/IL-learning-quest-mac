@@ -76,7 +76,7 @@ export default function Activity05({
 	const placeholder =
 		a5Content?.notePlaceholder ||
 		(lang === "fr"
-			? "Cliquez ou tapez ici pour saisir du texte."
+			? "Cliquez ici pour saisir du texte."
 			: "Title, creator(s), insights…");
 
 	const exportLinksHeading =

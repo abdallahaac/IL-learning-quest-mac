@@ -69,7 +69,7 @@ export default function Activity08({
 	const placeholder =
 		a8Content?.notePlaceholder ||
 		(lang === "fr"
-			? "Cliquez ou tapez ici pour saisir du texte."
+			? "Cliquez ici pour saisir du texte."
 			: "Voices you followed; what you learned…");
 
 	const pageLinks = Array.isArray(a8Content?.links) ? a8Content.links : [];
@@ -315,9 +315,9 @@ export default function Activity08({
 									>
 										{tipText}
 										<br />
-											{lang === "fr"
-												? "Partagez vos apprentissages avec votre équipe."
-												: "Share what you learned with your team."}
+										{lang === "fr"
+											? "Partagez vos apprentissages avec votre équipe."
+											: "Share what you learned with your team."}
 									</p>
 								)}
 							</div>

@@ -189,8 +189,8 @@ export default function LinkCard({
 									style={{ whiteSpace: "pre-wrap" }}
 								>
 									{lang === "fr"
-										? "Cliquez et apprenez de ces voix"
-										: "Click and learn from these voices"}
+										? "Cliquez sur un nom et explorez plus en profondeur par vous-même."
+										: "Click on a name and take a deeper dive on your own."}
 								</div>
 							</>
 						) : (

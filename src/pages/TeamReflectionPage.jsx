@@ -251,23 +251,6 @@ export default function TeamReflectionPage({
 					</div>
 
 					{/* Progress bar */}
-					<div className="mb-4">
-						<div className="flex items-center justify-between text-sm text-slate-600 mb-1">
-							<span>
-								{completed} / {totalSteps} completed
-							</span>
-							<span>{pct}%</span>
-						</div>
-						<div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-							<motion.div
-								className="h-full"
-								style={{ backgroundColor: ACCENT }}
-								initial={false}
-								animate={{ width: `${pct}%` }}
-								transition={{ type: "spring", stiffness: 240, damping: 28 }}
-							/>
-						</div>
-					</div>
 
 					{/* Steps list */}
 					<ol className="space-y-4">

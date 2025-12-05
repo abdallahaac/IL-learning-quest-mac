@@ -264,7 +264,7 @@ export const RESOURCES_CONTENT = {
 				{
 					label:
 						"Virtual Campfire (Conservation Through Reconciliation Partnership)",
-					url: "https://conservation-reconciliation.ca/virtual-campfire",
+					url: "https://conservation-reconciliation.ca/",
 				},
 				{
 					label:
@@ -398,7 +398,7 @@ export const COVER_CONTENT_FR = {
 export const INTRO_INFO_CONTENT_FR = {
 	title: "Introduction",
 	paragraphs: [
-		"La quête d’apprentissage a été créée pour susciter joie et curiosité chez les fonctionnaires, tout en les aidant à devenir des personnes alliées fidèles à la cause et aux réalités des peuples autochtones. Conçue par des Autochtones, elle stimule l’apprentissage par des mises en commun qui permettent aux participantes et participants de nouer des liens autour d’intérêts communs et du partage de ressources. Il ne s’agit pas d’un test de connaissance, mais plutôt d’une pratique à long terme – une invitation à découvrir les perspectives autochtones au quotidien, en faisant preuve d’ouverture et de volonté.",
+		"La quête d’apprentissage a été créée pour susciter joie et curiosité chez les fonctionnaires, tout en les aidant à devenir des personnes alliées fidèles à la cause et aux réalités des peuples autochtones. Conçue par des Autochtones, elle stimule l’apprentissage par des mises en commun qui permettent aux participantes et participants de nouer des liens autour d’intérêts communs et du partage de ressources. Il ne s’agit pas d’un test de connaissances, mais plutôt d’une pratique à long terme – une invitation à découvrir les perspectives autochtones au quotidien, en faisant preuve d’ouverture et de volonté.",
 		"La quête d’apprentissage sur les cultures autochtones est une activité d’équipe souple conçue pour vous aider à en apprendre plus sur les histoires, cultures et perspectives autochtones. Dix activités stimulantes vous inviteront à l’exploration, à la réflexion et à l’action pour que vous puissiez renforcer vos connaissances culturelles et soutenir les efforts de réconciliation.",
 		"Vous pouvez mener la quête en solo ou en équipe, sachant que la collaboration favorise les discussions poussées et permet de mettre en commun les apprentissages. Chaque activité vous invitera à penser de façon critique, à poser des questions et à faire des liens entre vos apprentissages et votre vie personnelle et professionnelle.",
 		"La quête est personnalisable, et vous pouvez la mener à votre rythme sur plusieurs semaines. Des rencontres de suivi régulières permettront aux membres de l’équipe de présenter leurs perspectives, de discuter des enjeux et de s’entraider.",
@@ -421,7 +421,7 @@ export const INTRO_INFO_CONTENT_FR = {
           Quelques pistes pour vous orienter : allez-vous vous concentrer sur des nations et
           communautés particulières, ou adopter une approche régionale pour découvrir les
           peuples autochtones de chaque région du pays ? Allez-vous étudier les Premières
-          Nations, les peuples inuits et les Métis ?
+          Nations, les Inuits et les Métis ?
         </p>
       </div>
       `,
@@ -512,7 +512,7 @@ export const PREPARATION_CONTENT_FR = {
 		sectionTitle: "Préparation",
 		howTitle: "Fonctionnement",
 		instructions:
-			"Cliquez sur une carte pour l’inverser et lire l’étape. Une coche verte apparaîtra après avoir consulté une carte.",
+			"Cliquez sur une carte pour la retourner et lire l’étape. Une coche verte apparaîtra après avoir consulté une carte.",
 		stepLabel: "Étape",
 		sr: {
 			flip: "Appuyez sur Entrée ou Espace pour inverser la carte et lire la description.",
@@ -538,7 +538,7 @@ export const TEAM_CONTENT_FR = {
 	],
 	reflectionPrompt:
 		"« Compte tenu de ce que j’ai appris jusqu’à présent, une chose que je souhaite mettre en pratique au travail, c’est… »",
-	reflectionPlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+	reflectionPlaceholder: "Cliquez ici pour saisir du texte.",
 	notesSaveTip:
 		"Astuce : les notes s’enregistrent automatiquement dans cette leçon.",
 	wordsLabelSingular: "mot",
@@ -677,7 +677,7 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label:
 						"Virtual Campfire (Conservation Through Reconciliation Partnership)",
-					url: "https://conservation-reconciliation.ca/virtual-campfire",
+					url: "https://conservation-reconciliation.ca/",
 					enOnly: true,
 				},
 				{
@@ -883,7 +883,7 @@ export const ACTIVITIES_CONTENT = {
       <p>Comment vous inspire-t-elle&nbsp;?</p>
     `,
 			},
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
@@ -949,7 +949,7 @@ export const ACTIVITIES_CONTENT = {
       <p>Décrivez vos apprentissages.</p>
     `,
 			},
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
@@ -1142,7 +1142,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
   <p>Décrivez vos apprentissages.</p>
       `,
 			},
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
@@ -1193,7 +1193,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
         <p>Qu’avez-vous appris?</p>
       `,
 			},
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
@@ -1252,7 +1252,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
         <p>Faites part de vos impressions.</p>
       `,
 			},
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
@@ -1365,7 +1365,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			number: 7,
 			title: "Apprenez à prononcer trois mots dans une langue autochtone",
 			tip: "Apprenez à prononcer trois mots dans une langue autochtone. Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.",
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
@@ -1505,7 +1505,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
       <p>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</p>
     `,
 			},
-			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
+			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
@@ -1749,7 +1749,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 
 			// optional HTML instructions to preserve formatting (displayed if present)
 			instructionsHtml: `
-      <p>Découvrez une entreprise appartenant à une personne inuite, métisse ou des Premières Nations (en personne ou en ligne).</p>
+      <p>Découvrez, en personne ou en ligne, une entreprise appartenant à une personne des Premières Nations, inuite ou métisse.<br> <strong>Quels produits ou services vous ont interpellés et pourquoi ?</strong></p>
     `,
 		},
 	},

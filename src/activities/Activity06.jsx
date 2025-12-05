@@ -73,7 +73,7 @@ export default function Activity06({
 	const placeholder =
 		a6Content?.notePlaceholder ||
 		(lang === "fr"
-			? "Cliquez ou tapez ici pour saisir du texte."
+			? "Cliquez ici pour saisir du texte."
 			: "Author, title, key takeaways…");
 
 	const exportLinksHeading =

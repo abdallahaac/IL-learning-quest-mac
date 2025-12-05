@@ -74,7 +74,7 @@ export default function Activity04({
 	const placeholder =
 		a4Content?.notePlaceholder ||
 		(lang === "fr"
-			? "Cliquez ou tapez ici pour saisir du texte."
+			? "Cliquez ici pour saisir du texte."
 			: "Which community? What you learned…");
 
 	const exportLinksHeading =
