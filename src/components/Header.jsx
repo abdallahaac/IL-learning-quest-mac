@@ -5,7 +5,6 @@ import { faHouse, faBars } from "@fortawesome/free-solid-svg-icons";
 import ActivityDock from "./ActivityDock.jsx";
 import ActivitiesModal from "./ActivitiesModal.jsx";
 
-/* --- tiny color utils (for hover/active shades) --- */
 const normalizeHex = (h) => {
 	if (!h) return null;
 	let s = String(h).trim();
@@ -43,12 +42,17 @@ export default function Header({
 	accent = "#67AAF9",
 	primaryBtnClassOverride = null,
 	homeLabel = "Home",
+	lang = "en",
 }) {
 	const accentHex = normalizeHex(accent) || "#67AAF9";
 	const hover = shadeHex(accentHex, -0.08);
 	const active = shadeHex(accentHex, -0.16);
 
 	const [menuOpen, setMenuOpen] = React.useState(false);
+
+	const isFr = lang === "fr";
+	const activitiesTitle = isFr ? "Activités" : "Activities";
+	const activitiesAriaLabel = isFr ? "Ouvrir les activités" : "Open activities";
 
 	return (
 		<div
@@ -66,7 +70,6 @@ export default function Header({
           flex items-center justify-between gap-2 sm:gap-3
           pointer-events-auto"
 			>
-				{/* Title */}
 				<div className="min-w-0">
 					{onHome ? (
 						<button
@@ -80,7 +83,7 @@ export default function Header({
                 md:text-xl lg:text-2xl
                 ml-0 md:ml-40
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-							style={{ boxShadow: `0 0 0 0 transparent` }}
+							style={{ boxShadow: "0 0 0 0 transparent" }}
 							onFocus={(e) =>
 								(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
 							}
@@ -105,9 +108,7 @@ export default function Header({
 					)}
 				</div>
 
-				{/* Right cluster: Home button + Dock (md+) + Burger (sm) */}
 				<div className="flex items-center gap-2 md:gap-3">
-					{/* Home/Contents button */}
 					{onContents && (
 						<button
 							type="button"
@@ -162,7 +163,6 @@ export default function Header({
 						</button>
 					)}
 
-					{/* Dock on the far right for md+ */}
 					<div className="hidden md:block">
 						<ActivityDock
 							steps={activitySteps}
@@ -170,15 +170,15 @@ export default function Header({
 							onJump={onJumpToPage}
 							contentMaxWidth={1200}
 							defaultAccent={accentHex}
+							lang={lang}
 						/>
 					</div>
 
-					{/* Mobile Activities burger (opens modal) */}
 					<button
 						type="button"
 						onClick={() => setMenuOpen(true)}
 						className="md:hidden inline-flex items-center justify-center h-9 w-9 max-[330px]:h-8 max-[330px]:w-8 rounded-full text-slate-900 bg-white/90 border border-slate-200 shadow-sm hover:shadow-md focus:outline-none"
-						style={{ boxShadow: `0 0 0 0 transparent` }}
+						style={{ boxShadow: "0 0 0 0 transparent" }}
 						onFocus={(e) =>
 							(e.currentTarget.style.boxShadow = `0 0 0 2px ${accentHex}`)
 						}
@@ -186,8 +186,8 @@ export default function Header({
 						aria-haspopup="dialog"
 						aria-expanded={menuOpen}
 						aria-controls="activities-modal"
-						aria-label="Open activities"
-						title="Activities"
+						aria-label={activitiesAriaLabel}
+						title={activitiesTitle}
 					>
 						<FontAwesomeIcon
 							className="w-4 h-4"
@@ -198,14 +198,13 @@ export default function Header({
 				</div>
 			</div>
 
-			{/* Mobile modal with vertical activities list */}
 			<ActivitiesModal
 				open={menuOpen}
 				onClose={() => setMenuOpen(false)}
 				steps={activitySteps}
 				currentPageIndex={currentPageIndex}
 				onJump={onJumpToPage}
-				title="Activities"
+				title={activitiesTitle}
 				accent={accentHex}
 			/>
 		</div>

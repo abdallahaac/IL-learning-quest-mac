@@ -269,17 +269,15 @@ export function downloadNotesAsWord({
 	docTitle = "Activity",
 	docSubtitle,
 	activityNumber,
-	docIntro, // Activity tip
+	docIntro,
 	includeLinks = false,
-	linksHeading = "Resources",
+	linksHeading,
 	pageLinks = [],
 	headingColor = "#0b1220",
 	accent,
-	// NEW: optional localization
-	locale, // "en" | "fr"
-	localeStrings, // overrides, e.g. { activityTipHeading, savedReflectionsHeading, resourcesHeading }
+	locale,
+	localeStrings,
 }) {
-	// decide locale
 	const resolvedLocale = (locale || detectLang() || "en").startsWith("fr")
 		? "fr"
 		: "en";
@@ -298,7 +296,9 @@ export function downloadNotesAsWord({
 
 	const safeTitle =
 		typeof activityNumber === "number"
-			? `Activity ${activityNumber}: ${docTitle}`
+			? `${
+					resolvedLocale === "fr" ? "Activité" : "Activity"
+			  } ${activityNumber}: ${docTitle}`
 			: docTitle;
 
 	const exportHeadingColor =
@@ -413,6 +413,7 @@ function QuillSurface({
 	formats,
 	className,
 	toolbarEl,
+	ariaLabel,
 }) {
 	const hostRef = React.useRef(null);
 	const quillRef = React.useRef(null);
@@ -440,7 +441,6 @@ function QuillSurface({
 		};
 		quillRef.current.on("selection-change", onSelChange);
 
-		// Keep selection while clicking toolbar buttons
 		const rememberSel = () => {
 			const r = quillRef.current.getSelection();
 			if (r) savedRangeRef.current = r;
@@ -497,7 +497,7 @@ function QuillSurface({
 			ref={hostRef}
 			className={className}
 			role="textbox"
-			aria-label="Rich text editor"
+			aria-label={ariaLabel}
 			style={{ resize: "vertical", overflow: "auto", borderRadius: "1rem" }}
 		/>
 	);
@@ -507,7 +507,7 @@ function QuillSurface({
 export default function NoteComposer({
 	value,
 	onChange,
-	placeholder = "Type your reflections…",
+	placeholder,
 	size = "md",
 	minHeight = "min-h-32",
 	wrapperClassName = "",
@@ -516,18 +516,16 @@ export default function NoteComposer({
 	accent,
 	textColor,
 
-	/* NEW: export metadata */
 	downloadFileName = "Reflection.doc",
 	docTitle = "Activity",
 	docSubtitle,
 	activityNumber,
-	docIntro, // Activity tip
+	docIntro,
 	includeLinks = false,
-	linksHeading = "Resources",
+	linksHeading, // no default -> allows localized default in exporter
 	pageLinks = [],
-	headingColor = "#0b1220", // used only for export if you want to override accent
+	headingColor = "#0b1220",
 
-	/* NEW controls to decouple the download button */
 	showDownloadButton = true,
 	onRequestDownload,
 }) {
@@ -570,17 +568,67 @@ export default function NoteComposer({
 	const btnText =
 		textColor === "white" ? "#fff" : textColor === "black" ? "#0B1220" : "#fff";
 
-	// local download guard (avoid double-clicks when this component is used standalone)
 	const [isDownloading, setIsDownloading] = React.useState(false);
 
 	const lang = detectLang()?.startsWith("fr") ? "fr" : "en";
-	const localizedDownloadLabel = DEFAULT_LOCALE_STRINGS[lang].downloadButton;
-	const localizedDownloadingLabel = DEFAULT_LOCALE_STRINGS[lang].downloading;
+	const localizedDownloadLabel =
+		DEFAULT_LOCALE_STRINGS[lang].downloadButton ||
+		DEFAULT_LOCALE_STRINGS.en.downloadButton;
+	const localizedDownloadingLabel =
+		DEFAULT_LOCALE_STRINGS[lang].downloading ||
+		DEFAULT_LOCALE_STRINGS.en.downloading;
+
+	// Editor-specific localized strings
+	const editorStrings =
+		lang === "fr"
+			? {
+					reflectionsLabel: "Réflexions",
+					placeholder: "Rédigez vos réflexions…",
+					headerDropdownTitle: "Paragraphe / Titres",
+					headerParagraph: "Paragraphe",
+					headerH1: "Titre 1",
+					headerH2: "Titre 2",
+					headerH3: "Titre 3",
+					headerH4: "Titre 4",
+					boldTitle: "Gras (Ctrl/Cmd+B)",
+					italicTitle: "Italique (Ctrl/Cmd+I)",
+					underlineTitle: "Soulignement (Ctrl/Cmd+U)",
+					strikeTitle: "Barré",
+					numberedListTitle: "Liste numérotée",
+					bulletListTitle: "Liste à puces",
+					textColorTitle: "Couleur du texte",
+					highlightColorTitle: "Couleur de surlignage",
+					undoTitle: "Annuler (Ctrl/Cmd+Z)",
+					redoTitle: "Rétablir (Ctrl+Y / Cmd+Shift+Z)",
+					editorAriaLabel: "Éditeur de texte enrichi",
+			  }
+			: {
+					reflectionsLabel: "Reflections",
+					placeholder: "Type your reflections…",
+					headerDropdownTitle: "Paragraph / Headings",
+					headerParagraph: "Paragraph",
+					headerH1: "Heading 1",
+					headerH2: "Heading 2",
+					headerH3: "Heading 3",
+					headerH4: "Heading 4",
+					boldTitle: "Bold (Ctrl/Cmd+B)",
+					italicTitle: "Italic (Ctrl/Cmd+I)",
+					underlineTitle: "Underline (Ctrl/Cmd+U)",
+					strikeTitle: "Strikethrough",
+					numberedListTitle: "Numbered list",
+					bulletListTitle: "Bullet list",
+					textColorTitle: "Text color",
+					highlightColorTitle: "Highlight color",
+					undoTitle: "Undo (Ctrl/Cmd+Z)",
+					redoTitle: "Redo (Ctrl+Y / Cmd+Shift+Z)",
+					editorAriaLabel: "Rich text editor",
+			  };
+
+	const effectivePlaceholder = placeholder ?? editorStrings.placeholder;
 
 	/* ---- Download as Word-compatible HTML with sections ---- */
 	const downloadWord = async () => {
 		if (onRequestDownload) {
-			// Activity01 preferred to lift control; let it handle locale and disabling
 			onRequestDownload();
 			return;
 		}
@@ -601,94 +649,117 @@ export default function NoteComposer({
 					pageLinks,
 					headingColor,
 					accent,
-					// pass locale so doc content is localized
 					locale: lang,
 				})
 			);
 		} catch (err) {
-			// eslint-disable-next-line no-console
 			console.error("downloadNotesAsWord failed:", err);
 		} finally {
-			// tiny safety delay
 			setTimeout(() => setIsDownloading(false), 700);
 		}
 	};
+
+	// CSS for header picker labels, localized
+	const headerPickerLabelCss =
+		lang === "fr"
+			? `
+      .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="false"]::before,
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="false"]::before { content: "Paragraphe"; }
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before { content: "Titre 1"; }
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before { content: "Titre 2"; }
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: "Titre 3"; }
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: "Titre 4"; }
+    `
+			: `
+      .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="false"]::before,
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="false"]::before { content: "Paragraph"; }
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before { content: "Heading 1"; }
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before { content: "Heading 2"; }
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: "Heading 3"; }
+      .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: "Heading 4"; }
+    `;
 
 	return (
 		<div
 			className={`bg-white/80 backdrop-blur border border-gray-200 rounded-2xl shadow ${sz.wrapper} ${wrapperClassName}`}
 		>
-			{/* Top row */}
 			<div className="flex items-center justify-between gap-2">
 				<div className="flex flex-wrap items-center gap-1">
 					<span className={`mr-2 font-medium text-gray-700 ${sz.label}`}>
-						Reflections
+						{editorStrings.reflectionsLabel}
 					</span>
 
-					{/* Toolbar */}
 					<div
 						ref={toolbarRef}
 						className="flex flex-wrap items-center gap-0.5 rounded-xl bg-white/80 px-1 py-0.5 border border-gray-200"
 					>
-						{/* Header */}
 						<select
 							className="ql-header rounded-lg"
 							defaultValue="false"
-							title="Paragraph / Headings"
+							title={editorStrings.headerDropdownTitle}
 						>
-							<option value="false">Paragraph</option>
-							<option value="1">Heading 1</option>
-							<option value="2">Heading 2</option>
-							<option value="3">Heading 3</option>
-							<option value="4">Heading 4</option>
+							<option value="false">{editorStrings.headerParagraph}</option>
+							<option value="1">{editorStrings.headerH1}</option>
+							<option value="2">{editorStrings.headerH2}</option>
+							<option value="3">{editorStrings.headerH3}</option>
+							<option value="4">{editorStrings.headerH4}</option>
 						</select>
 
-						{/* Inline */}
-						<button className="ql-bold" title="Bold (Ctrl/Cmd+B)">
+						<button className="ql-bold" title={editorStrings.boldTitle}>
 							<i className="fa-solid fa-bold" />
 						</button>
-						<button className="ql-italic" title="Italic (Ctrl/Cmd+I)">
+						<button className="ql-italic" title={editorStrings.italicTitle}>
 							<i className="fa-solid fa-italic" />
 						</button>
-						<button className="ql-underline" title="Underline (Ctrl/Cmd+U)">
+						<button
+							className="ql-underline"
+							title={editorStrings.underlineTitle}
+						>
 							<i className="fa-solid fa-underline" />
 						</button>
-						<button className="ql-strike" title="Strikethrough">
+						<button className="ql-strike" title={editorStrings.strikeTitle}>
 							<i className="fa-solid fa-strikethrough" />
 						</button>
 
 						<span className="mx-1 h-4 w-px bg-gray-200 rounded" aria-hidden />
 
-						{/* Lists */}
-						<button className="ql-list" value="ordered" title="Numbered list">
+						<button
+							className="ql-list"
+							value="ordered"
+							title={editorStrings.numberedListTitle}
+						>
 							<i className="fa-solid fa-list-ol" />
 						</button>
-						<button className="ql-list" value="bullet" title="Bullet list">
+						<button
+							className="ql-list"
+							value="bullet"
+							title={editorStrings.bulletListTitle}
+						>
 							<i className="fa-solid fa-list-ul" />
 						</button>
 
 						<span className="mx-1 h-4 w-px bg-gray-200 rounded" aria-hidden />
 
-						{/* Color pickers */}
-						<select className="ql-color rounded-lg" title="Text color" />
+						<select
+							className="ql-color rounded-lg"
+							title={editorStrings.textColorTitle}
+						/>
 						<select
 							className="ql-background rounded-lg"
-							title="Highlight color"
+							title={editorStrings.highlightColorTitle}
 						/>
 
 						<span className="mx-1 h-4 w-px bg-gray-200 rounded" aria-hidden />
 
-						{/* Undo / Redo */}
-						<button className="ql-undo" title="Undo (Ctrl/Cmd+Z)">
+						<button className="ql-undo" title={editorStrings.undoTitle}>
 							<i className="fa-solid fa-rotate-left" />
 						</button>
-						<button className="ql-redo" title="Redo (Ctrl+Y / Cmd+Shift+Z)">
+						<button className="ql-redo" title={editorStrings.redoTitle}>
 							<i className="fa-solid fa-rotate-right" />
 						</button>
 					</div>
 				</div>
 
-				{/* Download button (can be hidden and moved outside) */}
 				{showDownloadButton && (
 					<button
 						type="button"
@@ -740,7 +811,6 @@ export default function NoteComposer({
 				)}
 			</div>
 
-			{/* Editor */}
 			<div className={panelMinHClass}>
 				<motion.div
 					initial={{ opacity: 0, y: 6 }}
@@ -754,16 +824,16 @@ export default function NoteComposer({
 						<QuillSurface
 							value={html}
 							onChange={emit}
-							placeholder={placeholder}
+							placeholder={effectivePlaceholder}
 							buildModules={modulesBuilder}
 							formats={QUILL_FORMATS}
 							className="h-full"
 							toolbarEl={toolbarEl}
+							ariaLabel={editorStrings.editorAriaLabel}
 						/>
 					</div>
 				</motion.div>
 
-				{/* Style polish */}
 				<style>{`
           .ql-container { min-height: 12rem; border: none; }
           .ql-toolbar { border: none; padding: 0; }
@@ -790,12 +860,7 @@ export default function NoteComposer({
             border-radius: 12px; box-shadow: 0 10px 28px rgba(2,6,23,.14);
           }
 
-          .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="false"]::before,
-          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="false"]::before { content: "Paragraph"; }
-          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before { content: "Heading 1"; }
-          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before { content: "Heading 2"; }
-          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: "Heading 3"; }
-          .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: "Heading 4"; }
+          ${headerPickerLabelCss}
         `}</style>
 			</div>
 		</div>

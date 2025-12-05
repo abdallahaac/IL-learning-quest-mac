@@ -765,7 +765,7 @@ export default function Activity07({
 									>
 										{tipText}
 										<br />
-										<strong>{uiSafe.editorTip}</strong>
+										{uiSafe.editorTip}
 									</p>
 								)}
 							</div>
@@ -817,7 +817,7 @@ export default function Activity07({
 										enOnlySuffix={enOnly ? " (en anglais seulement)" : ""}
 										openLinkLabel={uiSafe.openLinkLabel}
 										noMaxWidth
-										cardHeight={"150px"}
+										cardHeight={"120px"}
 									/>
 								);
 							});

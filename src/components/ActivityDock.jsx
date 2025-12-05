@@ -27,7 +27,7 @@ const normalizeHex = (h) => {
 	if (s[0] !== "#") s = `#${s}`;
 	return /^#([0-9a-f]{6})$/i.test(s) ? s.toUpperCase() : null;
 };
-const withAlpha = (hex, aa /* like "14" */) => `${hex}${aa}`;
+const withAlpha = (hex, aa) => `${hex}${aa}`;
 
 const hexToRgb = (hex) => {
 	const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || "");
@@ -109,11 +109,16 @@ export default function ActivityDock({
 	onJump,
 	contentMaxWidth = 1200,
 	defaultAccent = "#67AAF9",
+	lang = "en",
 }) {
 	const [open, setOpen] = useState(false);
 	const btnRef = useRef(null);
 
 	if (!steps.length) return null;
+
+	const isFr = lang === "fr";
+	const activitiesLabel = isFr ? "Activités" : "Activities";
+	const navLabel = isFr ? "Liste des activités" : "Activities";
 
 	// enrich steps with computed accent
 	const enrichedSteps = useMemo(
@@ -192,23 +197,16 @@ export default function ActivityDock({
 		prevVisitedRef.current = now;
 	}, [enrichedSteps]);
 
-	const textColor = "#0F172A"; // dark slate for readability
+	const textColor = "#0F172A";
 
 	return (
 		<>
-			{/* header pill */}
 			<button
 				ref={btnRef}
 				type="button"
 				onClick={() => setOpen((v) => !v)}
 				aria-expanded={open}
-				className="
-          inline-flex items-center gap-3 rounded-full
-          bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur
-          border border-slate-200 shadow-sm px-3 py-2
-          hover:shadow-lg transition
-          focus:outline-none
-        "
+				className="inline-flex items-center gap-3 rounded-full bg-white/90 supports-[backdrop-filter]:bg-white/70 backdrop-blur border border-slate-200 shadow-sm px-3 py-2 hover:shadow-lg transition focus:outline-none"
 				style={{ boxShadow: open ? `0 0 0 2px ${activeAccent}` : "none" }}
 				onFocus={(e) =>
 					(e.currentTarget.style.boxShadow = `0 0 0 2px ${activeAccent}`)
@@ -232,7 +230,9 @@ export default function ActivityDock({
 						<span style={{ color: activeAccent }}>{enrichedSteps.length}</span>
 					</span>
 				</span>
-				<span className="text-sm font-medium text-slate-800">Activities</span>
+				<span className="text-sm font-medium text-slate-800">
+					{activitiesLabel}
+				</span>
 				<svg
 					className={`w-4 h-4 text-slate-500 transition-transform ${
 						open ? "rotate-180" : ""
@@ -245,7 +245,6 @@ export default function ActivityDock({
 				</svg>
 			</button>
 
-			{/* right rail */}
 			<div
 				aria-hidden={!open}
 				className={`fixed z-[80] ${
@@ -262,7 +261,7 @@ export default function ActivityDock({
 				}}
 			>
 				<div className="rounded-2xl border border-slate-200 bg-white shadow-xl p-3 origin-top w-[min(92vw,960px)] max-w-[300px] overflow-auto">
-					<nav aria-label="Activities">
+					<nav aria-label={navLabel}>
 						<div className="grid gap-2 sm:grid-cols-1">
 							{enrichedSteps.map((s, i) => {
 								const isActive = s.index === currentPageIndex;
@@ -270,13 +269,12 @@ export default function ActivityDock({
 								const seen = !!s.visited;
 								const accent = s._accent;
 
-								// compute a base alpha that meets 4.5:1 (small text) vs dark text
 								const { alpha: baseAlpha, bg: baseBg } = findAlphaForContrast({
 									accent,
 									text: textColor,
 									target: 4.5,
-									min: 0.1, // start at 10% tint
-									max: 0.28, // cap at ~28% tint
+									min: 0.1,
+									max: 0.28,
 									step: 0.01,
 								});
 
@@ -290,7 +288,6 @@ export default function ActivityDock({
 								const bgActive = blendOverWhite(accent, activeAlpha);
 
 								const borderFromBg = (bg) => {
-									// nudge border a bit stronger than bg for definition
 									const ratio = 0.12;
 									const { r, g, b } = hexToRgb(bg);
 									const R = Math.round(r * (1 - ratio));
@@ -350,7 +347,13 @@ export default function ActivityDock({
 									</span>
 								);
 
-								const ariaStatus = done
+								const ariaStatus = isFr
+									? done
+										? " (terminée)"
+										: seen
+										? " (consultée)"
+										: " (non commencée)"
+									: done
 									? " (completed)"
 									: seen
 									? " (visited)"
@@ -370,18 +373,17 @@ export default function ActivityDock({
 										style={{
 											...pillStyle,
 											paddingLeft: 12,
-											boxShadow: `0 0 0 0 transparent`,
+											boxShadow: "0 0 0 0 transparent",
 										}}
 										onFocus={(e) =>
 											(e.currentTarget.style.boxShadow = `0 0 0 2px ${accent}`)
 										}
 										onBlur={(e) =>
-											(e.currentTarget.style.boxShadow = `0 0 0 0 transparent`)
+											(e.currentTarget.style.boxShadow = "0 0 0 0 transparent")
 										}
 										aria-current={isActive ? "step" : undefined}
 										title={`${s.label}${ariaStatus}`}
 									>
-										{/* badge */}
 										<span
 											className="grid place-items-center w-6 h-6 rounded-full text-xs font-semibold bg-white"
 											style={{
@@ -392,8 +394,6 @@ export default function ActivityDock({
 										>
 											{statusIcon}
 										</span>
-
-										{/* label */}
 										<span className="whitespace-nowrap">
 											{s.label}
 											<span className="sr-only">{ariaStatus}</span>

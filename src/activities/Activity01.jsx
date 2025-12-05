@@ -200,10 +200,12 @@ export default function Activity01({
 		const includeLinks = hasRealLinks;
 
 		// compute filename with a localized suffix
-		const suffix = docLocaleStrings[lang].reflectionLabel.replace(/\s+/g, "-");
-		const filename = `Activity-${
-			content?.id || String(activityNumber).padStart(2, "0")
-		}-${suffix}.doc`;
+		// compute filename with a localized suffix + prefix
+		const reflectionLabel = docLocaleStrings[lang].reflectionLabel || "";
+		const suffix = reflectionLabel.replace(/\s+/g, "-") || "Reflection";
+		const prefix = lang === "fr" ? "Activité" : "Activity";
+		const idPart = content?.id || String(activityNumber).padStart(2, "0");
+		const filename = `${prefix}-${idPart}-${suffix}.doc`;
 
 		// docIntro: prefer explicit tipText (likely localized already), otherwise fall back to our localized default
 		const docIntro = tipText || docLocaleStrings[lang].defaultIntro;

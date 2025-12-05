@@ -259,11 +259,10 @@ export default function Activity06({
 									>
 										{tipText}
 										<br />
-										<strong>
-											{lang === "fr"
-												? "Faites part de vos impressions."
-												: "Share what you thought of this book."}
-										</strong>
+
+										{lang === "fr"
+											? "Faites part de vos impressions."
+											: "Share what you thought of this book."}
 									</p>
 								)}
 							</div>

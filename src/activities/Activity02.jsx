@@ -87,9 +87,6 @@ export default function Activity02({
 	const { linkItems, stringItems } = normalizeResources(content);
 	const hasRealLinks = linkItems.length > 0;
 
-	// French-only suffix request
-	const enOnlySuffix = lang === "fr" ? " (en anglais seulement)" : "";
-
 	// notes state
 	const [localNotes, setLocalNotes] = useState(notes ?? "");
 	useEffect(() => setLocalNotes(notes ?? ""), [notes]);
@@ -150,11 +147,19 @@ export default function Activity02({
 	// modular download state + handler
 	const [isDownloading, setIsDownloading] = useState(false);
 
-	// localized labels for the document (you can expand these if needed)
+	// localized labels for the document
 	const docLocale = {
 		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
 		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
 	}[lang];
+
+	// shared localized filename pieces (used by handler + NoteComposer)
+	const reflectionLabel =
+		docLocale?.suffix || (lang === "fr" ? "Réflexion" : "Reflection");
+	const reflectionSlug = reflectionLabel.replace(/\s+/g, "-");
+	const filePrefix = lang === "fr" ? "Activité" : "Activity";
+	const idPart = content?.id || String(activityNumber).padStart(2, "0");
+	const baseFilename = `${filePrefix}-${idPart}-${reflectionSlug}.doc`;
 
 	// async download handler that prevents duplicates and localizes filename
 	const handleDownload = async () => {
@@ -166,15 +171,11 @@ export default function Activity02({
 		try {
 			const html =
 				typeof localNotes === "string" ? localNotes : localNotes?.text || "";
-			const suffix = (docLocale?.suffix || "Reflection").replace(/\s+/g, "-");
-			const filename = `Activity-${
-				content?.id || String(activityNumber).padStart(2, "0")
-			}-${suffix}.doc`;
 
 			await Promise.resolve(
 				downloadNotesAsWord({
 					html,
-					downloadFileName: filename,
+					downloadFileName: baseFilename,
 					docTitle: title,
 					docSubtitle: content?.subtitle,
 					activityNumber,
@@ -203,7 +204,6 @@ export default function Activity02({
 			initial="hidden"
 			animate="show"
 		>
-			{/* background gradient */}
 			<motion.div
 				aria-hidden
 				className="fixed inset-0 -z-10 pointer-events-none"
@@ -219,7 +219,6 @@ export default function Activity02({
 			/>
 
 			<div className="max-w-5xl mx-auto px-4 py-8 sm:py-12 space-y-6">
-				{/* header */}
 				<motion.header
 					className="text-center"
 					variants={titleFade}
@@ -283,7 +282,7 @@ export default function Activity02({
 					</div>
 				</motion.header>
 
-				{/* resources */}
+				{/* Resources grid – same org as Activity01 */}
 				{(hasRealLinks || stringItems.length > 0) && (
 					<motion.section
 						className="flex justify-center"
@@ -291,10 +290,15 @@ export default function Activity02({
 						initial="hidden"
 						animate="show"
 					>
-						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center h-39">
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center">
 							{hasRealLinks
 								? linkItems.map((lnk, i) => {
-										const labelForAria = `${lnk.label}${enOnlySuffix}`;
+										const labelForAria = `${lnk.label}`;
+										const suffix =
+											lang === "fr" && lnk.enOnly
+												? " (en anglais seulement)"
+												: "";
+
 										return (
 											<motion.a
 												key={`${lnk.url || lnk.label}-${i}`}
@@ -307,9 +311,10 @@ export default function Activity02({
 												aria-label={`${L.openLink} ${labelForAria}`}
 												variants={cardPop}
 											>
-												<div className="flex items-center gap-3">
+												<div className="relative flex items-center">
+													{/* Icon pinned to the left */}
 													<div
-														className={badgeBase}
+														className={badgeBase + " absolute left-0"}
 														style={{
 															backgroundColor: withAlpha(accent, "1A"),
 															color: accent,
@@ -321,17 +326,17 @@ export default function Activity02({
 														/>
 													</div>
 
-													{/* Only the main label underlines on hover; suffix never does */}
-													<div className="font-medium text-gray-800">
+													{/* Text spans full width, centered, with left padding so it doesn't overlap the icon */}
+													<div className="w-full pl-14 font-medium text-gray-800 text-center">
 														<span className="group-hover:underline">
 															{lnk.label}
 														</span>
-														{enOnlySuffix && (
+														{suffix && (
 															<span
 																className="ml-1 no-underline"
 																style={{ color: EMERALD_700 }}
 															>
-																{enOnlySuffix}
+																{suffix}
 															</span>
 														)}
 													</div>
@@ -380,7 +385,6 @@ export default function Activity02({
 					</motion.section>
 				)}
 
-				{/* notes */}
 				<NoteComposer
 					value={localNotes}
 					onChange={saveNotes}
@@ -391,9 +395,7 @@ export default function Activity02({
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent={EMERALD_700}
-					downloadFileName={`Activity-${
-						content?.id || String(activityNumber).padStart(2, "0")
-					}-Reflection.doc`}
+					downloadFileName={baseFilename}
 					docTitle={title}
 					activityNumber={activityNumber}
 					docIntro={tipText}
@@ -402,10 +404,9 @@ export default function Activity02({
 					pageLinks={linkItems}
 					headingColor={EMERALD_700}
 					showDownloadButton={false}
-					onRequestDownload={handleDownload} // <- parent-managed download handler
+					onRequestDownload={handleDownload}
 				/>
 
-				{/* actions */}
 				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4">
 					<CompleteButton
 						started={started}

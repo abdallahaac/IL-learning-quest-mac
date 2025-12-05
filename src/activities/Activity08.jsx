@@ -315,11 +315,9 @@ export default function Activity08({
 									>
 										{tipText}
 										<br />
-										<strong>
 											{lang === "fr"
 												? "Partagez vos apprentissages avec votre équipe."
 												: "Share what you learned with your team."}
-										</strong>
 									</p>
 								)}
 							</div>

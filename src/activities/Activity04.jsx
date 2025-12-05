@@ -1,12 +1,11 @@
 // src/pages/activities/Activity04.jsx
 import React, { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Globe2 } from "lucide-react";
+import { Globe2, ExternalLink } from "lucide-react";
 import NoteComposer, {
 	downloadNotesAsWord,
 } from "../components/NoteComposer.jsx";
 import CompleteButton from "../components/CompleteButton.jsx";
-import LinkCard from "../components/LinkCard.jsx";
 import DownloadButton from "../components/DownloadButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 import { ACTIVITIES_CONTENT, ACTIVITY_UI } from "../constants/content.js";
@@ -55,7 +54,7 @@ export default function Activity04({
 			(ACTIVITIES_CONTENT.a4[lang] || ACTIVITIES_CONTENT.a4.en)) ||
 		{};
 
-	// prefer cdata.title if provided (keeps linguistics-approved sentence in cdata)
+	// prefer cdata.title if provided
 	const cdata = a4Content?.cdata || {};
 	const title =
 		cdata.title ||
@@ -64,7 +63,6 @@ export default function Activity04({
 			? "Apprenez des faits intéressants sur un peuple autochtone d’ailleurs"
 			: "Indigenous Peoples Outside Canada");
 
-	// instructions: prefer rich HTML (cdata), otherwise render tip/prompt
 	const instructionsHtml =
 		cdata.instructionsHtml ||
 		(a4Content?.prompt ? `<p>${a4Content.prompt}</p>` : "");
@@ -89,13 +87,9 @@ export default function Activity04({
 
 	// normalize resource list
 	const { linkItems, stringItems } = normalizeResources(a4Content);
-	const pageLinks = linkItems; // authoritative links from content.js
+	const pageLinks = linkItems;
 	const hasLinks = pageLinks && pageLinks.length > 0;
 
-	// french-only suffix (string, because LinkCard expects text to render)
-	const enOnlySuffix = lang === "fr" ? " (en anglais seulement)" : "";
-
-	// local notes state (prevents premature "started")
 	const [localNotes, setLocalNotes] = useState(notes ?? "");
 	useEffect(() => setLocalNotes(notes ?? ""), [notes]);
 	const saveNotes = (v) => {
@@ -105,16 +99,13 @@ export default function Activity04({
 
 	const started = hasActivityStarted(localNotes ?? notes, "notes");
 
-	// download state (same pattern as Activity 02)
 	const [isDownloading, setIsDownloading] = useState(false);
 
-	// localized labels for the document
 	const docLocale = {
 		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
 		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
 	}[lang];
 
-	// async download handler with guard + small cooldown (same logic as A02)
 	const handleDownload = async () => {
 		if (!started || isDownloading) return;
 
@@ -145,14 +136,12 @@ export default function Activity04({
 				})
 			);
 		} catch (err) {
-			// eslint-disable-next-line no-console
 			console.error("downloadNotesAsWord failed:", err);
 		} finally {
 			setTimeout(() => setIsDownloading(false), 700);
 		}
 	};
 
-	// animations — match rhythm used across other activities
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
 	const pageFade = {
@@ -181,7 +170,23 @@ export default function Activity04({
 		show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35 } },
 	};
 
-	const linkGridCols = "grid grid-cols-1 place-content-center";
+	// ---- same card dimensions as Activity01 ----
+	const linkCardBase =
+		"group block max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md hover:-translate-y-0.5 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 flex flex-col justify-center min-h-[110px]";
+
+	const staticCardBase =
+		"max-w-md w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm flex flex-col justify-center min-h-[110px]";
+
+	const badgeBase = "w-10 h-10 rounded-xl grid place-items-center";
+	const linkFooterBase =
+		"mt-2 flex items-center justify-center gap-1 text-xs font-medium";
+	// Center a single card like Activity03, use 2-col layout for multiple
+	const totalCards = hasLinks ? pageLinks.length : stringItems.length;
+
+	const linkGridClasses =
+		totalCards === 1
+			? "grid grid-cols-1 gap-4 place-content-center justify-items-center max-w-3xl w-full mx-auto"
+			: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center max-w-3xl w-full mx-auto";
 
 	return (
 		<motion.div
@@ -190,7 +195,6 @@ export default function Activity04({
 			initial="hidden"
 			animate="show"
 		>
-			{/* soft, accessible gradient */}
 			<motion.div
 				aria-hidden
 				className="absolute inset-0 -z-10 pointer-events-none bg-gradient-to-b via-white/65 to-slate-50/80"
@@ -267,11 +271,9 @@ export default function Activity04({
 									>
 										{tipText}
 										<br />
-										<strong>
-											{lang === "fr"
-												? "Décrivez les choses que vous avez apprises."
-												: "Describe the things you learned."}
-										</strong>
+										{lang === "fr"
+											? "Décrivez les choses que vous avez apprises."
+											: "Describe the things you learned."}
 									</p>
 								)}
 							</div>
@@ -279,30 +281,78 @@ export default function Activity04({
 					</div>
 				</motion.header>
 
-				{/* resources/cards — sourced from ACTIVITIES_CONTENT.a4 */}
-				{hasLinks && (
+				{/* resources/cards — styled like Activity01 */}
+				{(hasLinks || stringItems.length > 0) && (
 					<motion.section
 						className="flex justify-center"
 						variants={gridStagger}
 						initial="hidden"
 						animate="show"
 					>
-						<div className={linkGridCols}>
-							{pageLinks.map((lnk, i) => (
-								<motion.div
-									key={`${lnk.url || lnk.label}-${i}`}
-									variants={cardPop}
-								>
-									<LinkCard
-										link={lnk}
-										accent={accent}
-										Icon={Globe2}
-										enOnlySuffix={enOnlySuffix}
-										variants={cardPop}
-										cardHeight={"120px"}
-									/>
-								</motion.div>
-							))}
+						<div className={linkGridClasses}>
+							{hasLinks
+								? pageLinks.map((lnk, i) => (
+										<motion.a
+											key={`${lnk.url || lnk.label}-${i}`}
+											href={lnk.url}
+											target="_blank"
+											rel="noreferrer"
+											className={linkCardBase}
+											style={{ outlineColor: accent }}
+											variants={cardPop}
+											title={`${L.openLink}: ${lnk.label}`}
+											aria-label={`${L.openLink} ${lnk.label}`}
+										>
+											{/* icon on the left, text centered */}
+											<div className="relative flex items-center h-12">
+												{/* icon container pinned to the left */}
+												<div className="absolute inset-y-0 left-0 flex items-center pl-3">
+													<div
+														className={badgeBase}
+														style={{
+															backgroundColor: withAlpha(accent, "1A"),
+															color: accent,
+														}}
+													>
+														<Globe2 className="w-5 h-5" aria-hidden="true" />
+													</div>
+												</div>
+
+												{/* label centered horizontally in the card */}
+												<div className="flex-1 text-center font-medium text-slate-900">
+													{lnk.label}
+												</div>
+											</div>
+
+											<div className={linkFooterBase} style={{ color: accent }}>
+												<ExternalLink className="w-4 h-4" aria-hidden="true" />
+												<span>{L.openLink}</span>
+											</div>
+										</motion.a>
+								  ))
+								: stringItems.map((label, i) => (
+										<motion.div
+											key={`${label}-${i}`}
+											className={staticCardBase}
+											style={{ borderColor: withAlpha(accent, "22") }}
+											variants={cardPop}
+										>
+											<div className="flex items-center gap-3">
+												<div
+													className={badgeBase}
+													style={{
+														backgroundColor: withAlpha(accent, "1A"),
+														color: accent,
+													}}
+												>
+													<Globe2 className="w-5 h-5" aria-hidden="true" />
+												</div>
+												<div className="font-medium text-slate-900">
+													{label}
+												</div>
+											</div>
+										</motion.div>
+								  ))}
 						</div>
 					</motion.section>
 				)}

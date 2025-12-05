@@ -95,7 +95,7 @@ export const INTRO_INFO_CONTENT = {
 export const PREPARATION_CONTENT = {
 	title: "Preparation",
 	paragraphs: [
-		"Complete the tasks and activities that follow and use the notes space to keep track of your learning journey. You can also customize the activities based on your team’s quest parameters. Identify in advance how much time to give each activity.",
+		"Complete the tasks and activities that follow and use the rich text editor to keep track of your learning journey. You can also customize the activities based on your team’s quest parameters. Identify in advance how much time to give each activity.",
 		"Don’t feel pressured to complete all the activities in a set period. Complete the ones you feel comfortable with, and give yourself space to be challenged as you learn, grow, and build your cultural capacity.",
 		`Need a starting point? <a href="https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f" target="_blank" rel="noopener noreferrer" class="font-semibold underline text-[#7443d6] hover:text-[#552fa3]">Best media by Indigenous voices</a>.`,
 	],
@@ -246,7 +246,7 @@ export const RESOURCES_CONTENT = {
 				{
 					label:
 						"Indigenous Awareness, Cultural Safety and Capacity Building (GCpedia – ECCC)",
-					url: "https://www.gcpedia.gc.ca/wiki/Sensibilisation_%C3%A0_la_culture_autochtone_la_s%C3%A9curit%C3%A9_culturelle_et_le_renforcement_des_capacit%C3%A9s_autochtones_%C3%A0_ECCC",
+					url: "https://www.gcpedia.gc.ca/wiki/Indigenous_Affairs_and_Reconciliation_at_ECCC/Training",
 				},
 			],
 			tags: ["ECCC"],
@@ -269,7 +269,7 @@ export const RESOURCES_CONTENT = {
 				{
 					label:
 						"IPCA knowledge basket (Indigenous protected and conserved areas)",
-					url: "https://ipacknowledgebasket.ca/",
+					url: "https://ipcaknowledgebasket.ca/",
 				},
 			],
 			tags: ["Conservation"],
@@ -294,7 +294,7 @@ export const RESOURCES_CONTENT = {
 			links: [
 				{
 					label: "Fundamentals of OCAP® (FNIGC course)",
-					url: "https://fnigc.ca/fr/les-principes-de-pcap-des-premieres-nations/suivre-le-cours/",
+					url: "https://fnigc.ca/ocap-training/take-the-course/",
 				},
 			],
 			tags: ["FNIGC"],
@@ -307,7 +307,7 @@ export const RESOURCES_CONTENT = {
 			links: [
 				{
 					label: "Inuit societal values (Government of Nunavut)",
-					url: "https://www.gov.nu.ca/fr/culture-langue-patrimoine-et-art/valeurs-societales-inuites",
+					url: "https://www.gov.nu.ca/en/culture-language-heritage-and-art/inuit-societal-values",
 				},
 			],
 			tags: ["Nunavut"],
@@ -446,12 +446,9 @@ export const INTRO_INFO_CONTENT_FR = {
       <div class="bullet-item">
         <p class="bullet-body">
           Publiez vos ressources en ligne sur la murale
-          « <a href="https://app.mural.co/t/indigenousaffairsbranchdirec6046/m/indigenousaffairsbranchdirec6046/1733400932867/26fd87eadfffbefc3c535b15c45c067d7811364f"
-                 target="_blank" rel="noopener noreferrer"
-                 aria-label="Murale - Les meilleurs médias par les voix autochtones"
-                 class="font-semibold underline text-[#7443d6] hover:text-[#552fa3]">
+          « 
                  Les meilleurs médias par les voix autochtones
-              </a> », créée par des membres de l’équipe de Parcs Canada.
+             », créée par des membres de l’équipe de Parcs Canada.
           Poursuivez votre parcours d’apprentissage toute l’année et participez activement
           aux efforts de réconciliation.
         </p>
@@ -882,9 +879,9 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Découvrez les œuvres d’une ou un artiste autochtone qui vous parle. Décrivez la manière dont vous vous identifiez à cette personne. Comment vous inspire-t-elle?",
 			cdata: {
 				instructionsHtml: `
-        <p>Décrivez la manière dont vous vous identifiez à cette personne.</p>
-        <p>Comment vous inspire-t-elle&nbsp;?</p>
-      `,
+      <p>Décrivez la manière dont vous vous identifiez à cette personne.</p>
+      <p>Comment vous inspire-t-elle&nbsp;?</p>
+    `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
@@ -897,6 +894,16 @@ export const ACTIVITIES_CONTENT = {
 				{
 					label: "Sélection de musiciens autochtones au Canada",
 					url: "https://thecanadianencyclopedia.ca/fr/article/musiciens-autochtones-d-influence-au-canada",
+					icon: "music",
+				},
+				{
+					label: "Liste d’artistes musicaux autochtones",
+					url: "https://nikamowin.com/fr/artistes",
+					icon: "music",
+				},
+				{
+					label: "Listes d’écoutes musicales autochtones",
+					url: "https://ici.radio-canada.ca/ohdio/listes-ecoute-musicales/genres/1006254/autochtone",
 					icon: "music",
 				},
 			],
@@ -938,23 +945,21 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région. Décrivez vos apprentissages.",
 			cdata: {
 				instructionsHtml: `
-          <p>Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.</p>
-          <p>Décrivez vos apprentissages.</p>
-        `,
+      <p>Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.</p>
+      <p>Décrivez vos apprentissages.</p>
+    `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
-					label:
-						"Livre sur les aliments végétaux traditionnels chez les peuples autochtones du Canada",
-					url: "https://openknowledge.fao.org/server/api/core/bitstreams/02134cf4-156b-47c7-972d-cf2690df1b55/content",
+					label: "Plantes traditionnelles et peuples autochtones au Canada",
+					url: "https://www.thecanadianencyclopedia.ca/fr/article/plants-native-uses",
 					icon: "image",
 				},
 				{
-					label:
-						"Liste des utilisations traditionnelles des plantes chez les Métis (PDF)",
-					url: "https://www.metismuseum.ca/media/document.php/148985.La%20Michinn%20revised%20and%20catalogued.pdf",
+					label: "Plantes médicinales sacrées",
+					url: "https://info.sshrc-crsh.gc.ca/zibi/",
 					icon: "image",
 				},
 			],
@@ -1036,9 +1041,16 @@ export const ACTIVITIES_CONTENT = {
 			},
 			links: [
 				{
-					label: "Recettes autochtones",
-					url: "https://www.firstnations.org/knowledge-center/recipes/",
-					enOnly: true,
+					label: "La cuisine des Premiers Peuples",
+					url: "https://chucketlacuisinedespremierspeuples.com/",
+				},
+				{
+					label: "7 recettes de la cheffe Lysanne O’Bomsawin",
+					url: "https://www.journaldequebec.com/2024/10/27/la-cuisine-autochtone-7-recettes-de-la-cheffe-lysanne-obomsawin",
+				},
+				{
+					label: "Goûtez à la culture : la cuisine autochtone",
+					url: "https://indigenouscuisine.ca/fr/",
 				},
 			],
 			namePlaceholder: "Nom de la recette",
@@ -1134,8 +1146,8 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			resourcesHeading: "Ressources",
 			links: [
 				{
-					label: "Carte mondiale des peuples autochtones (PDF)",
-					url: "https://newshour-classroom-tc.digi-producers.pbs.org/uploads/app/uploads/2014/11/A-global-map-of-indigenous-peoples.pdf",
+					label: "Carte mondiale des Premiers Peuples",
+					url: "https://www.scienceshumaines.com/images/ou.sont_.les_.peuples_.premiers_.png",
 					icon: "map",
 				},
 			],
@@ -1185,16 +1197,16 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			resourcesHeading: "Ressources",
 			links: [
 				{
+					label: "Espaces autochtones — Radio-Canada",
+					url: "https://ici.radio-canada.ca/espaces-autochtones/ecouter-et-voir",
+					icon: "audio",
+					enOnly: false,
+				},
+				{
 					label: "Cinéma autochtone — Office national du film",
 					url: "https://www.onf.ca/cinema-autochtone/?language=fr&sort=year%3Adesc%2Ctitle&year_min=1968&year_max=2025",
 					icon: "film",
 					enOnly: false,
-				},
-				{
-					label: "Histoires autochtones de CBC Gem",
-					url: "https://gem.cbc.ca/section/indigenous-stories",
-					icon: "video",
-					enOnly: true,
 				},
 			],
 		},
@@ -1357,53 +1369,51 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			resourcesHeading: "Ressources",
 			links: [
 				{
-					label: "FirstVoices (en anglais)",
-					url: "https://wstvoices.com/",
+					label: "Langues autochtones — Ressources d’apprentissage",
+					url: "https://www.noslangues-ourlanguages.gc.ca/fr/ressources-resources/autochtones-aboriginals/apprentissage-learning-fra",
 				},
 				{
-					label: "Glossaire Inuktut (en anglais)",
-					url: "https://tusaalanga.ca/glossary",
+					label: "Institut nordique du Québec — Langues",
+					url: "https://atiku.inq.ulaval.ca/collection/langues-2/",
 				},
 				{
-					label:
-						"Michif Language Revitalization Circle (ressources) (en anglais)",
-					url: "https://speakmichif.ca/learn/resources",
+					label: "Phrases et mots en michif (PDF)",
+					url: "https://www.rupertsland.org/wp-content/uploads/2024/11/Heritage-Michif-Phrases.pdf",
 				},
 				{
-					label:
-						"Ressources pour les langues métisses (Louis Riel Institute) (en anglais)",
-					url: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
+					label: "Glossaire inuktut – français",
+					url: "https://tusaalanga.ca/fr/glossary",
 				},
 			],
 			outlets: [
 				{
-					href: "https://www.firstvoices.com/",
-					title: "FirstVoices ",
-					desc: "Centre de ressources pour les langues autochtones.",
-					enOnly: true, // will trigger the FR-only suffix in the UI
+					href: "https://www.noslangues-ourlanguages.gc.ca/fr/ressources-resources/autochtones-aboriginals/apprentissage-learning-fra",
+					title: "Langues autochtones — Ressources d’apprentissage",
+					desc: "Ressources pour découvrir et apprendre différentes langues autochtones.",
+					enOnly: false,
 				},
 				{
-					href: "https://tusaalanga.ca/glossary",
-					title: "Glossaire Inuktut",
-					desc: "Glossaire et ressources linguistiques Inuktut.",
-					enOnly: true, // will trigger the FR-only suffix in the UI
+					href: "https://atiku.inq.ulaval.ca/collection/langues-2/",
+					title: "Institut nordique du Québec — Langues",
+					desc: "Collection de ressources sur les langues autochtones du Nord.",
+					enOnly: false,
 				},
 				{
-					href: "https://speakmichif.ca/learn/resources",
-					title: "Michif Language Revitalization Circle",
-					desc: "Matériel d’apprentissage du Michif.",
-					enOnly: true, // will trigger the FR-only suffix in the UI
+					href: "https://www.rupertsland.org/wp-content/uploads/2024/11/Heritage-Michif-Phrases.pdf",
+					title: "Phrases et mots en michif",
+					desc: "Document avec des exemples de phrases et de vocabulaire en michif.",
+					enOnly: false,
 				},
 				{
-					href: "https://www.louisrielinstitute.ca/metis-languages-learning-resources",
-					title: "Ressources langues métisses (Louis Riel Institute)",
-					desc: "Ressources pour apprendre les langues métisses.",
-					enOnly: true, // will trigger the FR-only suffix in the UI
+					href: "https://tusaalanga.ca/fr/glossary",
+					title: "Glossaire inuktut – français",
+					desc: "Glossaire interactif pour explorer le vocabulaire inuktut en français.",
+					enOnly: false,
 				},
 			],
+
 			instructionsHtml: `
       <p>Apprenez à prononcer trois mots dans une langue autochtone et partagez-les avec votre équipe.</p>
-      <p>Conseil : Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.</p>
     `,
 			ui: {
 				instructionsPill: "Consignes",
@@ -1491,32 +1501,33 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			tip: "Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ ainsi que de leurs histoires. Découvrez des personnes à suivre et partagez vos apprentissages.",
 			cdata: {
 				instructionsHtml: `
-        <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
-        <p>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</p>
-      `,
+      <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
+      <p>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</p>
+    `,
 			},
 			notePlaceholder: "Cliquez ou tapez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
 				{
-					label: "Ressource de savoir bispirituel",
-					url: "https://nativegov.org/resources/indigenous-knowledge-and-two-spirit-leadership/",
+					label: "Programme bispirituel",
+					url: "https://fr.cbrc.net/programme_bispirituel",
 					icon: "article",
-					enOnly: true,
+					enOnly: false,
 				},
 				{
-					label: "Bibliothèque Two-Spirit (W2SA) — en anglais",
-					url: "https://w2sa.ca/two-spirit-library",
-					icon: "library",
-					enOnly: true,
+					label: "La réémergence des personnes bispirituelles au 21e siècle",
+					url: "https://droitsdelapersonne.ca/histoire/la-reemergence-des-personnes-bispirituelles-au-21e-siecle",
+					icon: "article",
+					enOnly: false,
 				},
 				{
-					label: "Deux esprits, une voix (Egale) — en anglais",
-					url: "https://egale.ca/awareness/two-spirits-one-voice/",
+					label: "La bispiritualité — Blogue de l’ONF",
+					url: "https://blogue.onf.ca/blogue/2023/08/21/la-bispiritualite-a-toujours-ete-une-identite-meme-lorsque-nous-navions-pas-les-mots-pour-la-designer/",
 					icon: "article",
-					enOnly: true,
+					enOnly: false,
 				},
 			],
+
 			resources: [
 				"Dr. James Makokis — médecin cri bispirituel et conférencier",
 				"Jaris Swidrovich — pharmacien saulteaux et éducateur bispirituel",
@@ -1591,54 +1602,40 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			notePlaceholder: "Lien vers l’article, vos réflexions…",
 			resourcesHeading: "Ressources autochtones proposées",
 			links: [
-				{ label: "APTN (en anglais)", url: "https://www.aptntv.ca/" },
 				{
-					label: "The Turtle Island News (en anglais)",
-					url: "https://theturtleislandnews.com/",
+					label: "Nouvelles APTN",
+					url: "https://www.aptnnews.ca/nouvelles/",
 				},
-				{ label: "Ku'ku'kwes (en anglais)", url: "https://kukukwes.com/" },
-				{ label: "IndigiNews (en anglais)", url: "https://indiginews.com/" },
-				{ label: "Ha-Shilth-Sa (en anglais)", url: "https://hashilthsa.com/" },
-				{ label: "Windspeaker (en anglais)", url: "https://windspeaker.com/" },
+				{
+					label: "Espaces autochtones",
+					url: "https://ici.radio-canada.ca/espaces-autochtones/ecouter-et-voir",
+				},
+				{
+					label: "Culture autochtone – ICI Tou.tv",
+					url: "https://ici.tou.tv/collection/autochtones",
+				},
 			],
 			outlets: [
 				{
-					href: "https://www.aptntv.ca/",
-					title: "APTN",
-					desc: "Réseau national de télévision autochtone avec couverture d’actualités.",
-					enOnly: true,
+					href: "https://www.aptnnews.ca/nouvelles/",
+					title: "Nouvelles APTN",
+					desc: "Couverture journalistique des réalités autochtones à travers le Canada.",
+					enOnly: false,
 				},
 				{
-					href: "https://theturtleislandnews.com/",
-					title: "The Turtle Island News",
-					desc: "Reportages communautaires couvrant Turtle Island.",
-					enOnly: true,
+					href: "https://ici.radio-canada.ca/espaces-autochtones/ecouter-et-voir",
+					title: "Espaces autochtones",
+					desc: "Reportages, balados et contenus vidéo sur les Premiers Peuples.",
+					enOnly: false,
 				},
 				{
-					href: "https://kukukwes.com/",
-					title: "Ku'ku'kwes News",
-					desc: "Actualités autochtones indépendantes de l’Atlantique canadien.",
-					enOnly: true,
-				},
-				{
-					href: "https://indiginews.com/",
-					title: "IndigiNews",
-					desc: "Voix locales autochtones et reportages d’investigation.",
-					enOnly: true,
-				},
-				{
-					href: "https://hashilthsa.com/",
-					title: "Ha-Shilth-Sa",
-					desc: "Journaux du Nuu-chah-nulth Tribal Council.",
-					enOnly: true,
-				},
-				{
-					href: "https://windspeaker.com/",
-					title: "Windspeaker",
-					desc: "Actualités, analyses et opinions autochtones.",
-					enOnly: true,
+					href: "https://ici.tou.tv/collection/autochtones",
+					title: "Culture autochtone – ICI Tou.tv",
+					desc: "Collection d’émissions et de documentaires sur les cultures autochtones.",
+					enOnly: false,
 				},
 			],
+
 			instructionsHtml: `
       <p>Découvrez un reportage qui porte sur des sujets autochtones et réfléchissez à sa portée.</p>
       <p>Quels défis la communauté rencontre-t-elle?</p>
@@ -1687,7 +1684,6 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 				},
 			],
 		},
-
 		fr: {
 			id: "a10",
 			number: 10,
@@ -1697,15 +1693,21 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			resourcesHeading: "Ressources",
 			links: [
 				{
-					label: "Shop First Nations (en anglais)",
-					url: "https://shopfirstnations.com/",
-					enOnly: true,
+					label: "Répertoire d’entreprises autochtones (CDEPNQL)",
+					url: "https://entreprises.cdepnql.org/#/",
 				},
 				{
 					label:
-						"17 entreprises canadiennes appartenant à des Autochtones (2025) (en anglais)",
-					url: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
-					enOnly: true,
+						"Galeries d’art et boutiques autochtones – Destination Ontario",
+					url: "https://www.destinationontario.com/fr-ca/articles/galeries-dart-et-boutiques-de-cadeaux-autochtones",
+				},
+				{
+					label: "Artisanat autochtone",
+					url: "https://www.artisanatautochtone.com/",
+				},
+				{
+					label: "Guide de cadeaux autochtones – Destination Indigenous",
+					url: "https://destinationindigenous.ca/fr/blog/guide-de-cadeaux-autochtones/",
 				},
 				{
 					label: "Répertoire des entreprises autochtones (ISC)",
@@ -1714,28 +1716,40 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			],
 			outlets: [
 				{
-					href: "https://shopfirstnations.com/",
-					title: "Shop First Nations",
-					desc: "Place de marché regroupant des marques et artisans autochtones.",
-					enOnly: true,
+					href: "https://entreprises.cdepnql.org/#/",
+					title: "Répertoire d’entreprises autochtones (CDEPNQL)",
+					desc: "Répertoire interactif d’entreprises autochtones au Québec.",
+					enOnly: false,
 				},
 				{
-					href: "https://www.shoplocalcanada.ca/canadian-indigenous-owned-businesses/",
-					title:
-						"17 entreprises canadiennes appartenant à des Autochtones (2025)",
-					desc: "Sélection d’entreprises autochtones au Canada.",
-					enOnly: true,
+					href: "https://www.destinationontario.com/fr-ca/articles/galeries-dart-et-boutiques-de-cadeaux-autochtones",
+					title: "Galeries d’art et boutiques autochtones",
+					desc: "Suggestions de galeries et boutiques mettant en valeur des créateur·rice·s autochtones en Ontario.",
+					enOnly: false,
+				},
+				{
+					href: "https://www.artisanatautochtone.com/",
+					title: "Artisanat autochtone",
+					desc: "Plateforme mettant de l’avant des artisan·e·s et produits autochtones.",
+					enOnly: false,
+				},
+				{
+					href: "https://destinationindigenous.ca/fr/blog/guide-de-cadeaux-autochtones/",
+					title: "Guide de cadeaux autochtones",
+					desc: "Guide d’idées cadeaux pour soutenir des entreprises et artisan·e·s autochtones.",
+					enOnly: false,
 				},
 				{
 					href: "https://www.sac-isc.gc.ca/rea-ibd",
 					title: "Répertoire des entreprises autochtones (ISC)",
 					desc: "Répertoire gouvernemental consultable d’entreprises autochtones.",
+					enOnly: false,
 				},
 			],
+
 			// optional HTML instructions to preserve formatting (displayed if present)
 			instructionsHtml: `
       <p>Découvrez une entreprise appartenant à une personne inuite, métisse ou des Premières Nations (en personne ou en ligne).</p>
-      <p>Réfléchissez : quels produits ou services ont retenu votre attention et pourquoi? Comment pourriez-vous soutenir cette entreprise?</p>
     `,
 		},
 	},

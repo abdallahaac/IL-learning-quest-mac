@@ -291,11 +291,9 @@ export default function Activity10({
 									>
 										{tipText}
 										<br />
-										<strong>
-											{lang === "fr"
-												? "Quels produits ou services ont attiré votre attention et pourquoi?"
-												: "What products or services spoke to you and why?"}
-										</strong>
+										{lang === "fr"
+											? "Quels produits ou services ont attiré votre attention et pourquoi?"
+											: "What products or services spoke to you and why?"}
 									</p>
 								)}
 							</div>

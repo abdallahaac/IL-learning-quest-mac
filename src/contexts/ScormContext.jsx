@@ -29,10 +29,12 @@ const strSafe = (v, fb = "{}") => {
 };
 
 export function ScormProvider({ children }) {
-	const scorm = useMemo(
-		() => (window?.pipwerks ? window.pipwerks.SCORM : null),
-		[]
-	);
+	// Grab pipwerks SCORM from the global wrapper script
+	const scorm = useMemo(() => {
+		if (typeof window === "undefined") return null;
+		return window.pipwerks?.SCORM ?? null;
+	}, []);
+
 	const [lmsConnected, setLmsConnected] = useState(false);
 	const [learnerName, setLearnerName] = useState("Learner");
 	const initedRef = useRef(false);
@@ -45,7 +47,9 @@ export function ScormProvider({ children }) {
 		saveTimerRef.current = setTimeout(() => {
 			try {
 				scorm.save();
-			} catch {}
+			} catch {
+				// ignore
+			}
 		}, 900);
 	}, [scorm]);
 
@@ -53,10 +57,22 @@ export function ScormProvider({ children }) {
 		if (!scorm || initedRef.current) return;
 		initedRef.current = true;
 
+		// Ensure wrapper knows SCORM version (1.2 vs 2004)
+		try {
+			if (!scorm.version && scorm.API?.isFound) {
+				scorm.API.isFound(); // sets scorm.version
+				console.log("[SCORM] Detected version:", scorm.version);
+			}
+		} catch (e) {
+			console.warn("[SCORM] Failed to detect SCORM version", e);
+		}
+
 		let ok = false;
 		try {
 			ok = !!scorm.init();
-		} catch {
+			console.log("[SCORM] init() returned:", ok);
+		} catch (e) {
+			console.error("[SCORM] init() threw", e);
 			ok = false;
 		}
 		setLmsConnected(ok);
@@ -70,7 +86,9 @@ export function ScormProvider({ children }) {
 						: "cmi.learner_name";
 				const nm = scorm.get?.(key);
 				if (nm) setLearnerName(String(nm));
-			} catch {}
+			} catch (e) {
+				console.warn("[SCORM] Failed to read learner name", e);
+			}
 
 			// Set incomplete at launch if not complete
 			try {
@@ -87,7 +105,9 @@ export function ScormProvider({ children }) {
 						scorm.save?.();
 					}
 				}
-			} catch {}
+			} catch (e) {
+				console.warn("[SCORM] Failed to set initial status", e);
+			}
 		} else {
 			console.warn("[SCORM] init() failed or API not found. Offline mode.");
 		}
@@ -95,7 +115,9 @@ export function ScormProvider({ children }) {
 		const onUnload = () => {
 			try {
 				scorm?.quit?.();
-			} catch {}
+			} catch {
+				// ignore
+			}
 		};
 		window.addEventListener("beforeunload", onUnload);
 		return () => {

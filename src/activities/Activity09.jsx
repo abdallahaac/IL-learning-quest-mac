@@ -461,11 +461,9 @@ export default function Activity09({
 									>
 										{tipText}
 										<br />
-										<strong>
-											{lang === "fr"
-												? "Partagez vos remarques : quels défis la communauté rencontre-t-elle ? Quels biais émergent ?"
-												: "Share your thoughts and perspectives on what you learned — for example, challenges people face or biases the story reveals."}
-										</strong>
+										{lang === "fr"
+											? "Partagez vos remarques : quels défis la communauté rencontre-t-elle ? Quels biais émergent ?"
+											: "Share your thoughts and perspectives on what you learned — for example, challenges people face or biases the story reveals."}
 									</p>
 								)}
 							</div>

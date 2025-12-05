@@ -19,31 +19,7 @@ import { downloadAllDocx, downloadOne } from "../utils/downloadRecipes.js";
 import CompleteButton from "../components/CompleteButton.jsx";
 import { hasActivityStarted } from "../utils/activityProgress.js";
 import DownloadButton from "../components/DownloadButton.jsx";
-
-/* ---------- small language sniff (same pattern as others) ---------- */
-function detectLang() {
-	try {
-		const qs = new URLSearchParams(window.location.search);
-		if (qs.get("lang")) return qs.get("lang").toLowerCase().slice(0, 2);
-		const html = document.documentElement?.getAttribute("lang");
-		if (html) return html.toLowerCase().slice(0, 2);
-		const nav = navigator?.language || navigator?.languages?.[0];
-		if (nav) return nav.toLowerCase().slice(0, 2);
-	} catch {}
-	return "en";
-}
-
-/* sanitize filename: remove diacritics, collapse whitespace, remove bad chars */
-function sanitizeFilename(input = "") {
-	return String(input || "")
-		.normalize("NFKD") // decompose accents
-		.replace(/[\u0300-\u036f]/g, "") // strip diacritics
-		.replace(/[^0-9A-Za-z.\-_ ]+/g, "") // remove weird chars (keep ., -, _, space)
-		.trim()
-		.replace(/\s+/g, "-") // spaces -> dashes
-		.replace(/-+/g, "-") // collapse repeated dashes
-		.replace(/^\-+|\-+$/g, ""); // trim leading/trailing dash
-}
+import { detectLang, getActivityFilePrefix } from "../utils/lang.js";
 
 export default function Activity03({
 	content,
@@ -59,7 +35,6 @@ export default function Activity03({
 
 	const strings = content || {};
 
-	// animations
 	const pageFade = {
 		hidden: { opacity: 0 },
 		show: { opacity: 1, transition: { duration: 0.3 } },
@@ -82,13 +57,15 @@ export default function Activity03({
 		exit: { opacity: 0, height: 0, transition: { duration: 0.2 } },
 	};
 
-	// Reference link: pulled from content.links[0] if present (no hardcoded fallback)
+	// All reference links from content
+	const referenceLinks = Array.isArray(strings.links) ? strings.links : [];
+
+	// First link kept for exports
 	const referenceLink =
-		Array.isArray(strings.links) && strings.links.length
-			? strings.links[0]
+		Array.isArray(referenceLinks) && referenceLinks.length
+			? referenceLinks[0]
 			: null;
 
-	// MODEL normalization
 	const initial = useMemo(() => {
 		const fromNotes = notes && typeof notes === "object" ? notes : null;
 		const tryLocal = () => {
@@ -321,8 +298,11 @@ export default function Activity03({
 		window.setTimeout(() => setJustSavedId(null), 1400);
 	};
 
-	// ---------- Download guards (modular) ----------
-	const lang = detectLang() === "fr" ? "fr" : "en";
+	// Download / locale stuff
+	const langRaw = detectLang();
+	const lang = langRaw === "fr" ? "fr" : "en";
+	const filePrefix = getActivityFilePrefix(lang);
+
 	const docLocale = {
 		en: {
 			allSuffix: "Recipes",
@@ -339,7 +319,6 @@ export default function Activity03({
 	const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 	const [downloadingRecipeId, setDownloadingRecipeId] = useState(null);
 
-	// IMPORTANT: do NOT create a .zip filename here. Let the download helper build a localized .docx filename.
 	const handleDownloadAll = async () => {
 		if (!started || isDownloadingAll) return;
 		if (!Array.isArray(model.recipes) || model.recipes.length === 0) return;
@@ -352,13 +331,12 @@ export default function Activity03({
 				activityNumber,
 				accent,
 				referenceLink,
-				locale: lang, // <- tell the util which language to use for filename
+				locale: lang,
 			});
 		} catch (err) {
 			// eslint-disable-next-line no-console
 			console.error("downloadAllDocx failed:", err);
 		} finally {
-			// little delay so UI doesn't flicker and user can't hammer the button
 			setTimeout(() => setIsDownloadingAll(false), 700);
 		}
 	};
@@ -366,7 +344,6 @@ export default function Activity03({
 	const handleDownloadOne = async (recipe) => {
 		if (!started) return;
 		if (!recipe || !recipe.id) return;
-		// if a global download-all is in progress, skip
 		if (isDownloadingAll || downloadingRecipeId) return;
 
 		setDownloadingRecipeId(recipe.id);
@@ -378,7 +355,7 @@ export default function Activity03({
 				accent,
 				referenceLink,
 				{
-					locale: lang, // <- localized filename generation happens inside the util
+					locale: lang,
 				}
 			);
 		} catch (err) {
@@ -389,7 +366,6 @@ export default function Activity03({
 		}
 	};
 
-	// render tip helper
 	const renderTip = (text) => {
 		if (!text) return null;
 		if (typeof strings.cdata === "object" && strings.cdata.instructionsHtml) {
@@ -405,6 +381,11 @@ export default function Activity03({
 			</p>
 		));
 	};
+
+	const linkGridClasses =
+		referenceLinks.length === 1
+			? "grid grid-cols-1 gap-4 place-content-center justify-items-center max-w-3xl w-full mx-auto"
+			: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 place-content-center max-w-3xl w-full mx-auto";
 
 	return (
 		<motion.div
@@ -482,24 +463,31 @@ export default function Activity03({
 					</div>
 				</motion.header>
 
-				{referenceLink ? (
+				{/* Resources grid – centered if only one link */}
+				{referenceLinks.length > 0 && (
 					<motion.section
 						className="flex justify-center"
 						variants={cardPop}
 						initial="hidden"
 						animate="show"
 					>
-						<LinkCard
-							link={referenceLink}
-							accent={accent}
-							Icon={Utensils}
-							openLinkLabel={strings.openLinkLabel}
-							variants={cardPop}
-							cardHeight={"140px"}
-							enOnlySuffix="(en anglais seulement)"
-						/>
+						<div className={linkGridClasses}>
+							{referenceLinks.map((lnk, i) => (
+								<LinkCard
+									key={`${lnk.url || lnk.label}-${i}`}
+									link={lnk}
+									accent={accent}
+									Icon={Utensils}
+									openLinkLabel={strings.openLinkLabel}
+									cardHeight="110px"
+									enOnlySuffix={
+										lang === "fr" && lnk.enOnly ? " (en anglais seulement)" : ""
+									}
+								/>
+							))}
+						</div>
 					</motion.section>
-				) : null}
+				)}
 
 				<section className="mx-auto max-w-3xl w-full">
 					<motion.div
@@ -593,7 +581,6 @@ export default function Activity03({
 							labelForGroupLocalized={(id) =>
 								strings.groupLabels?.[id] || labelForGroup(id)
 							}
-							// new props so the child can show per-recipe "busy" states
 							isDownloadingAll={isDownloadingAll}
 							downloadingRecipeId={downloadingRecipeId}
 							started={started}
@@ -601,7 +588,6 @@ export default function Activity03({
 					</motion.div>
 				</section>
 
-				{/* Bottom action bar */}
 				<div className="flex gap-2 justify-center sm:justify-end mb-20 sm:mb-4">
 					<CompleteButton
 						started={started}
