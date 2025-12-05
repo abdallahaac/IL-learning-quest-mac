@@ -1285,6 +1285,10 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			// links used for export & the resource cards UI (label + url)
 			links: [
 				{
+					label: "Algonquian Linguistics Atlas",
+					url: "https://www.atlas-ling.ca/",
+				},
+				{
 					label: "FirstVoices (Indigenous Language Revitalization Platform)",
 					url: "https://www.firstvoices.com/",
 				},
@@ -1303,6 +1307,10 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			],
 			// optional richer objects for UI outlet tiles
 			outlets: [
+				{
+					label: "Algonquian Linguistics Atlas",
+					url: "https://www.atlas-ling.ca/",
+				},
 				{
 					href: "https://www.firstvoices.com/",
 					label: "FirstVoices (Indigenous Language Revitalization Platform)",
@@ -1559,6 +1567,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 				{ label: "IndigiNews", url: "https://indiginews.com/" },
 				{ label: "Ha-Shilth-Sa", url: "https://hashilthsa.com/" },
 				{ label: "Windspeaker", url: "https://windspeaker.com/" },
+				{ label: "Nunatsiaq News", url: "https://nunatsiaq.com/" },
 			],
 			outlets: [
 				{
@@ -1591,6 +1600,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 					title: "Windspeaker",
 					desc: "Coverage of Indigenous news, culture and opinion.",
 				},
+				{ title: "Nunatsiaq News", href: "https://nunatsiaq.com/" },
 			],
 		},
 
