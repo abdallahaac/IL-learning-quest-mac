@@ -998,9 +998,20 @@ export const ACTIVITIES_CONTENT = {
 			},
 			links: [
 				{
-					label:
-						"Native/Indigenous recipes (First Nations Development Institute)",
-					url: "https://www.firstnations.org/knowledge-center/recipes/",
+					label: "First Nations Recipes For National Indigenous History Month",
+					url: "https://www.flavournetwork.ca/article/canadian-first-nations-recipes/",
+				},
+				{
+					label: "Celebrating Indigenous Ingredients and Recipes",
+					url: "https://canadianfoodfocus.org/canadian-food-stories/celebrating-indigenous-ingredients-and-recipes/",
+				},
+				{
+					label: "Indigenous Food Systems Network",
+					url: "https://indigenousfoodsystems.org/recipes",
+				},
+				{
+					label: "Indigenous Culinary Experiences",
+					url: "https://indigenouscuisine.ca/",
 				},
 			],
 			namePlaceholder: "Recipe name",
@@ -1542,10 +1553,10 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 			resources: [
 				"Dr. James Makokis — Cree Two-Spirit doctor and speaker",
 				"Jaris Swidrovich — Two-Spirit Saulteaux pharmacist and educator",
-				"Raven Davis — Two-Spirit Anishinaabe artist and community organizer",
-				"TJ Cuthand — Theo Jean Cuthand, Two-Spirit Plains Cree filmmaker",
-				"Alexa Keleutak — Inuit 2SLGBTQQIA+ representative (Québec)",
-				"Chelsea Vowel (âpihtawikosisân) — Métis writer & public intellectual",
+				"Raven Davis — Two-Spirit, trans, disabled Anishinaabe artist and community organizer",
+				"TJ Cuthand — Two-Spirit Plains Cree trans filmmaker, writer, director",
+				"Alexa Keleutak — Inuit, representing Inuit 2SLGBTQQIA+ perspectives in Quebec",
+				"Chelsea Vowel (âpihtawikosisân) — Métis writer, Cree language mentor, and public intellectual",
 			],
 		},
 
@@ -1556,7 +1567,7 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 			tip: "Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ ainsi que de leurs histoires. <strong>Découvrez des personnes à suivre et partagez vos apprentissages.</strong>",
 			cdata: {
 				instructionsHtml: `
-      <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
+      <p>Enrichissez votre compréhension des communautés bispirituelles, autochtones queers et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
       <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</strong></p>    `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
@@ -1583,12 +1594,12 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 			],
 
 			resources: [
-				"Dr. James Makokis — médecin cri bispirituel et conférencier",
+				"Dr. James Makokis — médecin et conférencier cri bispirituel",
 				"Jaris Swidrovich — pharmacien saulteaux et éducateur bispirituel",
-				"Raven Davis — artiste anishinaabe et organisateur·trice communautaire (bispirituel·le)",
-				"TJ Cuthand — cinéaste cri des plaines (Two-Spirit)",
+				"Raven Davis — artiste anishinaabe bispirituel·le, trans et en situation de handicap, et organisateur·trice communautaire",
+				"TJ Cuthand — cinéaste, scénariste et réalisateur bispirituel cri des plaines transgenre",
 				"Alexa Keleutak — Inuite, représentante 2SLGBTQQIA+ (Québec)",
-				"Chelsea Vowel (âpihtawikosisân) — écrivaine métisse et intellectuelle publique",
+				"Chelsea Vowel (âpihtawikosisân) — écrivaine métisse, mentor de la langue crie et intellectuelle publique",
 			],
 		},
 	},
@@ -1713,13 +1724,13 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 			id: "a10",
 			number: 10,
 			title: "Indigenous-Owned Business",
-			tip: "Explore a First Nations, Inuit or Métis-owned business (in person or online). What products or services spoke to you and why?",
+			tip: "Explore a First Nations, Inuit or Métis-owned business (in person or online). ",
 			notePlaceholder: "Business, offerings, how you’ll support…",
 			// Added cdata to provide HTML-formatted instructions matching the English tip.
 			cdata: {
 				instructionsHtml: `
 				  <p>Explore a First Nations, Inuit or Métis-owned business (in person or online).</p>
-				  <p>What products or services spoke to you and why?</p>
+				  <p><strong>What products or services spoke to you and why?</strong></p>
 				`,
 			},
 			resourcesHeading: "Resources",

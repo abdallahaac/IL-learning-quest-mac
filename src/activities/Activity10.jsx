@@ -64,7 +64,8 @@ export default function Activity10({
 		a10Content?.resourcesHeading ||
 		(lang === "fr" ? "Ressources" : "Resources");
 
-	const instructionsHtml = a10Content?.instructionsHtml || null;
+	const instructionsHtml =
+		a10Content?.instructionsHtml ?? a10Content?.cdata?.instructionsHtml ?? null;
 
 	// keep local notes in sync
 	const [localNotes, setLocalNotes] = useState(notes ?? "");
