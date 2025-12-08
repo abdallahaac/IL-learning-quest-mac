@@ -66,9 +66,7 @@ export default function Activity09({
 		(lang === "fr" ? "Ressources" : "Suggested Indigenous-Led Outlets");
 
 	const instructionsHtml =
-		a9Content?.instructionsHtml ||
-		(a9Content?.cdata && a9Content.cdata.instructionsHtml) ||
-		null;
+		a9Content?.instructionsHtml ?? a9Content?.cdata?.instructionsHtml ?? null;
 
 	const [localNotes, setLocalNotes] = useState(notes ?? "");
 	useEffect(() => setLocalNotes(notes ?? ""), [notes]);
@@ -463,7 +461,7 @@ export default function Activity09({
 										<br />
 										{lang === "fr"
 											? "Partagez vos remarques : quels défis la communauté rencontre-t-elle ? Quels biais émergent ?"
-											: "Share your thoughts and perspectives on what you learned — for example, challenges people face or biases the story reveals."}
+											: "Share your thoughts and perspectives on what you learned"}
 									</p>
 								)}
 							</div>

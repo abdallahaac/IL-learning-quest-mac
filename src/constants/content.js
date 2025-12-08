@@ -858,6 +858,14 @@ export const ACTIVITIES_CONTENT = {
 			title: "Explore an Indigenous Artist",
 			tip: "Explore works by an Indigenous artist that speak to you. Describe how you relate to this artist. How does this artist inspire you?",
 			notePlaceholder: "Your reflections on the artist…",
+			// Added cdata to provide HTML-formatted instructions matching the English tip.
+			cdata: {
+				instructionsHtml: `
+				  <p>Explore works by an Indigenous artist that speak to you.</p>
+				  <p>Describe how you relate to this artist.</p>
+				  <p><strong>How does this artist inspire you?</strong></p>
+				`,
+			},
 			resourcesHeading: "Resources",
 			links: [
 				{
@@ -876,11 +884,11 @@ export const ACTIVITIES_CONTENT = {
 			id: "a1",
 			number: 1,
 			title: "Découvrez un artiste autochtone",
-			tip: "Découvrez les œuvres d’une ou un artiste autochtone qui vous parle. Décrivez la manière dont vous vous identifiez à cette personne. Comment vous inspire-t-elle?",
+			tip: "Découvrez les œuvres d’une ou un artiste autochtone qui vous parle. Décrivez la manière dont vous vous identifiez à cette personne.<strong> Comment vous inspire-t-elle?</strong>",
 			cdata: {
 				instructionsHtml: `
       <p>Décrivez la manière dont vous vous identifiez à cette personne.</p>
-      <p>Comment vous inspire-t-elle&nbsp;?</p>
+      <p><strong>Comment vous inspire-t-elle&nbsp;?</strong></p>
     `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
@@ -918,9 +926,9 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Discover Indigenous medicinal uses for plants in your area. Describe what you learned.",
 			cdata: {
 				instructionsHtml: `
-          <p>Discover Indigenous medicinal uses for plants in your area.</p>
-          <p>Describe what you learned.</p>
-        `,
+        <p>Discover Indigenous medicinal uses for plants in your area.</p>
+        <p><strong>Describe what you learned.</strong></p>
+      `,
 			},
 			notePlaceholder: "Plants, uses, teachings you discovered…",
 			resourcesHeading: "Resources",
@@ -942,11 +950,11 @@ export const ACTIVITIES_CONTENT = {
 			id: "a2",
 			number: 2,
 			title: "Plantes médicinales autochtones",
-			tip: "Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région. Décrivez vos apprentissages.",
+			tip: "Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région. <strong>Décrivez vos apprentissages.</strong>",
 			cdata: {
 				instructionsHtml: `
       <p>Découvrez les utilisations médicinales que font les Autochtones des plantes qui poussent dans votre région.</p>
-      <p>Décrivez vos apprentissages.</p>
+      <p><strong>Décrivez vos apprentissages.</strong></p>
     `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
@@ -974,7 +982,15 @@ export const ACTIVITIES_CONTENT = {
 			instructionsLabel: "Instructions",
 			tip: "Try making a traditional First Nations, Inuit or Métis recipe.\nShare your experience or maybe have a lunch-time potluck.",
 			notePlaceholder: "Recipe, process, who you shared it with…",
+			// Added cdata to provide HTML-formatted instructions matching the English tip.
+			cdata: {
+				instructionsHtml: `
+				  <p>Try making a traditional First Nations, Inuit or Métis recipe.</p>
+				  <p><strong>Share your experience or maybe have a lunch-time potluck.</strong></p>
+				`,
+			},
 			resourcesHeading: "Resources",
+
 			groupLabels: {
 				firstNations: "First Nations",
 				inuit: "Inuit",
@@ -1031,7 +1047,13 @@ export const ACTIVITIES_CONTENT = {
 			number: 3,
 			title: "Essayez une recette traditionnelle",
 			instructionsLabel: "Instructions",
-			tip: "Essayez une recette traditionnelle des Premières Nations, Inuit ou Métis.\nFaites part de votre expérience ou organisez un repas-partage.",
+			tip: "Essayez une recette traditionnelle des Premières Nations, Inuit ou Métis.<strong>Faites part de votre expérience ou organisez un repas-partage.</strong>",
+			cdata: {
+				instructionsHtml: `
+        <p>Essayez une recette traditionnelle des Premières Nations, Inuit ou Métis.</p>
+        <p><strong>Faites part de votre expérience ou organisez un repas-partage.</strong></p>
+      `,
+			},
 			notePlaceholder: "Recette, procédé, avec qui vous l'avez partagée…",
 			resourcesHeading: "Ressources",
 			groupLabels: {
@@ -1114,10 +1136,10 @@ export const ACTIVITIES_CONTENT = {
 			id: "a4",
 			number: 4,
 			title: "Indigenous Peoples Outside Canada",
-			tip: "Learn interesting facts about an Indigenous people outside Canada. Describe the things you learned.",
+			tip: "Learn interesting facts about an Indigenous people outside Canada. <strong>Describe the things you learned.</strong>",
 			cdata: {
 				instructionsHtml: `
-Discover facts about an Indigenous population outside Canada. <br>What stood out to you?
+Discover facts about an Indigenous population outside Canada. <br><strong>What stood out to you?</strong>
       `,
 			},
 			notePlaceholder: "Which community? What you learned…",
@@ -1135,12 +1157,11 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			number: 4,
 			// short visible title
 			title: "Apprenez des faits sur un peuple autochtone d’ailleurs",
-			tip: "Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde. Décrivez vos apprentissages.",
+			tip: "Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde. <strong>Décrivez vos apprentissages.</strong>",
 			cdata: {
 				instructionsHtml: `
             <p>Apprenez des faits intéressants sur un peuple autochtone d’ailleurs dans le monde.</p>
-  <p>Décrivez vos apprentissages.</p>
-      `,
+  <p><strong>Décrivez vos apprentissages.</strong></p>      `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
@@ -1163,6 +1184,13 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			title: "Film, TV, or Podcast",
 			tip: "Watch an Indigenous film or TV show, or listen to an Indigenous-focused podcast.<br> What did you learn?",
 			notePlaceholder: "Title, creator(s), insights…",
+			// Added cdata to provide HTML-formatted instructions matching the English tip.
+			cdata: {
+				instructionsHtml: `
+				  <p>Watch an Indigenous film or TV show, or listen to an Indigenous-focused podcast.</p>
+				  <p><strong>What did you learn?</strong></p>
+				`,
+			},
 			resourcesHeading: "Resources",
 			links: [
 				{
@@ -1186,12 +1214,11 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			// French page title (short, localized)
 			title: "Film, télévision ou balado",
 			// instructions / tip (keeps same intent & length; question will be bolded via cdata)
-			tip: "Écoutez un film ou une série télévisée autochtone, ou bien un balado axé sur les Autochtones. Qu’avez-vous appris?",
+			tip: "Écoutez un film ou une série télévisée autochtone, ou bien un balado axé sur les Autochtones. <strong>Qu’avez-vous appris?</strong>",
 			cdata: {
 				instructionsHtml: `
         <p>Écoutez un film ou une série télévisée autochtone, ou bien un balado axé sur les Autochtones.</p>
-        <p>Qu’avez-vous appris?</p>
-      `,
+        <p><strong>Qu’avez-vous appris?</strong></p>      `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
@@ -1220,8 +1247,15 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			id: "a6",
 			number: 6,
 			title: "Read a Book",
-			tip: "Read a book by a First Nations, Inuit, or Métis author. What did you think?",
+			tip: "Read a book by a First Nations, Inuit, or Métis author. <strong>What did you think?</strong>",
 			notePlaceholder: "Author, title, key takeaways…",
+			// Added cdata to provide HTML-formatted instructions matching the English tip.
+			cdata: {
+				instructionsHtml: `
+				  <p>Read a book by a First Nations, Inuit, or Métis author.</p>
+				  <p><strong>What did you think?</strong></p>
+				`,
+			},
 			resourcesHeading: "Resources",
 			links: [
 				{
@@ -1245,12 +1279,11 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			// shorter visible title — localized
 			title: "Lisez un livre",
 			// full approved instruction sentence(s) in French
-			tip: "Lisez un livre d’un auteur ou autrice des Premières Nations, Inuit ou Métis. Faites part de vos impressions.",
+			tip: "Lisez un livre d’un auteur ou autrice des Premières Nations, Inuit ou Métis. <strong>Faites part de vos impressions.</strong>",
 			cdata: {
 				instructionsHtml: `
         <p>Lisez un livre d’un auteur ou autrice des Premières Nations, Inuit ou Métis.</p>
-        <p>Faites part de vos impressions.</p>
-      `,
+        <p><strong>Faites part de vos impressions.</strong></p>      `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
@@ -1279,8 +1312,15 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			id: "a7",
 			number: 7,
 			title: "Learn Three Words",
-			tip: "Learn to say three words in an Indigenous language. Share them with your team and use them often.",
+			tip: "Learn to say three words in an Indigenous language. ",
 			notePlaceholder: "Words/phrases and where they’re used…",
+			// Added cdata to provide HTML-formatted instructions matching the English tip.
+			cdata: {
+				instructionsHtml: `
+				  <p>Learn to say three words in an Indigenous language.</p>
+				  <p><strong>Share them with your team and use them often.</strong></p>
+				`,
+			},
 			resourcesHeading: "Resources",
 			// links used for export & the resource cards UI (label + url)
 			links: [
@@ -1372,7 +1412,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			id: "a7",
 			number: 7,
 			title: "Apprenez à prononcer trois mots dans une langue autochtone",
-			tip: "Apprenez à prononcer trois mots dans une langue autochtone. Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.",
+			tip: "Apprenez à prononcer trois mots dans une langue autochtone. <strong>Présentez ces mots aux membres de votre équipe et employez-les aussi souvent que possible.</strong>",
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
 			links: [
@@ -1467,8 +1507,15 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			id: "a8",
 			number: 8,
 			title: "Two-Spirit & Indigiqueer Communities",
-			tip: "Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous 2SLGBTQQIA+ communities and their histories. Find voices to follow and reflect on what you learn.",
+			tip: "Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous 2SLGBTQQIA+ communities and their histories. <strong>Find voices to follow and reflect on what you learn.</strong>",
 			notePlaceholder: "Voices you followed; what you learned…",
+			// Added cdata to provide HTML-formatted instructions matching the English tip.
+			cdata: {
+				instructionsHtml: `
+				  <p>Enrich your understanding of Two-Spirit, Indigiqueer and Indigenous 2SLGBTQQIA+ communities and their histories.</p>
+				  <p><strong>Find voices to follow and reflect on what you learn.</strong></p>
+				`,
+			},
 			resourcesHeading: "Resources",
 			links: [
 				{
@@ -1506,12 +1553,11 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			id: "a8",
 			number: 8,
 			title: "Communautés bispirituelles et autochtones queers",
-			tip: "Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ ainsi que de leurs histoires. Découvrez des personnes à suivre et partagez vos apprentissages.",
+			tip: "Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ ainsi que de leurs histoires. <strong>Découvrez des personnes à suivre et partagez vos apprentissages.</strong>",
 			cdata: {
 				instructionsHtml: `
       <p>Enrichissez votre compréhension des communautés bispirituelles, Indigiqueer et autochtones 2ELGBTQQIA+ et de leurs histoires.</p>
-      <p>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</p>
-    `,
+      <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</strong></p>    `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
 			resourcesHeading: "Ressources",
@@ -1557,6 +1603,13 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			tip: "Uncover a news story with an Indigenous focus and reflect on its scope. What challenges or biases are visible?",
 			notePlaceholder: "Story link, your reflections…",
 			resourcesHeading: "Suggested Indigenous-Led Outlets",
+			// NEW: HTML instructions used by Activity09.jsx
+			cdata: {
+				instructionsHtml: `
+        <p>Uncover a news story with an Indigenous focus and reflect on its scope.</p>
+        <p><strong>What challenges or biases are visible?</strong></p>
+      `,
+			},
 			links: [
 				{ label: "APTN", url: "https://www.aptntv.ca/" },
 				{
@@ -1648,7 +1701,7 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 
 			instructionsHtml: `
       <p>Découvrez un reportage qui porte sur des sujets autochtones et réfléchissez à sa portée.</p>
-      <p>Quels défis la communauté rencontre-t-elle?</p>
+      <p><strong>Quels défis la communauté rencontre-t-elle?</strong></p>
     `,
 		},
 	},
@@ -1662,6 +1715,13 @@ Discover facts about an Indigenous population outside Canada. <br>What stood out
 			title: "Indigenous-Owned Business",
 			tip: "Explore a First Nations, Inuit or Métis-owned business (in person or online). What products or services spoke to you and why?",
 			notePlaceholder: "Business, offerings, how you’ll support…",
+			// Added cdata to provide HTML-formatted instructions matching the English tip.
+			cdata: {
+				instructionsHtml: `
+				  <p>Explore a First Nations, Inuit or Métis-owned business (in person or online).</p>
+				  <p>What products or services spoke to you and why?</p>
+				`,
+			},
 			resourcesHeading: "Resources",
 			// links used for export/download
 			links: [

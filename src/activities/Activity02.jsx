@@ -68,13 +68,19 @@ export default function Activity02({
 			? "Plantes médicinales autochtones"
 			: "Indigenous Medicinal Plants");
 
+	// NEW: richer instructionsHtml handling
 	const instructionsHtml =
 		cdata.instructionsHtml ||
-		(content?.prompt ? `<p>${content.prompt}</p>` : "");
+		content?.instructionsHtml ||
+		(content?.tip && /<\/?[a-z][\s\S]*>/i.test(content.tip)
+			? content.tip
+			: content?.prompt
+			? `<p>${content.prompt}</p>`
+			: "");
 
-	// tip for export if HTML exists
+	// NEW: tipText prefers stripped HTML first
 	const tipText =
-		content?.tip || content?.prompt || stripHtml(instructionsHtml) || "";
+		stripHtml(instructionsHtml) || content?.tip || content?.prompt || "";
 
 	const placeholder =
 		content?.notePlaceholder || "Plants, uses, teachings you discovered…";

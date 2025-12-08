@@ -152,7 +152,8 @@ export default function Activity07({
 		(lang === "fr"
 			? "Apprenez à prononcer trois mots..."
 			: "Learn to say three words...");
-	const instructionsHtml = a7Content?.instructionsHtml ?? null;
+	const instructionsHtml =
+		a7Content?.instructionsHtml ?? a7Content?.cdata?.instructionsHtml ?? null;
 
 	// outlets for UI from a7Content.outlets
 	const outletTiles = Array.isArray(a7Content?.outlets)
