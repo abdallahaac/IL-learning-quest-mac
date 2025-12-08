@@ -1516,7 +1516,7 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 				  <p><strong>Find voices to follow and reflect on what you learn.</strong></p>
 				`,
 			},
-			resourcesHeading: "Resources",
+			resourcesHeading: "Instructions",
 			links: [
 				{
 					label:
@@ -1560,7 +1560,7 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
       <p><strong>Découvrez et suivez des personnes qui défendent ces communautés dans les médias sociaux.</strong></p>    `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
-			resourcesHeading: "Ressources",
+			resourcesHeading: "Consignes",
 			links: [
 				{
 					label: "Programme bispirituel",

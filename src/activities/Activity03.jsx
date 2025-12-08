@@ -450,7 +450,7 @@ export default function Activity03({
 									}}
 									aria-hidden="true"
 								>
-									{strings.instructionsLabel || "Instructions"}
+									{lang === "fr" ? "Consignes" : "Instructions"}
 								</div>
 								<div
 									className="text-slate-800 max-w-2xl"

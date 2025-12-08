@@ -119,7 +119,7 @@ export default function Activity08({
 	const started = hasActivityStarted(localNotes);
 	const hasLinks = pageLinks && pageLinks.length > 0;
 	const linksHeading =
-		a8Content?.resourcesHeading || (lang === "fr" ? "Ressources" : "Resources");
+		a8Content?.resourcesHeading || (lang === "fr" ? "Consignes" : "Resources");
 
 	// download state + labels (same pattern as Activity 05/07)
 	const [isDownloading, setIsDownloading] = useState(false);
@@ -299,7 +299,7 @@ export default function Activity08({
 									aria-hidden="true"
 								>
 									{a8Content?.resourcesHeading ||
-										(lang === "fr" ? "Ressources" : "Resources")}
+										(lang === "fr" ? "Consignes" : "Resources")}
 								</div>
 
 								{instructionsHtml ? (

@@ -243,7 +243,7 @@ export default function Activity06({
 									}}
 									aria-hidden="true"
 								>
-									{lang === "fr" ? "Instructions" : "Instructions"}
+									{lang === "fr" ? "Consignes" : "Instructions"}
 								</div>
 
 								{instructionsHtml ? (

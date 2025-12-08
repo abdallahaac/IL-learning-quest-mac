@@ -4,9 +4,13 @@ import { Users, ClipboardList, CheckCircle2, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import DownloadsPanel from "../components/toc/DownloadsPanel.jsx";
 import { TEAM_CONTENT } from "../constants/content.js";
+import { detectLang, getActivityFilePrefix } from "../utils/lang.js";
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
+const langRaw = detectLang();
+
+const lang = langRaw === "fr" ? "fr" : "en";
 
 export default function TeamReflectionPage({
 	content,
@@ -194,7 +198,7 @@ export default function TeamReflectionPage({
 								}}
 								aria-hidden="true"
 							>
-								{INSTRUCTION_PILL}
+								{lang === "fr" ? "Consignes" : "Instructions"}
 							</div>
 
 							{INSTRUCTIONS_HTML ? (
