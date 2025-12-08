@@ -122,6 +122,27 @@ function scrollContainerToTop(el, { reduced }) {
 		el.scrollTop = 0;
 	}
 }
+
+function getLocalizedPageTitle(page, lang) {
+	if (!page) return "";
+
+	// Activities use ACTIVITIES_CONTENT
+	if (page.type === "activity") {
+		const localized = getActivityContent(page.content.id, lang) || page.content;
+		return localized?.title || "";
+	}
+
+	// Static sections use CONTENT_BY_TYPE
+	const map = CONTENT_BY_TYPE[page.type];
+	if (map) {
+		const content = lang === "fr" ? map.fr : map.en;
+		return content?.title || page.content?.title || "";
+	}
+
+	// Fallback: whatever is on the page object
+	return page.content?.title || "";
+}
+
 function detectLang() {
 	try {
 		const qs = new URLSearchParams(window.location.search);
@@ -398,19 +419,25 @@ export default function AppShell() {
 			setTimeout(() => setReflectBusy(false), 900);
 		}
 	};
-
 	const getNextLabel = () => {
 		const i = state.pageIndex;
 		const atLast = i >= totalPages - 1;
 		if (atLast) return STR.footer.finish;
+
 		const nextPage = pages[i + 1];
+
+		// Special cases first
 		if (currentPage.type === "preparation")
 			return lang === "fr" ? "Commencer les activités" : "Start Activities";
+
 		if (nextPage?.type === "activity") {
 			const num = (nextPage.activityIndex ?? 0) + 1;
 			return lang === "fr" ? `Activité ${num}` : `Activity ${num}`;
 		}
-		return nextPage?.content?.title || STR.footer.next;
+
+		// ✅ Use localized title instead of raw English content
+		const title = getLocalizedPageTitle(nextPage, lang);
+		return title || STR.footer.next;
 	};
 
 	const localizedContent = React.useMemo(() => {

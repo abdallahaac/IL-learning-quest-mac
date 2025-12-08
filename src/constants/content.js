@@ -522,7 +522,7 @@ export const PREPARATION_CONTENT_FR = {
 };
 
 export const TEAM_CONTENT_FR = {
-	title: "Réunion d’équipe : étapes et questions potentielles",
+	title: "Réunion d’équipe",
 	instructionPill: "Instruction",
 	// kept as HTML per your request (paragraphs, formatting)
 	instructionsHtml: `<p>Suivez les étapes ci-dessous pour créer un environnement d’apprentissage sécuritaire, respectueux et propice à la réflexion afin de tirer le maximum de vos discussions d’équipe durant votre quête.</p>`,
