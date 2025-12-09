@@ -5,7 +5,7 @@
 export const COVER_CONTENT = {
 	title: "Learning Quest on Indigenous Cultures",
 	paragraphs: [
-		"Embark on a journey of discovery and learning through a series of 10 engaging activities designed to build your knowledge of Indigenous realities, expanding your cultural competency and capacity. Each activity will challenge you to explore, reflect, and deepen your understanding of Indigenous perspectives, histories, and contributions.",
+		"Embark on a journey of discovery and learning through a series of 10 engaging activities designed to build your knowledge of Indigenous realities, expanding your cultural competency and capacity. Each activity will challenge you to explore, reflect, and deepen your understanding of First Nations, Inuit and Métis perspectives, histories, and contributions.",
 		"By the end of this quest, you will have gained valuable insights and skills that will enhance your ability to support reconciliation efforts and foster a more inclusive workplace.",
 	],
 };
@@ -412,10 +412,11 @@ export const INTRO_INFO_CONTENT_FR = {
 			items: [
 				`
       <div class="bullet-item">
-        <p class="bullet-body">
-          Si votre équipe de travail ne peut pas participer à la quête d’apprentissage,
-          formez votre propre équipe ou trouvez-vous un(e) partenaire d’étude.
-        </p>
+   <p class="bullet-body">
+  Si votre équipe de travail ne peut pas participer à la quête d’apprentissage,
+  formez votre propre équipe ou trouvez-vous un·e partenaire d’étude.
+</p>
+
       </div>
       `,
 				`
@@ -799,7 +800,7 @@ export const UI_STRINGS = {
 			ariaCourseProgress: "Course progress",
 			srHelp:
 				"Use Tab to move between items. Arrow keys also move between icons. Press Enter or Space to open a section.",
-			moveHint: "Use arrow keys to move • Enter to open",
+			moveHint: "",
 			intro: "Introduction",
 			preparation: "Preparation",
 			activities: "Activities",
@@ -830,7 +831,7 @@ export const UI_STRINGS = {
 			ariaCourseProgress: "Progression du cours",
 			srHelp:
 				"Utilisez Tab pour vous déplacer entre les éléments. Les flèches déplacent aussi entre les icônes. Appuyez sur Entrée ou Espace pour ouvrir une section.",
-			moveHint: "Flèches pour naviguer • Entrée pour ouvrir",
+			moveHint: "",
 			intro: "Introduction",
 			preparation: "Préparation",
 			activities: "Activités",
