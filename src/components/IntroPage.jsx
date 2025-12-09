@@ -145,6 +145,7 @@ export default function IntroPage({ content }) {
 				</motion.section>
 
 				{/* Section: What is the Learning Quest… */}
+				{/* Section: What is the Learning Quest… */}
 				<motion.section
 					role="region"
 					aria-labelledby="what-section"
@@ -162,10 +163,12 @@ export default function IntroPage({ content }) {
 						{ui.whatTitle}
 					</h3>
 
-					{whatParas.map((p, i) => (
-						<p key={i} className="text-gray-800 leading-relaxed">
-							{p}
-						</p>
+					{paragraphs.map((p, i) => (
+						<p
+							key={i}
+							className="text-gray-800 leading-relaxed"
+							dangerouslySetInnerHTML={{ __html: p }}
+						/>
 					))}
 				</motion.section>
 

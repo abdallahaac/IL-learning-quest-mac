@@ -76,16 +76,20 @@ function buildActivities(lang) {
 				const pack = ACTIVITIES_CONTENT[k];
 				const node =
 					lang === "fr" ? pack.fr || pack.en : pack.en || pack.fr || {};
+
+				// Always strip HTML, whether it comes from tip or instructionsHtml
+				const rawTip =
+					node.tip ||
+					node?.cdata?.instructionsHtml ||
+					node?.instructionsHtml ||
+					"";
+
 				return {
 					id: node.id || k,
 					number: node.number ?? idx + 1,
 					title: node.title || "",
 					subtitle: pickLocalized(node, "subtitle", lang),
-					tip:
-						node.tip ||
-						stripHtml(
-							node?.cdata?.instructionsHtml || node?.instructionsHtml || ""
-						),
+					tip: stripHtml(rawTip),
 					resourcesHeading:
 						node.resourcesHeading ||
 						(lang === "fr" ? "Ressources" : "Resources"),
@@ -98,23 +102,27 @@ function buildActivities(lang) {
 	const items = Array.isArray(activitiesData?.activities)
 		? activitiesData.activities
 		: [];
-	return items.map((a, idx) => ({
-		id: a.id || String(idx + 1),
-		number: a.number ?? idx + 1,
-		title:
-			pickLocalized(a, "title", lang) ||
-			(lang === "fr" ? `Activité ${idx + 1}` : `Activity ${idx + 1}`),
-		subtitle: pickLocalized(a, "subtitle", lang),
-		tip: pickLocalized(a, "tip", lang),
-		resourcesHeading:
-			pickLocalized(a, "resourcesHeading", lang) ||
-			(lang === "fr" ? "Ressources" : "Resources"),
-		links: Array.isArray(a.resources)
-			? a.resources
-			: Array.isArray(a.links)
-			? a.links
-			: [],
-	}));
+	return items.map((a, idx) => {
+		const rawTip = pickLocalized(a, "tip", lang);
+
+		return {
+			id: a.id || String(idx + 1),
+			number: a.number ?? idx + 1,
+			title:
+				pickLocalized(a, "title", lang) ||
+				(lang === "fr" ? `Activité ${idx + 1}` : `Activity ${idx + 1}`),
+			subtitle: pickLocalized(a, "subtitle", lang),
+			tip: stripHtml(rawTip),
+			resourcesHeading:
+				pickLocalized(a, "resourcesHeading", lang) ||
+				(lang === "fr" ? "Ressources" : "Resources"),
+			links: Array.isArray(a.resources)
+				? a.resources
+				: Array.isArray(a.links)
+				? a.links
+				: [],
+		};
+	});
 }
 
 export default function DownloadAllActivitiesButton({
@@ -370,27 +378,11 @@ export default function DownloadAllActivitiesButton({
 					: {}
 			}
 			transition={{ duration: 0.15, ease: "easeOut" }}
-			aria-label={
-				lang === "fr"
-					? "Télécharger la liste des activités"
-					: "Download all activities overview"
-			}
-			title={
-				lang === "fr"
-					? "Télécharger la liste de toutes les activités"
-					: "Download all activities overview"
-			}
+			aria-label={STR.aria}
+			title={STR.tooltip}
 		>
 			<Download className="w-4 h-4" />
-			<span>
-				{busy
-					? lang === "fr"
-						? "Préparation…"
-						: "Preparing…"
-					: lang === "fr"
-					? "Télécharger la liste des activités (.docx)"
-					: "Download All Activities (.docx)"}
-			</span>
+			<span>{busy ? STR.btnPrep : STR.btnIdle}</span>
 		</motion.button>
 	);
 }

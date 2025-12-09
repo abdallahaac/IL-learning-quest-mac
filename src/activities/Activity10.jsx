@@ -84,6 +84,16 @@ export default function Activity10({
 		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
 	}[lang];
 
+	// ===== localized base filename (HTML/.doc export) =====
+	const reflectionLabel =
+		dlLocale?.suffix || (lang === "fr" ? "Réflexion" : "Reflection");
+	const reflectionSlug = reflectionLabel.replace(/\s+/g, "-");
+	const filePrefix = lang === "fr" ? "Activité" : "Activity";
+	const idPart = a10Content?.id || String(activityNumber).padStart(2, "0");
+
+	// final filename used everywhere for this activity
+	const baseFilename = `${filePrefix}-${idPart}-${reflectionSlug}.doc`;
+
 	// animations (same as other activities)
 	const STAGGER = 0.14;
 	const DELAY_CHILDREN = 0.1;
@@ -184,15 +194,10 @@ export default function Activity10({
 					? localNotes || ""
 					: localNotes?.text || "";
 
-			const suffix = (dlLocale?.suffix || "Reflection").replace(/\s+/g, "-");
-			const filename = `Activity-${
-				a10Content?.id || String(activityNumber)
-			}-${suffix}.docx`;
-
 			await Promise.resolve(
 				downloadNotesAsWord({
 					html,
-					downloadFileName: filename,
+					downloadFileName: baseFilename, // ← .doc filename
 					docTitle: pageTitle,
 					docSubtitle: a10Content?.subtitle,
 					activityNumber,
@@ -368,9 +373,7 @@ export default function Activity10({
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent={accent}
-					downloadFileName={`Activity-${
-						a10Content?.id || String(activityNumber)
-					}-Reflection.docx`}
+					downloadFileName={baseFilename} // ← same .doc filename here
 					docTitle={pageTitle}
 					docSubtitle={a10Content?.subtitle}
 					activityNumber={activityNumber}

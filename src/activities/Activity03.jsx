@@ -58,6 +58,7 @@ export default function Activity03({
 	};
 
 	// All reference links from content
+	// All reference links from content
 	const referenceLinks = Array.isArray(strings.links) ? strings.links : [];
 
 	// First link kept for exports
@@ -330,7 +331,7 @@ export default function Activity03({
 				strings,
 				activityNumber,
 				accent,
-				referenceLink,
+				referenceLinks, // ⬅️ pass the full list
 				locale: lang,
 			});
 		} catch (err) {

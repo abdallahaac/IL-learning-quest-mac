@@ -22,7 +22,7 @@ const manifestPath = path.join(distDir, "imsmanifest.xml");
 
 // We’ll support both index.html (EN) and index_fr.html (FR)
 const entryEn = "index.html";
-const entryFr = "index_fr.html";
+const entryFr = "index.html";
 const entryPath = path.join(distDir, isFR ? entryFr : entryEn);
 
 // Course Titles

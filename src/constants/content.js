@@ -13,12 +13,12 @@ export const COVER_CONTENT = {
 export const INTRO_INFO_CONTENT = {
 	title: "Introduction",
 	paragraphs: [
-		"The Learning Quest was created to spark joy and curiosity in public servants while supporting their journey toward meaningful allyship. Developed by Indigenous creators, it encourages learning through shared experiences, helping participants connect through common interests and resource sharing.",
-		"Rather than being a test of knowledge, the Learning Quest is a lifelong practice—an invitation to explore Indigenous perspectives in everyday life with openness and intention.",
 		"The Learning Quest on Indigenous Cultures is a flexible team activity designed to help you learn more about Indigenous histories, cultures, and perspectives. Through 10 engaging activities, you’ll explore, reflect, and take action to build your cultural awareness and support reconciliation.",
 		"You can complete the quest individually or with a team. Working together allows for deeper conversations and shared learning. Each activity encourages you to think critically, ask questions, and connect what you learn to your personal and professional lives.",
-		"The quest is customizable and can be done at your own pace over several weeks. Regular team check-ins help you share insights, discuss challenges, and support each other’s learning journeys. A notes space is provided within the activities so you can document your reflections as you progress.",
+		"The quest is customizable and can be done at your own pace over several weeks. Regular team check-ins help you share insights, discuss challenges, and support each other’s learning journeys. A reflection space is provided within the activities so you can document your reflections as you progress.",
+		"<strong style='color:#4380d6'>Note on Resources </strong> <br> The links provided in this Learning Quest are meant to serve as a starting point for your exploration. They highlight key ideas and useful references, but they are by no means exhaustive. The internet is full of additional resources waiting to be discovered, so feel free to go beyond these suggestions and dive deeper into topics that spark your curiosity.",
 	],
+
 	bullets: [
 		{
 			heading: "How does the Learning Quest work?",
@@ -390,7 +390,7 @@ export const SVG_PATH_D =
 export const COVER_CONTENT_FR = {
 	title: "Quête d’apprentissage sur les cultures autochtones",
 	paragraphs: [
-		"Venez entreprendre un parcours de découverte et d’apprentissage composé de dix activités stimulantes conçues pour renforcer votre connaissance des réalités autochtones et ainsi accroître vos compétences culturelles. Chaque activité vous invitera à l’exploration, à la réflexion et à l’approfondissement de votre compréhension des perspectives, histoires et contributions des peuples autochtones.",
+		"Venez entreprendre un parcours de découverte et d’apprentissage composé de dix activités stimulantes conçues pour renforcer votre connaissance des réalités autochtones et ainsi accroître vos compétences culturelles. Chaque activité vous invitera à l’exploration, à la réflexion et à l’approfondissement de votre compréhension des perspectives, histoires et contributions des Premières Nations, des Inuits et des Métis.",
 		"Au terme de cette quête, vous aurez acquis des connaissances et des compétences précieuses pour mieux soutenir les efforts de réconciliation et favoriser un milieu de travail inclusif.",
 	],
 };
@@ -398,11 +398,14 @@ export const COVER_CONTENT_FR = {
 export const INTRO_INFO_CONTENT_FR = {
 	title: "Introduction",
 	paragraphs: [
-		"La quête d’apprentissage a été créée pour susciter joie et curiosité chez les fonctionnaires, tout en les aidant à devenir des personnes alliées fidèles à la cause et aux réalités des peuples autochtones. Conçue par des Autochtones, elle stimule l’apprentissage par des mises en commun qui permettent aux participantes et participants de nouer des liens autour d’intérêts communs et du partage de ressources. Il ne s’agit pas d’un test de connaissances, mais plutôt d’une pratique à long terme – une invitation à découvrir les perspectives autochtones au quotidien, en faisant preuve d’ouverture et de volonté.",
 		"La quête d’apprentissage sur les cultures autochtones est une activité d’équipe souple conçue pour vous aider à en apprendre plus sur les histoires, cultures et perspectives autochtones. Dix activités stimulantes vous inviteront à l’exploration, à la réflexion et à l’action pour que vous puissiez renforcer vos connaissances culturelles et soutenir les efforts de réconciliation.",
 		"Vous pouvez mener la quête en solo ou en équipe, sachant que la collaboration favorise les discussions poussées et permet de mettre en commun les apprentissages. Chaque activité vous invitera à penser de façon critique, à poser des questions et à faire des liens entre vos apprentissages et votre vie personnelle et professionnelle.",
-		"La quête est personnalisable, et vous pouvez la mener à votre rythme sur plusieurs semaines. Des rencontres de suivi régulières permettront aux membres de l’équipe de présenter leurs perspectives, de discuter des enjeux et de s’entraider.",
+
+		"La quête est personnalisable, et vous pouvez la mener à votre rythme sur plusieurs semaines. Des rencontres de suivi régulières permettront aux membres de l’équipe de présenter leurs perspectives, de discuter des enjeux et de s’entraider. Un espace de réflexion est disponible dans le cadre des activités afin que vous puissiez noter vos réflexions au fur et à mesure de votre progression.",
+
+		"<strong style='color:#4380d6'>Remarque sur les ressources </strong> <br> Les liens fournis dans cette quête d'apprentissage sont destinés à servir de point de départ à votre exploration. Ils mettent en évidence des idées clés et des références utiles, mais ne sont en aucun cas exhaustifs. L'internet est plein de ressources supplémentaires qui n'attendent qu'à être découvertes. N'hésitez donc pas à aller au-delà de ces suggestions et à approfondir les sujets qui éveillent votre curiosité.",
 	],
+
 	bullets: [
 		{
 			heading: "Fonctionnement",
@@ -856,12 +859,12 @@ export const ACTIVITIES_CONTENT = {
 			id: "a1",
 			number: 1,
 			title: "Explore an Indigenous Artist",
-			tip: "Explore works by an Indigenous artist that speak to you. Describe how you relate to this artist. How does this artist inspire you?",
+			tip: "Explore works by an Indigenous artist that speaks to you. Describe how you relate to this artist. How does this artist inspire you?",
 			notePlaceholder: "Your reflections on the artist…",
 			// Added cdata to provide HTML-formatted instructions matching the English tip.
 			cdata: {
 				instructionsHtml: `
-				  <p>Explore works by an Indigenous artist that speak to you.</p>
+				  <p>Explore works by an Indigenous artist that speaks to you.</p>
 				  <p>Describe how you relate to this artist.</p>
 				  <p><strong>How does this artist inspire you?</strong></p>
 				`,
@@ -887,6 +890,7 @@ export const ACTIVITIES_CONTENT = {
 			tip: "Découvrez les œuvres d’une ou un artiste autochtone qui vous parle. Décrivez la manière dont vous vous identifiez à cette personne.<strong> Comment vous inspire-t-elle?</strong>",
 			cdata: {
 				instructionsHtml: `
+				Explorez les œuvres d'un artiste autochtone qui vous interpellent.
       <p>Décrivez la manière dont vous vous identifiez à cette personne.</p>
       <p><strong>Comment vous inspire-t-elle&nbsp;?</strong></p>
     `,
@@ -1058,10 +1062,10 @@ export const ACTIVITIES_CONTENT = {
 			number: 3,
 			title: "Essayez une recette traditionnelle",
 			instructionsLabel: "Instructions",
-			tip: "Essayez une recette traditionnelle des Premières Nations, Inuit ou Métis.<strong>Faites part de votre expérience ou organisez un repas-partage.</strong>",
+			tip: "Essayez une recette traditionnelle des Premières Nations, Inuits ou Métis.<strong>Faites part de votre expérience ou organisez un repas-partage.</strong>",
 			cdata: {
 				instructionsHtml: `
-        <p>Essayez une recette traditionnelle des Premières Nations, Inuit ou Métis.</p>
+        <p>Essayez une recette traditionnelle des Premières Nations, Inuits ou Métis.</p>
         <p><strong>Faites part de votre expérience ou organisez un repas-partage.</strong></p>
       `,
 			},
@@ -1069,7 +1073,7 @@ export const ACTIVITIES_CONTENT = {
 			resourcesHeading: "Ressources",
 			groupLabels: {
 				firstNations: "Premières Nations",
-				inuit: "Inuit",
+				inuit: "Inuits",
 				metis: "Métis",
 			},
 			links: [
@@ -1290,10 +1294,10 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 			// shorter visible title — localized
 			title: "Lisez un livre",
 			// full approved instruction sentence(s) in French
-			tip: "Lisez un livre d’un auteur ou autrice des Premières Nations, Inuit ou Métis. <strong>Faites part de vos impressions.</strong>",
+			tip: "Lisez un livre d’un auteur ou autrice des Premières Nations, Inuits ou Métis. <strong>Faites part de vos impressions.</strong>",
 			cdata: {
 				instructionsHtml: `
-        <p>Lisez un livre d’un auteur ou autrice des Premières Nations, Inuit ou Métis.</p>
+        <p>Lisez un livre d’un auteur ou autrice des Premières Nations, Inuits ou Métis.</p>
         <p><strong>Faites part de vos impressions.</strong></p>      `,
 			},
 			notePlaceholder: "Cliquez ici pour saisir du texte.",
@@ -1436,12 +1440,12 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 					url: "https://atiku.inq.ulaval.ca/collection/langues-2/",
 				},
 				{
-					label: "Phrases et mots en michif (PDF)",
-					url: "https://www.rupertsland.org/wp-content/uploads/2024/11/Heritage-Michif-Phrases.pdf",
-				},
-				{
 					label: "Glossaire inuktut – français",
 					url: "https://tusaalanga.ca/fr/glossary",
+				},
+				{
+					label: "Phrases et mots en michif (PDF)",
+					url: "https://www.rupertsland.org/wp-content/uploads/2024/11/Heritage-Michif-Phrases.pdf",
 				},
 			],
 			outlets: [
@@ -1457,16 +1461,17 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 					desc: "Collection de ressources sur les langues autochtones du Nord.",
 					enOnly: false,
 				},
-				{
-					href: "https://www.rupertsland.org/wp-content/uploads/2024/11/Heritage-Michif-Phrases.pdf",
-					title: "Phrases et mots en michif",
-					desc: "Document avec des exemples de phrases et de vocabulaire en michif.",
-					enOnly: false,
-				},
+
 				{
 					href: "https://tusaalanga.ca/fr/glossary",
 					title: "Glossaire inuktut – français",
 					desc: "Glossaire interactif pour explorer le vocabulaire inuktut en français.",
+					enOnly: false,
+				},
+				{
+					href: "https://www.rupertsland.org/wp-content/uploads/2024/11/Heritage-Michif-Phrases.pdf",
+					title: "Phrases et mots en michif",
+					desc: "Document avec des exemples de phrases et de vocabulaire en michif.",
 					enOnly: false,
 				},
 			],
@@ -1674,7 +1679,7 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 			title: "Reportage axé sur les réalités autochtones",
 			tip: "Découvrez un reportage axé sur les réalités autochtones et réfléchissez à la portée du récit : quelles difficultés apparaissent? Quels biais sont présents?",
 			notePlaceholder: "Lien vers l’article, vos réflexions…",
-			resourcesHeading: "Ressources autochtones proposées",
+			resourcesHeading: "Ressources ",
 			links: [
 				{
 					label: "Nouvelles APTN",

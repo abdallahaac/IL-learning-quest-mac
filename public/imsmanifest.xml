@@ -12,12 +12,12 @@
       <item identifier="C256PESLE_I01" identifierref="C256PESLE_S01" isvisible="true">
         <title>	Revitalizing Voices: Navigating the Indigenous Languages Act</title> -->
 
-      <title>	Revitalisation des voix autochtones : comprendre la Loi sur les langues
-			autochtones</title>
-      <item identifier="C256PESLE_I01" identifierref="C256PESLE_S01" isvisible="true">
-        <title>	Revitalisation des voix autochtones : comprendre la Loi sur les langues
-			autochtones</title>
+		<title>Learning Quest on Indigenous Cultures</title>
 
+      <item identifier="C256PESLE_I01" identifierref="C256PESLE_S01" isvisible="true">
+        <!-- <title>	Quête d’apprentissage sur les cultures autochtones</title> -->
+
+		<title>Learning Quest on Indigenous Cultures</title>
 
         <metadata>
           <schema>ADL SCORM</schema>

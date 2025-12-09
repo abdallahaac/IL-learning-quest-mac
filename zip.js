@@ -20,7 +20,7 @@ const yy = String(now.getFullYear()).slice(-2);
 const datePart = `${mm}-${dd}-${yy}`;
 
 // File names requested
-const fileBase = isFR ? "FR-IRA1-110" : "EN-IRA1-110";
+const fileBase = isFR ? "FR-IRA1-J26" : "EN-IRA1-J26";
 const fileName = `${fileBase}-${datePart}.zip`;
 const outPath = path.join(__dirname, fileName);
 

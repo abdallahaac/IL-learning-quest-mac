@@ -9,11 +9,20 @@ import NoteComposer, {
 import CompleteButton from "../components/CompleteButton.jsx";
 import LinkCard from "../components/LinkCard.jsx";
 import DownloadButton from "../components/DownloadButton.jsx";
-import { hasActivityStarted } from "../utils/activityProgress.js";
 import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
 /* tiny helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
+
+/* basic HTML escaper for the advocates section */
+function escapeHtml(str = "") {
+	return String(str)
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
+}
 
 function detectLang() {
 	try {
@@ -116,17 +125,32 @@ export default function Activity08({
 		onNotes?.(v);
 	};
 
-	const started = hasActivityStarted(localNotes);
+	// consider the activity "started" once the learner has typed anything
+	const started =
+		typeof localNotes === "string"
+			? localNotes.trim().length > 0
+			: !!(
+					localNotes &&
+					typeof localNotes.text === "string" &&
+					localNotes.text.trim().length > 0
+			  );
+
 	const hasLinks = pageLinks && pageLinks.length > 0;
 	const linksHeading =
 		a8Content?.resourcesHeading || (lang === "fr" ? "Consignes" : "Resources");
 
-	// download state + labels (same pattern as Activity 05/07)
+	// download state + labels
 	const [isDownloading, setIsDownloading] = useState(false);
 	const docLocale = {
 		en: { suffix: "Reflection", downloadingLabel: "Downloading..." },
 		fr: { suffix: "Réflexion", downloadingLabel: "Téléchargement..." },
 	}[lang];
+
+	// localized filename base + suffix
+	const fileBaseLabel = lang === "fr" ? "Activité" : "Activity";
+	const fileSuffix = (docLocale?.suffix || "Reflection").replace(/\s+/g, "-");
+	const baseId = a8Content?.id || String(activityNumber).padStart(2, "0");
+	const downloadFileName = `${fileBaseLabel}-${baseId}-${fileSuffix}.doc`; // .doc like Activity 02
 
 	// async download handler with guard + cooldown
 	const handleDownload = async () => {
@@ -135,17 +159,41 @@ export default function Activity08({
 		setIsDownloading(true);
 
 		try {
-			const html =
+			// base learner notes (HTML or plain text from NoteComposer)
+			let html =
 				typeof localNotes === "string" ? localNotes : localNotes?.text || "";
-			const suffix = (docLocale?.suffix || "Reflection").replace(/\s+/g, "-");
-			const filename = `Activity-${
-				a8Content?.id || String(activityNumber).padStart(2, "0")
-			}-${suffix}.docx`;
+
+			// advocates section as a proper HTML block (heading + list)
+			if (advocates.length) {
+				const advocatesHeading =
+					lang === "fr" ? "Personnes à découvrir" : "People to discover";
+
+				const listItems = advocates
+					.map((a) => {
+						const name = escapeHtml(a.name || "");
+						const bio = a.bio ? ` — ${escapeHtml(a.bio)}` : "";
+						return `<li><strong>${name}</strong>${bio}</li>`;
+					})
+					.join("");
+
+				const advocatesSectionHtml = `
+<h2>${escapeHtml(advocatesHeading)}</h2>
+<ul>
+${listItems}
+</ul>`.trim();
+
+				if (html && html.trim()) {
+					// add a small gap before the advocates section
+					html = `${html}<p></p>${advocatesSectionHtml}`;
+				} else {
+					html = advocatesSectionHtml;
+				}
+			}
 
 			await Promise.resolve(
 				downloadNotesAsWord({
 					html,
-					downloadFileName: filename,
+					downloadFileName, // use localized file name
 					docTitle: pageTitle,
 					docSubtitle: a8Content?.subtitle,
 					activityNumber,
@@ -428,7 +476,7 @@ export default function Activity08({
 					minHeight="min-h-72"
 					panelMinHClass="min-h-72"
 					accent={accent}
-					downloadFileName={`Activity-${a8Content?.id || "08"}-Reflection.docx`}
+					downloadFileName={downloadFileName} // localized, matches handleDownload
 					docTitle={pageTitle}
 					docSubtitle={a8Content?.subtitle}
 					activityNumber={activityNumber}

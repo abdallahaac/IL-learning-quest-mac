@@ -44,7 +44,7 @@ export function labelForGroup(id, lang = "en") {
 			// Standard French label: "Premières Nations"
 			return isFr ? "Premières Nations" : "First Nations";
 		case "inuit":
-			return isFr ? "Inuit" : "Inuit";
+			return isFr ? "Inuits" : "Inuit";
 		case "metis":
 			// Métis should keep accent in French
 			return isFr ? "Métis" : "Métis";

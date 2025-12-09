@@ -9,7 +9,6 @@ import { ACTIVITIES_CONTENT } from "../constants/content.js";
 
 /* helper: #RRGGBB + "AA" → #RRGGBBAA */
 const withAlpha = (hex, aa) => `${hex}${aa}`;
-
 function detectLang() {
 	try {
 		const qs = new URLSearchParams(window.location.search);
@@ -20,6 +19,11 @@ function detectLang() {
 		if (nav) return nav.toLowerCase().slice(0, 2);
 	} catch {}
 	return "en";
+}
+
+/* strip basic HTML tags from strings (for DOCX/plain exports) */
+function stripHtml(input = "") {
+	return String(input || "").replace(/<[^>]*>/g, "");
 }
 
 /** sr-only helper */
@@ -347,6 +351,9 @@ export default function Activity07({
 
 			const resources = exportLinks;
 
+			// NEW: strip HTML tags like <strong> from tip for export
+			const tipPlain = stripHtml(tipText);
+
 			const bullets = (model.bullets || []).filter(Boolean);
 			const cards = (model.cards || []).filter(
 				(c) => c?.front?.trim() || c?.back?.trim()
@@ -445,8 +452,9 @@ export default function Activity07({
 				if (subtitle) children.push(SubtitleP(subtitle));
 
 				// tip
+				// tip
 				children.push(H2(uiSafe.doc.activityTipHeader));
-				children.push(Body(tipText));
+				children.push(Body(tipPlain));
 
 				// resources
 				if (resources.length) {
@@ -576,7 +584,8 @@ export default function Activity07({
   <h1>${esc(title)}</h1>
   ${subtitle ? `<p style="font-style:italic">${esc(subtitle)}</p>` : ""}
   <h2>${esc(uiSafe.doc.activityTipHeader)}</h2>
-  <p>${esc(tipText)}</p>
+  <p>${esc(tipPlain)}</p>
+
   ${
 		resHtml
 			? `<h2>${esc(uiSafe.doc.resourcesHeader)}</h2><ul>${resHtml}</ul>`

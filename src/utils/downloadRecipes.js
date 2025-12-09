@@ -6,16 +6,18 @@ import {
 	safe,
 } from "./recipeUtils.js";
 
-/* sanitize filename: remove diacritics, collapse whitespace, remove bad chars */
+/* sanitize filename: keep accents, remove only illegal filename chars, normalize spacing */
 function sanitizeFilename(input = "") {
-	return String(input || "")
-		.normalize("NFKD") // decompose accents
-		.replace(/[\u0300-\u036f]/g, "") // strip diacritics
-		.replace(/[^0-9A-Za-z.\-_ ]+/g, "") // keep ., -, _, space
-		.trim()
-		.replace(/\s+/g, "-") // spaces -> dashes
-		.replace(/-+/g, "-") // collapse repeated dashes
-		.replace(/^\-+|\-+$/g, ""); // trim leading/trailing dash
+	return (
+		String(input || "")
+			// remove characters that are invalid or risky in filenames
+			.replace(/[\/\\?%*:|"<>]+/g, "")
+			.replace(/\s+/g, " ") // collapse whitespace first
+			.trim()
+			.replace(/\s+/g, "-") // spaces -> dashes
+			.replace(/-+/g, "-") // collapse repeated dashes
+			.replace(/^-+|-+$/g, "")
+	); // trim leading/trailing dash
 }
 
 function ensureExtension(filename = "", ext = ".docx") {
@@ -36,11 +38,18 @@ function detectLang() {
 	return "en";
 }
 
+/* strip basic HTML tags from strings (for DOCX/plain exports) */
+function stripHtml(input = "") {
+	return String(input || "").replace(/<[^>]*>/g, "");
+}
+
 /**
  * downloadAllDocx(params)
  * - items: array of recipe objects
  * - strings: localized strings (optional)
- * - activityNumber, accent, referenceLink (optional)
+ * - activityNumber, accent (optional)
+ * - referenceLinks: array of { label, url }
+ * - referenceLink: legacy single { label, url } (optional, for backward compat)
  * - filename: provided filename to use-as-is (optional)
  * - locale: explicit locale tag ('en'|'fr', etc.) (optional) — THIS OVERRIDES auto-detect
  */
@@ -49,7 +58,8 @@ export async function downloadAllDocx({
 	strings = {},
 	activityNumber = 3,
 	accent = "#b45309",
-	referenceLink = { label: "", url: "" },
+	referenceLinks,
+	referenceLink,
 	filename: providedFilename,
 	locale,
 } = {}) {
@@ -106,6 +116,25 @@ export async function downloadAllDocx({
 		)}-${suffixTag}.docx`;
 	}
 
+	// tip text, stripped of HTML (e.g., <strong>)
+	const tipDefault =
+		lang === "fr"
+			? "Essayez de préparer une recette traditionnelle."
+			: "Try your hand at making a traditional recipe.";
+	const tipRaw = strings.tip || tipDefault;
+	const tipPlain = stripHtml(tipRaw);
+
+	// normalize links (support both array + single legacy referenceLink)
+	const rawLinks =
+		Array.isArray(referenceLinks) && referenceLinks.length
+			? referenceLinks
+			: referenceLink
+			? [referenceLink]
+			: [];
+	const normalizedLinks = rawLinks.filter(
+		(lnk) => lnk && (lnk.label || lnk.url)
+	);
+
 	try {
 		const {
 			Document,
@@ -134,16 +163,11 @@ export async function downloadAllDocx({
 			],
 		});
 
-		const tipDefault =
-			lang === "fr"
-				? "Essayez de préparer une recette traditionnelle."
-				: "Try your hand at making a traditional recipe.";
-
 		const tip1 = new Paragraph({
 			spacing: { before: 0, after: 160 },
 			children: [
 				new TextRun({
-					text: strings.tip || tipDefault,
+					text: tipPlain,
 					italics: true,
 					font: "Arial",
 					size: 24,
@@ -152,7 +176,7 @@ export async function downloadAllDocx({
 		});
 
 		const resourceHeading = new Paragraph({
-			spacing: { before: 80, after: 120 },
+			spacing: { before: 80, after: 80 },
 			children: [
 				new TextRun({
 					text: resourcesHeading,
@@ -164,25 +188,33 @@ export async function downloadAllDocx({
 			],
 		});
 
-		const resourceLine = new Paragraph({
-			spacing: { before: 0, after: 280 },
-			children: [
-				new TextRun({
-					text: `${referenceLink.label} — `,
-					font: "Arial",
-					size: 24,
-				}),
-				new TextRun({
-					text: referenceLink.url,
-					font: "Arial",
-					size: 24,
-					underline: {},
-					color: "1155CC",
-				}),
-			],
-		});
+		const resourceParas =
+			normalizedLinks.length === 0
+				? []
+				: normalizedLinks.map(
+						(lnk) =>
+							new Paragraph({
+								spacing: { before: 0, after: 80 },
+								children: [
+									new TextRun({
+										text: `${lnk.label || ""}${lnk.url ? " — " : ""}`,
+										font: "Arial",
+										size: 24,
+									}),
+									lnk.url
+										? new TextRun({
+												text: lnk.url,
+												font: "Arial",
+												size: 24,
+												underline: {},
+												color: "1155CC",
+										  })
+										: null,
+								].filter(Boolean),
+							})
+				  );
 
-		// add saved recipes heading BEFORE listing the saved items
+		// saved recipes heading AFTER listing resources
 		const savedHeader = new Paragraph({
 			spacing: { before: 60, after: 120 },
 			children: [
@@ -196,7 +228,13 @@ export async function downloadAllDocx({
 			],
 		});
 
-		const sections = [H1, tip1, resourceHeading, resourceLine, savedHeader];
+		const sections = [H1, tip1];
+
+		if (normalizedLinks.length) {
+			sections.push(resourceHeading, ...resourceParas);
+		}
+
+		sections.push(savedHeader);
 
 		items
 			.slice()
@@ -392,30 +430,41 @@ export async function downloadAllDocx({
 			})
 			.join("");
 
-		const title = `${activityLabel} ${activityNumber}: ${esc(baseTitle)}`;
+		const resourcesHtml =
+			normalizedLinks.length === 0
+				? ""
+				: normalizedLinks
+						.map(
+							(lnk) => `
+          <p style="font-size:12pt; margin:0 0 6pt;">
+            ${esc(lnk.label || "")}${
+								lnk.url
+									? ` — <a href="${esc(
+											lnk.url
+									  )}" style="color:#1155CC; text-decoration:underline;">${esc(
+											lnk.url
+									  )}</a>`
+									: ""
+							}
+          </p>`
+						)
+						.join("");
+
+		const titleHtml = `${activityLabel} ${activityNumber}: ${esc(baseTitle)}`;
 		const html = `
       <html>
-        <head><meta charset="utf-8"><title>${esc(title)}</title></head>
+        <head><meta charset="utf-8"><title>${titleHtml}</title></head>
         <body style="font-family:Arial; line-height:1.5;">
           <h1 style="font-size:24pt; color:${esc(
 						accent
-					)}; margin:0 0 12pt;">${esc(title)}</h1>
+					)}; margin:0 0 12pt;">${titleHtml}</h1>
           <p style="font-size:12pt; font-style:italic; margin:0 0 6pt;">${esc(
-						strings.tip || ""
+						tipPlain
 					)}</p>
           <h2 style="font-size:16pt; color:${esc(
 						accent
 					)}; margin:12pt 0 8pt;">${esc(resourcesHeading)}</h2>
-          <p style="font-size:12pt; margin:0 0 18pt;">${esc(
-						referenceLink.label
-					)} —
-            <a href="${esc(
-							referenceLink.url
-						)}" style="color:#1155CC; text-decoration:underline;">${esc(
-			referenceLink.url
-		)}</a>
-          </p>
-
+          ${resourcesHtml}
           <h2 style="font-size:18pt; color:${esc(
 						accent
 					)}; margin:10pt 0 8pt;">${esc(savedHeading)}</h2>

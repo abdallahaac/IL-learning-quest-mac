@@ -157,6 +157,7 @@ function renderActivity03(note, lang) {
 	return blocks.join("\n");
 }
 
+
 // Activity 07: cards/bullets/text model { text, bullets:[], cards:[{front,back}] }
 function renderActivity07(note, lang) {
 	const text = note?.text ? String(note.text) : "";
