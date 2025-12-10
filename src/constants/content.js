@@ -675,34 +675,21 @@ export const RESOURCES_CONTENT_FR = {
 			type: "Conservation",
 			links: [
 				{
-					label: "Liste de lecture sur la conservation (lien court)",
-					url: "https://bit.ly/IndLedConsRL",
-					enOnly: true,
-				},
-				{
-					label:
-						"Virtual Campfire (Conservation Through Reconciliation Partnership)",
-					url: "https://conservation-reconciliation.ca/",
-					enOnly: true,
-				},
-				{
 					label:
 						"Panier de savoir (aires protégées et conservation autochtones)",
 					url: "https://ipcaknowledgebasket.ca/fr/",
-					enOnly: false,
 				},
 			],
 			tags: ["Conservation"],
 		},
 		{
-			title: "Striking Balance : réserve de biosphère Tsá Tué",
-			summary: "Documentaire sur la conservation autochtone (TVO).",
-			type: "Documentaire",
+			title: "Initiative de Leadership Autochtone",
+			summary: "Page de L’Initiative de leadership autochtone (ILA)",
 			links: [
 				{
-					label: "Striking Balance : réserve de biosphère Tsá Tué (TVO)",
-					url: "https://www.tvo.org/video/documentaries/tsa-tue-biosphere-reserve",
-					enOnly: true,
+					label: "Initiative de Leadership Autochtone",
+					url: "https://www.nationaliteautochtone.ca/",
+					// enOnly: true,
 				},
 			],
 			tags: ["TVO"],
@@ -734,44 +721,53 @@ export const RESOURCES_CONTENT_FR = {
 			tags: ["Nunavut"],
 		},
 		{
-			title: "Pratiques de gouvernance métisses (BCcampus)",
-			summary:
-				"Ressource Open Access de BCcampus — chapitre sur les pratiques de gouvernance métisses.",
+			title: "Protéger les paysages naturels du Canada, maintenant et à jamais",
+			summary: "Page d'acceuil de SNAP Canada sur la conservation autochtone.",
 			type: "Gouvernance",
 			links: [
 				{
-					label: "Pratiques de gouvernance métisses (BCcampus / OpenTextBC)",
-					url: "https://opentextbc.ca/indigenousdigitalliteracies/chapter/metis-governance/",
-					enOnly: true,
+					label:
+						"Protéger les paysages naturels du Canada, maintenant et à jamais",
+					url: "https://snapcanada.org/?gad_source=1&gad_campaignid=21077879696&gclid=CjwKCAiA0eTJBhBaEiwA-Pa-hViFCflCMkxrD3wWwxFjhbJbNfAUb45Hw0go2XKOGW4zX5j5JEwQFBoCrlgQAvD_BwE",
 				},
 			],
 			tags: ["BCcampus"],
 		},
 		{
-			title: "Éducation du public (First Peoples Law)",
+			title:
+				"Vidéos sur la nature et les sciences de Parcs Canada - Nature et science",
 			summary:
-				"Ressources juridiques et pédagogiques sur les droits, traités et revendications territoriales.",
+				"Page d'acceuil de Parcs Canada avec des vidéos sur la nature et les sciences.",
 			type: "Loi",
 			links: [
 				{
-					label: "Éducation du public (First Peoples Law)",
-					url: "https://www.firstpeopleslaw.com/public-education",
-					enOnly: true,
+					label:
+						"Vidéos sur la nature et les sciences de Parcs Canada - Nature et science",
+					url: "https://parcs.canada.ca/nature/science/scenes",
 				},
 			],
 			tags: ["First Peoples Law"],
 		},
 		{
-			title: "Apprentissage autochtone en 4 saisons",
-			summary:
-				"Formation 4 Seasons offerte par l’Outdoor Learning School & Store.",
+			title: "Accueil - Mythes et réalités",
+			summary: "Page d’accueil de Mythes et réalités.",
 			type: "Formation",
 			links: [
 				{
-					label:
-						"Apprentissage autochtone en 4 saisons (Outdoor Learning School & Store)",
-					url: "https://outdoorlearning.com/4-seasons/",
-					enOnly: true,
+					label: "Accueil - Mythes et réalités",
+					url: "https://mythesetrealites.ca/",
+				},
+			],
+			tags: ["Outdoor Learning"],
+		},
+		{
+			title: "Des ressources autochtones gratuites",
+			summary: "Page de ressources autochtones gratuites.",
+			type: "Formation",
+			links: [
+				{
+					label: "Des ressources autochtones gratuites",
+					url: "https://mikana.ca/ressources/outils-mikana/",
 				},
 			],
 			tags: ["Outdoor Learning"],

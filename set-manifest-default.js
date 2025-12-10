@@ -1,5 +1,5 @@
 // set-manifest-default.js
-// Post-build step: adjust imsmanifest default org, titles, resource href,
+// Post-build step: adjust imsmanifest titles, resource href,
 // and entry HTML <html lang>/<title> based on BUILD_LANG.
 
 import fs from "fs";
@@ -20,14 +20,17 @@ const isFR = BUILD_LANG === "fr";
 const distDir = path.join(__dirname, "dist");
 const manifestPath = path.join(distDir, "imsmanifest.xml");
 
-// We’ll support both index.html (EN) and index_fr.html (FR)
+// We’ll support both index.html (EN) and index.html (FR) – same file,
+// but lang + title will be updated for each package.
 const entryEn = "index.html";
 const entryFr = "index.html";
-const entryPath = path.join(distDir, isFR ? entryFr : entryEn);
+const entryFile = isFR ? entryFr : entryEn;
+const entryPath = path.join(distDir, entryFile);
 
 // Course Titles
 const TITLE_EN = "Learning Quest on Indigenous Cultures";
-const TITLE_FR = "Parcours d’apprentissage sur les cultures autochtones";
+const TITLE_FR = "Quête d’apprentissage sur les cultures autochtones";
+const courseTitle = isFR ? TITLE_FR : TITLE_EN;
 
 // Utility: safe read/write
 const readText = (p) => (fs.existsSync(p) ? fs.readFileSync(p, "utf8") : null);
@@ -42,52 +45,31 @@ const writeText = (p, s) => fs.writeFileSync(p, s, "utf8");
 	}
 	let out = xml;
 
-	// a) Ensure <organizations default="..."> points at an existing org.
-	//    If your org IDs are fixed (e.g., ORGC256PESLE), we keep them.
-	//    Otherwise, if you use ORG_EN/ORG_FR, we switch between them.
-	//    We'll try both patterns safely.
-
-	// Pattern 1: ORG_EN / ORG_FR style
+	// a) If you ever use ORG_EN / ORG_FR, switch default accordingly (no-op otherwise).
 	out = out.replace(
 		/(<organizations[^>]*\sdefault=")(ORG_EN|ORG_FR)(")/,
 		`$1${isFR ? "ORG_FR" : "ORG_EN"}$3`
 	);
 
-	// Pattern 2: preserve a fixed default (like ORGC256PESLE) if present — no change needed.
-	// (No-op if not matching Pattern 1—keeps your existing default identifier.)
-
-	// b) Organization and item titles -> set to our bilingual course title
-	const title = isFR ? TITLE_FR : TITLE_EN;
-
-	// Replace any <organization> <title> ... </title>
+	// b) Organization <title> → language-specific title
 	out = out.replace(
-		/(<organization[^>]*>\s*<!--[\s\S]*?-->\s*)?<title>[\s\S]*?<\/title>/,
-		(m) => m.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`)
+		/(<organization[^>]*>[\s\S]*?<title>)([\s\S]*?)(<\/title>)/,
+		`$1${courseTitle}$3`
 	);
 
-	// Replace first <item> <title> ... </title> under that organization
+	// c) First <item> <title> under that organization → same title
 	out = out.replace(
-		/(<item[^>]*>\s*)<title>[\s\S]*?<\/title>/,
-		`$1<title>${title}</title>`
+		/(<item[^>]*>[\s\S]*?<title>)([\s\S]*?)(<\/title>)/,
+		`$1${courseTitle}$3`
 	);
 
-	// c) Resource href -> index.html (EN) or index_fr.html (FR)
-	out = out.replace(
-		/(<resource[^>]*\bhref=")[^"]*(")/,
-		`$1${isFR ? entryFr : entryEn}$2`
-	);
+	// d) Resource href -> entry file (index.html)
+	out = out.replace(/(<resource[^>]*\bhref=")[^"]*(")/, `$1${entryFile}$2`);
 
-	// d) Ensure the <file href="..."> includes the selected entry file
-	//    If there is a <file href="index.html"/>, keep it AND also ensure the FR file exists in output folder,
-	//    but we won’t touch file list aggressively; we at least ensure our chosen one is listed.
-	if (
-		!new RegExp(`<file\\s+href="${isFR ? entryFr : entryEn}"\\s*/>`).test(out)
-	) {
-		// insert right after the first <resource> opening tag
-		out = out.replace(
-			/(<resource[^>]*>)/,
-			`$1\n      <file href="${isFR ? entryFr : entryEn}"/>`
-		);
+	// e) Ensure a <file href="..."> exists for the entry file
+	const fileTag = `<file href="${entryFile}"/>`;
+	if (!new RegExp(`<file\\s+href="${entryFile}"\\s*/>`).test(out)) {
+		out = out.replace(/(<resource[^>]*>)/, `$1\n      ${fileTag}`);
 	}
 
 	writeText(manifestPath, out);
@@ -97,28 +79,33 @@ const writeText = (p, s) => fs.writeFileSync(p, s, "utf8");
 (function updateEntryHTML() {
 	const html = readText(entryPath);
 	if (!html) {
-		console.warn(`⚠️ ${isFR ? entryFr : entryEn} not found in dist/`);
+		console.warn(`⚠️ ${entryFile} not found in dist/`);
 		return;
 	}
 	let out = html;
 
-	// <html lang="en|fr">
-	out = out.replace(
-		/<html[^>]*\blang="(en|fr)"/i,
-		`<html lang="${isFR ? "fr" : "en"}"`
-	);
+	// <html lang="en|fr"> (add if missing, replace if present)
+	if (/\blang="(en|fr)"/i.test(out)) {
+		out = out.replace(
+			/<html[^>]*\blang="(en|fr)"/i,
+			`<html lang="${isFR ? "fr" : "en"}"`
+		);
+	} else {
+		out = out.replace(
+			/<html([^>]*)>/i,
+			`<html lang="${isFR ? "fr" : "en"}"$1>`
+		);
+	}
 
 	// <title>…</title>
 	out = out.replace(
 		/<title>[\s\S]*?<\/title>/i,
-		`<title>${isFR ? TITLE_FR : TITLE_EN}</title>`
+		`<title>${courseTitle}</title>`
 	);
 
 	writeText(entryPath, out);
 })();
 
 console.log(
-	`✅ Updated SCORM manifest & entry for "${BUILD_LANG}" — title: ${
-		isFR ? TITLE_FR : TITLE_EN
-	} | entry: ${isFR ? entryFr : entryEn}`
+	`✅ Updated SCORM manifest & entry for "${BUILD_LANG}" — title: "${courseTitle}" | entry: ${entryFile}`
 );
