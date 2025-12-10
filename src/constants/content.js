@@ -269,7 +269,8 @@ export const RESOURCES_CONTENT = {
 				{
 					label:
 						"IPCA knowledge basket (Indigenous protected and conserved areas)",
-					url: "https://ipcaknowledgebasket.ca/",
+					url: "https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=&cad=rja&uact=8&ved=2ahUKEwjlo52mmrORAxWlOzQIHTWmCNgQFnoECBgQAQ&url=https%3A%2F%2Fipcaknowledgebasket.ca%2F&usg=AOvVaw0Vy4I6jkrWB5U8A6oEgKOq&opi=89978449",
+					labelUrl: "https://ipcaknowledgebasket.ca/",
 				},
 			],
 			tags: ["Conservation"],
@@ -687,8 +688,8 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label:
 						"Panier de savoir (aires protégées et conservation autochtones)",
-					url: "https://ipacknowledgebasket.ca/",
-					enOnly: true,
+					url: "https://ipcaknowledgebasket.ca/fr/",
+					enOnly: false,
 				},
 			],
 			tags: ["Conservation"],
@@ -1305,6 +1306,13 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 			resourcesHeading: "Ressources",
 			links: [
 				{
+					label: "Je lis autochtone!",
+					url: "https://jelisautochtone.ca/",
+					icon: "book",
+					// this government resource is bilingual in many cases; set enOnly if it's english-only
+					enOnly: false,
+				},
+				{
 					label: "#LecturesAutochtones",
 					url: "https://www.rcaanc-cirnac.gc.ca/fra/1496255894592/1557840487211",
 					icon: "book",
@@ -1798,7 +1806,7 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 				},
 				{
 					label: "Répertoire des entreprises autochtones (ISC)",
-					url: "https://www.sac-isc.gc.ca/rea-ibd",
+					url: "https://www.sac-isc.gc.ca/REA-IBD/fra/recomposer",
 				},
 			],
 			outlets: [

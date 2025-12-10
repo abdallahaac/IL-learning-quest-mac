@@ -672,24 +672,26 @@ export default function ResourcesPage() {
 														<div className="pt-2">
 															<ul className="space-y-2">
 																{rest.map((l, idx) => {
-																	const url = l.url;
+																	const href = l.url; // actual target
+																	const displayUrl = l.labelUrl || href; // what we show
 																	const en =
 																		!!l.enOnly ||
 																		hasEnglishMarker(l.label || "");
 																	const cleanLabel = stripEnglishMarker(
 																		l.label || ""
 																	);
+
 																	return (
 																		<li
 																			key={`${title}-more-${idx}`}
 																			className="flex items-start justify-between gap-2"
 																		>
 																			<a
-																				href={url}
+																				href={href}
 																				target="_blank"
 																				rel="noreferrer noopener"
 																				onClick={() =>
-																					markRead(url, cleanLabel)
+																					markRead(href, cleanLabel)
 																				}
 																				className="group flex-1 min-w-0 items-start gap-2 rounded-lg border px-3 py-2 bg-white hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition cursor-pointer"
 																				style={{
@@ -724,14 +726,14 @@ export default function ResourcesPage() {
 																						) : null}
 																					</div>
 																					<div className="text-xs break-all text-emerald-800/90 underline decoration-transparent group-hover:decoration-inherit">
-																						{url}
+																						{displayUrl}
 																					</div>
 																				</div>
 																			</a>
 																			<div className="flex items-center gap-2">
-																				<ReadBadge url={url} />
+																				<ReadBadge url={href} />
 																				<FavoriteButton
-																					url={url}
+																					url={href}
 																					label={cleanLabel}
 																					size={16}
 																				/>
