@@ -721,6 +721,18 @@ export const RESOURCES_CONTENT_FR = {
 			tags: ["Nunavut"],
 		},
 		{
+			title: "Les droits des Métis",
+			summary: "Ressource sur les droits des Métis.",
+			type: "Formation",
+			links: [
+				{
+					label: "Les droits des Métis",
+					url: "https://www.rcaanc-cirnac.gc.ca/fra/1100100014413/1535468629182",
+				},
+			],
+			tags: ["Outdoor Learning"],
+		},
+		{
 			title: "Protéger les paysages naturels du Canada, maintenant et à jamais",
 			summary: "Page d'acceuil de SNAP Canada sur la conservation autochtone.",
 			type: "Gouvernance",
@@ -768,18 +780,6 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label: "Des ressources autochtones gratuites",
 					url: "https://mikana.ca/ressources/outils-mikana/",
-				},
-			],
-			tags: ["Outdoor Learning"],
-		},
-		{
-			title: "Les droits des Métis",
-			summary: "Ressource sur les droits des Métis.",
-			type: "Formation",
-			links: [
-				{
-					label: "Les droits des Métis",
-					url: "https://www.rcaanc-cirnac.gc.ca/fra/1100100014413/1535468629182",
 				},
 			],
 			tags: ["Outdoor Learning"],

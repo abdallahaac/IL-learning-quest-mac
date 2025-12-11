@@ -603,11 +603,16 @@ export default function ResourcesPage() {
 											)}
 
 											{/* Summary + read */}
-											<div className="mt-1 flex flex-wrap items-center gap-2">
+											{/* Summary + read */}
+											<div className="mt-1 space-y-2">
 												{summary ? (
 													<p className="text-sm text-slate-600">{summary}</p>
 												) : null}
-												{primaryUrl ? <ReadBadge url={primaryUrl} /> : null}
+												{primaryUrl ? (
+													<div>
+														<ReadBadge url={primaryUrl} />
+													</div>
+												) : null}
 											</div>
 										</div>
 
@@ -730,13 +735,13 @@ export default function ResourcesPage() {
 																					</div>
 																				</div>
 																			</a>
-																			<div className="flex items-center gap-2">
-																				<ReadBadge url={href} />
+																			<div className="flex flex-col items-end gap-2">
 																				<FavoriteButton
 																					url={href}
 																					label={cleanLabel}
 																					size={16}
 																				/>
+																				<ReadBadge url={href} />
 																			</div>
 																		</li>
 																	);
