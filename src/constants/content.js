@@ -259,7 +259,7 @@ export const RESOURCES_CONTENT = {
 			links: [
 				{
 					label: "Indigenous-led conservation reading list (short link)",
-					url: "https://bit.ly/IndLedConsRL",
+					url: "https://docs.google.com/document/d/1vOzvjjSjWzOt993QO90TJ95D0u_JpD-rpi5qgL2QRaY/edit?tab=t.0#heading=h.xdlkib80jps3",
 				},
 				{
 					label:
@@ -349,6 +349,18 @@ export const RESOURCES_CONTENT = {
 					label:
 						"4 Seasons of Indigenous Learning (Outdoor Learning School & Store)",
 					url: "https://outdoorlearning.com/4-seasons/",
+				},
+			],
+			tags: ["Outdoor Learning"],
+		},
+		{
+			title: "Free Indigenous Resources",
+			summary: "Page of free Indigenous resources.",
+			type: "Training",
+			links: [
+				{
+					label: "Free Indigenous Resources",
+					url: "https://mikana.ca/en/resources/mikana-tools/",
 				},
 			],
 			tags: ["Outdoor Learning"],
@@ -1843,7 +1855,7 @@ Discover facts about an Indigenous population outside Canada. <br><strong>What s
 					enOnly: false,
 				},
 				{
-					href: "https://www.sac-isc.gc.ca/rea-ibd",
+					href: "https://www.sac-isc.gc.ca/REA-IBD/fra/recomposer",
 					title: "Répertoire des entreprises autochtones (ISC)",
 					desc: "Répertoire gouvernemental consultable d’entreprises autochtones.",
 					enOnly: false,

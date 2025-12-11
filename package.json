@@ -9,7 +9,8 @@
 		"build:once": "vite build && node set-manifest-default.js && node zip.js",
 		"package:en": "cross-env BUILD_LANG=en npm run build:once",
 		"package:fr": "cross-env BUILD_LANG=fr npm run build:once",
-		"package": "npm run package:en && npm run package:fr",
+		"clean-today-zips": "node clean-today-zips.js",
+		"package": "npm run clean-today-zips && npm run package:en && npm run package:fr",
 		"lint": "eslint .",
 		"preview": "vite preview"
 	},

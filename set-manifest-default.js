@@ -1,6 +1,6 @@
 // set-manifest-default.js
 // Post-build step: adjust imsmanifest titles, resource href,
-// and entry HTML <html lang>/<title> based on BUILD_LANG.
+// and index.html <html lang>/<title> based on BUILD_LANG.
 
 import fs from "fs";
 import path from "path";
@@ -16,96 +16,115 @@ const envLang = (process.env.BUILD_LANG || "").toLowerCase();
 const BUILD_LANG = argLang || envLang || "en";
 const isFR = BUILD_LANG === "fr";
 
-// Paths inside /dist
-const distDir = path.join(__dirname, "dist");
-const manifestPath = path.join(distDir, "imsmanifest.xml");
-
-// We’ll support both index.html (EN) and index.html (FR) – same file,
-// but lang + title will be updated for each package.
-const entryEn = "index.html";
-const entryFr = "index.html";
-const entryFile = isFR ? entryFr : entryEn;
-const entryPath = path.join(distDir, entryFile);
-
-// Course Titles
+// Course titles
 const TITLE_EN = "Learning Quest on Indigenous Cultures";
 const TITLE_FR = "Quête d’apprentissage sur les cultures autochtones";
 const courseTitle = isFR ? TITLE_FR : TITLE_EN;
+const langCode = isFR ? "fr" : "en";
 
 // Utility: safe read/write
 const readText = (p) => (fs.existsSync(p) ? fs.readFileSync(p, "utf8") : null);
 const writeText = (p, s) => fs.writeFileSync(p, s, "utf8");
 
-// 1) Update imsmanifest.xml
-(function updateManifest() {
+// ---- Manifest updater ----
+function updateManifestAt(manifestPath) {
 	const xml = readText(manifestPath);
-	if (!xml) {
-		console.warn("⚠️ imsmanifest.xml not found in dist/");
-		return;
-	}
+	if (!xml) return false;
+
 	let out = xml;
 
-	// a) If you ever use ORG_EN / ORG_FR, switch default accordingly (no-op otherwise).
+	// <organization> <title> → language-specific title
 	out = out.replace(
-		/(<organizations[^>]*\sdefault=")(ORG_EN|ORG_FR)(")/,
-		`$1${isFR ? "ORG_FR" : "ORG_EN"}$3`
-	);
-
-	// b) Organization <title> → language-specific title
-	out = out.replace(
-		/(<organization[^>]*>[\s\S]*?<title>)([\s\S]*?)(<\/title>)/,
+		/(<organization[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*?<title>)([\s\S]*?)(<\/title>)/,
 		`$1${courseTitle}$3`
 	);
 
-	// c) First <item> <title> under that organization → same title
+	// First <item> <title> under that organization → same title
 	out = out.replace(
-		/(<item[^>]*>[\s\S]*?<title>)([\s\S]*?)(<\/title>)/,
+		/(<item[^>]*>\s*(?:<!--[\s\S]*?-->\s*)*?<title>)([\s\S]*?)(<\/title>)/,
 		`$1${courseTitle}$3`
 	);
 
-	// d) Resource href -> entry file (index.html)
-	out = out.replace(/(<resource[^>]*\bhref=")[^"]*(")/, `$1${entryFile}$2`);
+	// Ensure resource href points to index.html
+	out = out.replace(/(<resource[^>]*\bhref=")[^"]*(")/, `$1index.html$2`);
 
-	// e) Ensure a <file href="..."> exists for the entry file
-	const fileTag = `<file href="${entryFile}"/>`;
-	if (!new RegExp(`<file\\s+href="${entryFile}"\\s*/>`).test(out)) {
+	// Ensure a <file href="index.html"/> exists
+	const fileTag = `<file href="index.html"/>`;
+	if (!new RegExp(`<file\\s+href="index\\.html"\\s*/>`).test(out)) {
 		out = out.replace(/(<resource[^>]*>)/, `$1\n      ${fileTag}`);
 	}
 
 	writeText(manifestPath, out);
-})();
+	console.log(`✅ Updated manifest: ${manifestPath} — title "${courseTitle}"`);
+	return true;
+}
 
-// 2) Update entry HTML lang + title
-(function updateEntryHTML() {
-	const html = readText(entryPath);
-	if (!html) {
-		console.warn(`⚠️ ${entryFile} not found in dist/`);
-		return;
-	}
+// ---- HTML updater ----
+function updateHtmlAt(htmlPath) {
+	const html = readText(htmlPath);
+	if (!html) return false;
+
 	let out = html;
 
 	// <html lang="en|fr"> (add if missing, replace if present)
 	if (/\blang="(en|fr)"/i.test(out)) {
 		out = out.replace(
-			/<html[^>]*\blang="(en|fr)"/i,
-			`<html lang="${isFR ? "fr" : "en"}"`
+			/<html([^>]*\blang=")(en|fr)(")([^>]*)>/i,
+			`<html$1${langCode}$3$4>`
 		);
 	} else {
-		out = out.replace(
-			/<html([^>]*)>/i,
-			`<html lang="${isFR ? "fr" : "en"}"$1>`
-		);
+		// no lang attribute: insert one
+		out = out.replace(/<html([^>]*)>/i, `<html lang="${langCode}"$1>`);
 	}
 
-	// <title>…</title>
+	// <title>…</title> → language-specific course title
 	out = out.replace(
 		/<title>[\s\S]*?<\/title>/i,
 		`<title>${courseTitle}</title>`
 	);
 
-	writeText(entryPath, out);
-})();
+	writeText(htmlPath, out);
+	console.log(
+		`✅ Updated HTML: ${htmlPath} — lang="${langCode}", title="${courseTitle}"`
+	);
+	return true;
+}
+
+// ---- Apply to all relevant locations ----
+
+// Manifests we care about
+const manifestCandidates = [
+	path.join(__dirname, "dist", "imsmanifest.xml"),
+	path.join(__dirname, "public", "imsmanifest.xml"),
+];
+
+// HTML entry files we care about
+const htmlCandidates = [
+	path.join(__dirname, "dist", "index.html"),
+	path.join(__dirname, "public", "index.html"),
+	path.join(__dirname, "index.html"), // root, in case Vite uses this
+];
+
+let touchedAnyManifest = false;
+for (const p of manifestCandidates) {
+	if (updateManifestAt(p)) {
+		touchedAnyManifest = true;
+	}
+}
+if (!touchedAnyManifest) {
+	console.warn("⚠️ No imsmanifest.xml found in dist/ or public/");
+}
+
+let touchedAnyHtml = false;
+for (const p of htmlCandidates) {
+	if (updateHtmlAt(p)) {
+		touchedAnyHtml = true;
+	}
+}
+if (!touchedAnyHtml) {
+	console.warn("⚠️ No index.html found in dist/, public/, or project root");
+}
 
 console.log(
-	`✅ Updated SCORM manifest & entry for "${BUILD_LANG}" — title: "${courseTitle}" | entry: ${entryFile}`
+	`🎯 Completed manifest + HTML updates for BUILD_LANG="${BUILD_LANG}" (${langCode})`
 );
