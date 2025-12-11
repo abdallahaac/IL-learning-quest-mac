@@ -669,9 +669,9 @@ export const RESOURCES_CONTENT_FR = {
 			tags: ["ECCC"],
 		},
 		{
-			title: "Conservation Through Reconciliation Partnership",
+			title: "Panier de savoir (aires protégées et conservation autochtones)",
 			summary:
-				"Ressources : liste de lecture sur la conservation autochtone, webinaires Virtual Campfire et Panier de savoir sur les aires protégées autochtones.",
+				"Ressources : Panier de savoir sur les aires protégées autochtones.",
 			type: "Conservation",
 			links: [
 				{
@@ -768,6 +768,18 @@ export const RESOURCES_CONTENT_FR = {
 				{
 					label: "Des ressources autochtones gratuites",
 					url: "https://mikana.ca/ressources/outils-mikana/",
+				},
+			],
+			tags: ["Outdoor Learning"],
+		},
+		{
+			title: "Les droits des Métis",
+			summary: "Ressource sur les droits des Métis.",
+			type: "Formation",
+			links: [
+				{
+					label: "Les droits des Métis",
+					url: "https://www.rcaanc-cirnac.gc.ca/fra/1100100014413/1535468629182",
 				},
 			],
 			tags: ["Outdoor Learning"],
